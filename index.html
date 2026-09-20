@@ -1,0 +1,2080 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>mawuang - Catatan Keuangan</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // =========================================================================
+    // KONFIGURASI FIREBASE ANDA
+    // =========================================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyDKzhyWK42di8IuFhCtbKIE0WgFQAoC1-o",
+      authDomain: "mawuang-831dd.firebaseapp.com",
+      projectId: "mawuang-831dd",
+      storageBucket: "mawuang-831dd.firebasestorage.app",
+      messagingSenderId: "41419170253",
+      appId: "1:41419170253:web:eebe964e984affa1886484",
+      measurementId: "G-M2K6LLXZJX"
+    };
+
+    window.firebaseApp = null;
+    window.firebaseDb = null;
+    window.firebaseAuth = null;
+    window.GoogleAuthProvider = GoogleAuthProvider;
+    window.firebaseSignInWithPopup = signInWithPopup; 
+    window.firebaseSignOut = signOut;
+    window.firebaseDoc = doc;
+    window.firebaseGetDoc = getDoc;
+    window.firebaseSetDoc = setDoc;
+
+    try {
+        window.firebaseApp = initializeApp(firebaseConfig);
+        window.firebaseDb = getFirestore(window.firebaseApp);
+        window.firebaseAuth = getAuth(window.firebaseApp);
+    } catch (e) { 
+        console.error("Firebase init error:", e); 
+    }
+  </script>
+
+  <style>
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+    .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    body { -webkit-tap-highlight-color: transparent; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, Component } = React;
+
+    class ErrorBoundary extends Component {
+      constructor(props) {
+        super(props);
+        this.state = { hasError: false, error: null };
+      }
+      static getDerivedStateFromError(error) {
+        return { hasError: true, error };
+      }
+      componentDidCatch(error, errorInfo) {
+        console.error("ErrorBoundary caught error:", error, errorInfo);
+      }
+      render() {
+        if (this.state.hasError) {
+          return (
+            <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center p-6 font-sans">
+              <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md w-full text-center border-2 border-red-50">
+                <div className="w-16 h-16 bg-red-50 text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">!</div>
+                <h2 className="text-xl font-bold text-[#4A4A4A] mb-2">Terjadi Kendala Sistem</h2>
+                <p className="text-xs text-gray-500 mb-6">{this.state.error?.message || 'Gagal memuat komponen aplikasi.'}</p>
+                <button onClick={() => window.location.reload()} className="w-full bg-[#8B9D83] text-white py-3.5 rounded-2xl font-bold shadow-md active:scale-95 transition-transform">Muat Ulang Aplikasi</button>
+              </div>
+            </div>
+          );
+        }
+        return this.props.children;
+      }
+    }
+
+    const idb = {
+      db: null,
+      init: async () => {
+        if (idb.db) return idb.db;
+        return new Promise((resolve, reject) => {
+          const req = indexedDB.open('mawuang_db', 10);
+          req.onupgradeneeded = (e) => { 
+              if(!e.target.result.objectStoreNames.contains('store')) {
+                 e.target.result.createObjectStore('store'); 
+              }
+          };
+          req.onsuccess = (e) => { idb.db = e.target.result; resolve(idb.db); };
+          req.onerror = () => reject('IDB error');
+        });
+      },
+      get: async (key) => {
+        const db = await idb.init();
+        return new Promise((resolve) => {
+          const tx = db.transaction('store', 'readonly');
+          const req = tx.objectStore('store').get(key);
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => resolve(null);
+        });
+      },
+      set: async (key, val) => {
+        const db = await idb.init();
+        return new Promise((resolve) => {
+          const tx = db.transaction('store', 'readwrite');
+          tx.objectStore('store').put(val, key);
+          tx.oncomplete = () => resolve();
+        });
+      },
+      remove: async (key) => {
+        const db = await idb.init();
+        return new Promise((resolve) => {
+          const tx = db.transaction('store', 'readwrite');
+          tx.objectStore('store').delete(key);
+          tx.oncomplete = () => resolve();
+        });
+      }
+    };
+
+    const Icon = ({ path, size = 24, className = "", strokeWidth = "2" }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} dangerouslySetInnerHTML={{__html: path}}></svg>
+    );
+    const Home = (p) => <Icon {...p} path='<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' />;
+    const Tags = (p) => <Icon {...p} path='<path d="m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19"/><path d="M9.586 5.586A2 2 0 0 0 8.172 5H3a1 1 0 0 0-1 1v5.172a2 2 0 0 0 .586 1.414l8.204 8.204a2.426 2.426 0 0 0 3.42 0l3.584-3.584a2.426 2.426 0 0 0 0-3.42z"/><circle cx="6.5" cy="9.5" r=".5" fill="currentColor"/>' />;
+    const Settings = (p) => <Icon {...p} path='<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>' />;
+    const Plus = (p) => <Icon {...p} path='<path d="M5 12h14"/><path d="M12 5v14"/>' />;
+    const Minus = (p) => <Icon {...p} path='<path d="M5 12h14"/>' />;
+    const Camera = (p) => <Icon {...p} path='<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>' />;
+    const Download = (p) => <Icon {...p} path='<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>' />;
+    const Globe = (p) => <Icon {...p} path='<circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/>' />;
+    const Trash2 = (p) => <Icon {...p} path='<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>' />;
+    const Edit2 = (p) => <Icon {...p} path='<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>' />;
+    const X = (p) => <Icon {...p} path='<path d="M18 6 6 18"/><path d="m6 6 12 12"/>' />;
+    const AlertCircle = (p) => <Icon {...p} path='<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>' />;
+    const BarChart2 = (p) => <Icon {...p} path='<line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>' />;
+    const ImageIcon = (p) => <Icon {...p} path='<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>' />;
+    const Info = (p) => <Icon {...p} path='<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/>' />;
+    const Lock = (p) => <Icon {...p} path='<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>' />;
+    const Unlock = (p) => <Icon {...p} path='<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>' />;
+    const Cloud = (p) => <Icon {...p} path='<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>' />;
+    const UploadCloud = (p) => <Icon {...p} path='<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m8 16 4-4 4 4"/>' />;
+    const DownloadCloud = (p) => <Icon {...p} path='<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m8 17 4 4 4-4"/>' />;
+    const WalletIcon = (p) => <Icon {...p} path='<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>' />;
+    const RefreshCw = (p) => <Icon {...p} path='<polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>' />;
+    const LogOut = (p) => <Icon {...p} path='<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>' />;
+    const Check = (p) => <Icon {...p} path='<polyline points="20 6 9 17 4 12"></polyline>' />;
+    const User = (p) => <Icon {...p} path='<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' />;
+    const MessageCircle = (p) => <Icon {...p} path='<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>' />;
+    const Mic = (p) => <Icon {...p} path='<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>' />;
+    const Send = (p) => <Icon {...p} path='<line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>' />;
+
+    // Ikon Koin Yen (Empty State Baru)
+    const EmptyCoinYen = (p) => (
+      <svg width={p.size || 48} height={p.size || 48} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={p.className}>
+        <circle cx="12" cy="12" r="10" />
+        <path d="M8 7l4 5 4-5" />
+        <path d="M12 12v6" />
+        <path d="M9 13h6" />
+        <path d="M9 16h6" />
+      </svg>
+    );
+
+    const CashYenGraphic = () => (
+      <div className="relative w-48 h-48 md:w-64 md:h-64 mx-auto flex items-center justify-center">
+        <svg viewBox="0 0 200 200" className="w-full h-full text-[#8B9D83] drop-shadow-xl">
+          <rect x="25" y="45" width="120" height="75" rx="8" fill="#D6DFD0" opacity="0.9" transform="rotate(-10 85 82)" />
+          <circle cx="85" cy="82" r="16" fill="#8B9D83" opacity="0.4" transform="rotate(-10 85 82)" />
+          <text x="75" y="88" fill="#4A4A4A" fontSize="18" fontWeight="bold" transform="rotate(-10 85 82)">¥</text>
+
+          <rect x="50" y="70" width="125" height="80" rx="10" fill="#E8EAE6" stroke="#8B9D83" strokeWidth="3" transform="rotate(5 112 110)" />
+          <circle cx="112" cy="110" r="20" fill="#8B9D83" opacity="0.2" transform="rotate(5 112 110)" />
+          <text x="102" y="118" fill="#6D7D62" fontSize="24" fontWeight="bold" transform="rotate(5 112 110)">¥</text>
+          
+          <circle cx="145" cy="55" r="12" fill="#F59E0B" opacity="0.8" />
+          <text x="141" y="60" fill="white" fontSize="12" fontWeight="bold">¥</text>
+        </svg>
+      </div>
+    );
+
+    const GoogleLogo = () => (
+        <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+    );
+
+    const dict = {
+      id: {
+        appTitle: 'mawuang', totalBalance: 'Saldo Total', income: 'Pemasukan', expense: 'Pengeluaran',
+        recent: 'Transaksi Terakhir', addIncome: 'Pemasukan', addExpense: 'Pengeluaran', scan: 'Pindai Struk',
+        home: 'Beranda', categories: 'Master Data', settings: 'Pengaturan', save: 'Simpan', cancel: 'Batal',
+        amount: 'Nominal', note: 'Catatan', exportExcel: 'Ekspor ke Excel (CSV)', language: 'Bahasa (Language)',
+        scanInstruction: 'Pilih foto atau ambil gambar struk belanja Anda', scanning: 'Menganalisis teks pada struk...',
+        categoryName: 'Nama Kategori', addCategory: 'Tambah Kategori', noTransactions: 'Belum ada transaksi, yuk mulai mencatat!',
+        delete: 'Hapus', selectCategory: 'Pilih Kategori', newTransaction: 'Transaksi Baru', type: 'Jenis',
+        categoryRequired: 'Oops, Kategori belum dipilih!', amountRequired: 'Nominal belum diisi!', insufficientBalance: 'Saldo anda tidak mencukupi',
+        dateTime: 'Tanggal & Waktu', report: 'Laporan Analisis', yearly: 'Tahunan', monthly: 'Bulanan', weekly: 'Mingguan',
+        addPhoto: 'Tambah Foto / Struk', custom: 'Kustom', startDate: 'Dari Tanggal', endDate: 'Sampai Tanggal',
+        transactionDetails: 'Rincian Transaksi', aboutApp: 'Tentang Aplikasi', aboutAppDesc: 'Aplikasi pencatat keuangan khusus perantau jepang dari indonesia , dengan fitur kurs real-time',
+        exportFileName: 'Nama File Ekspor', exportConfirm: 'Ekspor Data', scanFailed: 'Gagal mengekstrak angka. Anda dapat menyalinnya manual dari foto struk.',
+        tryAgain: 'Coba Ulang / Manual', pinSecurity: 'Keamanan (PIN 6-Digit)', setupPin: 'Atur PIN Baru', removePin: 'Hapus Keamanan',
+        enterPin: 'Masukkan PIN Anda', wrongPin: 'PIN Salah!', cloudBackup: 'Backup & Sinkronisasi', backupDesc: 'Simpan data ke Google Drive / Pulihkan dari JSON',
+        exportData: 'Backup Data', importData: 'Pulihkan', wallets: 'Dompet / Metode', chart: 'Porsi Pengeluaran',
+        addWallet: 'Tambah Dompet', walletName: 'Nama Dompet', walletsConfig: 'Daftar Dompet', setupBiometric: 'Gunakan Sidik Jari/Wajah',
+        removeBiometric: 'Matikan Keamanan', logout: 'Keluar Akun (Log Out)', connectedAccount: 'Akun Terhubung', profileSetup: 'Profil Pengguna',
+        editProfile: 'Edit Profil', saveProfile: 'Simpan Profil', changePhoto: 'Ubah Foto',
+        smartInputTitle: 'Pencatatan Cerdas', smartInputPlaceholder: 'Ketik (contoh: makan nasi goreng 25rb atau 25k)', smartInputNav: 'Ketik',
+      },
+      jp: {
+        appTitle: 'mawuang', totalBalance: '総残高', income: '収入', expense: '支出',
+        recent: '最近の取引', addIncome: '収入', addExpense: '支出', scan: 'スキャン',
+        home: 'ホーム', categories: 'マスターデータ', settings: '設定', save: '保存', cancel: 'キャンセル',
+        amount: '金額', note: 'メモ', exportExcel: 'Excelへ出力 (CSV)', language: '言語 (Language)',
+        scanInstruction: 'レシートの写真を選択または撮影してください', scanning: 'レシートのテキストを分析中...',
+        categoryName: 'カテゴリ名', addCategory: 'カテゴリ追加', noTransactions: '取引はありません。記録を始めましょう！',
+        delete: '削除', selectCategory: 'カテゴリを選択', newTransaction: '新しい取引', type: '種類',
+        categoryRequired: 'カテゴリを選択してください！', amountRequired: '金額を入力してください！', insufficientBalance: '残高が不足しています',
+        dateTime: '日時', report: '分析レポート', yearly: '年間', monthly: '月間', weekly: '週間',
+        addPhoto: '写真を追加', custom: 'カスタム', startDate: '開始日', endDate: '終了日',
+        transactionDetails: '取引の詳細', aboutApp: 'アプリについて', aboutAppDesc: 'インドネシアから日本への移住者のための家計簿アプリ。リアルタイム為替レート機能付き。',
+        exportFileName: '出力ファイル名', exportConfirm: '出力', scanFailed: '数字の抽出に失敗しました。写真から手動でコピーできます。',
+        tryAgain: '再試行 / 手動', pinSecurity: 'セキュリティ (PIN 6桁)', setupPin: 'PINを設定', removePin: 'セキュリティを削除',
+        enterPin: 'PINを入力してください', wrongPin: 'PINが間違っています！', cloudBackup: 'バックアップと同期', backupDesc: 'Googleドライブに保存 / JSONから復元',
+        exportData: 'バックアップ', importData: '復元', wallets: 'ウォレット / 支払方法', chart: '支出の割合',
+        addWallet: 'ウォレット追加', walletName: 'ウォレット名', walletsConfig: 'ウォレット一覧', setupBiometric: '指紋/顔認証を使用',
+        removeBiometric: 'セキュリティを無効にする', logout: 'ログアウト', connectedAccount: '連携アカウント', profileSetup: 'プロフィール',
+        editProfile: 'プロフィールを編集', saveProfile: 'プロフィールを保存', changePhoto: '写真を変更',
+        smartInputTitle: 'スマート入力', smartInputPlaceholder: '入力例: 昼ごはん 500円 または音声を使用', smartInputNav: '入力',
+      }
+    };
+
+    const DEFAULT_CATEGORIES = [
+      { id: '1', name: 'Makanan', nameJp: '食事', type: 'expense' },
+      { id: '2', name: 'Transportasi', nameJp: '交通', type: 'expense' },
+      { id: '3', name: 'Gaji', nameJp: '給与', type: 'income' },
+      { id: '4', name: 'Belanja', nameJp: '買い物', type: 'expense' }
+    ];
+    
+    const DEFAULT_WALLETS = [
+      { id: 'cash', name: 'Tunai', nameJp: '現金' },
+      { id: 'bank', name: 'Rekening Bank', nameJp: '銀行口座' },
+      { id: 'ewallet', name: 'E-Wallet', nameJp: '電子マネー' }
+    ];
+
+    const getCurrentDateTimeLocal = () => {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      return now.toISOString().slice(0, 16);
+    };
+
+    const compressImage = (file, callback) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = event => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 600; 
+          let scaleSize = 1;
+          if (img.width > MAX_WIDTH) { scaleSize = MAX_WIDTH / img.width; }
+          canvas.width = img.width * scaleSize;
+          canvas.height = img.height * scaleSize;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          callback(canvas.toDataURL('image/jpeg', 0.7));
+        }
+      }
+    };
+
+    function App() {
+      const [appState, setAppState] = useState('loading'); 
+      const [onboardingStep, setOnboardingStep] = useState(1);
+      const [syncStatus, setSyncStatus] = useState('idle');
+      
+      const [pinStepPhase, setPinStepPhase] = useState('create');
+      const [setupPinInput, setSetupPinInput] = useState('');
+      const [tempPinStore, setTempPinStore] = useState('');
+      const [pinSetupError, setPinSetupError] = useState('');
+
+      const [username, setUsername] = useState('');
+      const [photoURL, setPhotoURL] = useState('');
+      const [connectedEmail, setConnectedEmail] = useState('');
+      const [firebaseUid, setFirebaseUid] = useState(null);
+
+      const [lang, setLang] = useState('id');
+      const [displayCurrency, setDisplayCurrency] = useState('IDR');
+      const [activeTab, setActiveTab] = useState('home'); 
+      
+      const [transactions, setTransactions] = useState([]);
+      const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+      const [wallets, setWallets] = useState(DEFAULT_WALLETS);
+      
+      const [exchangeRate, setExchangeRate] = useState(113.69); 
+      const [isLoadingRate, setIsLoadingRate] = useState(true);
+      
+      const [reportPeriod, setReportPeriod] = useState('month'); 
+      const [customStartDate, setCustomStartDate] = useState('');
+      const [customEndDate, setCustomEndDate] = useState('');
+
+      const [isTxModalOpen, setIsTxModalOpen] = useState(false);
+      const [txFormType, setTxFormType] = useState('expense'); 
+      const [txFormData, setTxFormData] = useState({ amount: '', currency: 'IDR', category: '', note: '', date: '', photo: '', walletId: 'cash' });
+      const [txError, setTxError] = useState(''); 
+
+      const [isScannerOpen, setIsScannerOpen] = useState(false);
+      const [isScanning, setIsScanning] = useState(false);
+      const [scanError, setScanError] = useState(false);
+      const [tempScanPhoto, setTempScanPhoto] = useState(null);
+
+      // Smart Input (NLP & Voice) States
+      const [isSmartInputOpen, setIsSmartInputOpen] = useState(false);
+      const [smartText, setSmartText] = useState('');
+      const [isListening, setIsListening] = useState(false);
+      
+      const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+      const [exportFileName, setExportFileName] = useState('');
+      
+      const [newCatName, setNewCatName] = useState('');
+      const [newCatType, setNewCatType] = useState('expense');
+      const [editingCategory, setEditingCategory] = useState(null);
+      
+      const [newWalletName, setNewWalletName] = useState('');
+      const [editingWallet, setEditingWallet] = useState(null);
+      
+      const [pin, setPin] = useState('');
+      const [pinInput, setPinInput] = useState('');
+      const [biometricId, setBiometricId] = useState(null);
+      
+      const [pinSetup, setPinSetup] = useState({ isOpen: false, step: 'create', input: '', error: '' });
+      const [messageDialog, setMessageDialog] = useState({ isOpen: false, title: '', message: '' });
+      const [lockError, setLockError] = useState(false);
+
+      const [selectedTx, setSelectedTx] = useState(null);
+      const [previewImage, setPreviewImage] = useState(null);
+      
+      const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+      const [profileFormData, setProfileFormData] = useState({ username: '', photoURL: '' });
+
+      const t = dict[lang];
+
+      // =======================================================================
+      // NATIVE BACK GESTURE HANDLER (HISTORY API)
+      // =======================================================================
+      const appStateRef = useRef({
+         previewImage, selectedTx, isScannerOpen, isTxModalOpen,
+         isSmartInputOpen, isProfileModalOpen, isExportModalOpen,
+         pinSetup, messageDialog, activeTab
+      });
+
+      useEffect(() => {
+         appStateRef.current = {
+             previewImage, selectedTx, isScannerOpen, isTxModalOpen,
+             isSmartInputOpen, isProfileModalOpen, isExportModalOpen,
+             pinSetup, messageDialog, activeTab
+         };
+      });
+
+      useEffect(() => {
+         window.history.pushState({ mawuang: true }, null, window.location.href);
+
+         const handlePopState = (e) => {
+             const s = appStateRef.current;
+             let handled = false;
+
+             if (s.previewImage) { setPreviewImage(null); handled = true; }
+             else if (s.selectedTx) { setSelectedTx(null); handled = true; }
+             else if (s.isScannerOpen) { setIsScannerOpen(false); handled = true; }
+             else if (s.isTxModalOpen) { setIsTxModalOpen(false); handled = true; }
+             else if (s.isSmartInputOpen) { setIsSmartInputOpen(false); handled = true; }
+             else if (s.isProfileModalOpen) { setIsProfileModalOpen(false); handled = true; }
+             else if (s.isExportModalOpen) { setIsExportModalOpen(false); handled = true; }
+             else if (s.pinSetup.isOpen) { setPinSetup(prev => ({...prev, isOpen: false})); handled = true; }
+             else if (s.messageDialog.isOpen) { setMessageDialog(prev => ({...prev, isOpen: false})); handled = true; }
+             else if (s.activeTab !== 'home') { setActiveTab('home'); handled = true; }
+
+             if (handled) {
+                 window.history.pushState({ mawuang: true }, null, window.location.href);
+             }
+         };
+
+         window.addEventListener('popstate', handlePopState);
+         return () => window.removeEventListener('popstate', handlePopState);
+      }, []);
+      // =======================================================================
+
+      // --- SINKRONISASI INSTAN KE CLOUD FIRESTORE (SSOT) ---
+      const pushToCloud = async (payload) => {
+          if (!firebaseUid) return;
+          try {
+              if (window.firebaseDb && window.firebaseSetDoc && window.firebaseDoc) {
+                  const appId = typeof __app_id !== 'undefined' ? __app_id : 'mawuang';
+                  const ref = window.firebaseDoc(window.firebaseDb, 'artifacts', appId, 'users', firebaseUid);
+                  await window.firebaseSetDoc(ref, {
+                      ...payload,
+                      updatedAt: new Date().toISOString()
+                  }, { merge: true });
+              }
+          } catch (e) {
+              console.error("Cloud push error:", e);
+              if (e.message && e.message.toLowerCase().includes('permission')) {
+                   setMessageDialog({
+                      isOpen: true, 
+                      title: "Akses Database Ditolak ⚠️", 
+                      message: "Silakan atur Security Rules Firestore Anda menjadi: allow read, write: if request.auth != null; lalu klik Publish."
+                  });
+              }
+          }
+      };
+
+      // --- INISIALISASI AWAL (Membaca Cache) ---
+      useEffect(() => {
+        const loadApp = async () => {
+          try {
+            const savedFbUid = await idb.get('mawuang_firebase_uid');
+            const savedEmail = await idb.get('mawuang_email');
+            const savedUser = await idb.get('mawuang_username');
+            const savedPhoto = await idb.get('mawuang_photo');
+            const savedPin = await idb.get('mawuang_pin');
+            const savedBiometric = await idb.get('mawuang_biometric_id');
+            const savedLang = await idb.get('mawuang_lang');
+            const savedCurr = await idb.get('mawuang_currency');
+            const savedTx = await idb.get('mawuang_tx') || [];
+            const savedCat = await idb.get('mawuang_cat') || DEFAULT_CATEGORIES;
+            const savedWallets = await idb.get('mawuang_wallets') || DEFAULT_WALLETS;
+
+            if (savedBiometric) setBiometricId(savedBiometric);
+            if (savedLang) setLang(savedLang);
+            if (savedCurr) setDisplayCurrency(savedCurr);
+            if (savedPin !== undefined && savedPin !== null) setPin(savedPin);
+            if (savedUser) setUsername(savedUser);
+            if (savedPhoto) setPhotoURL(savedPhoto);
+            if (savedEmail) setConnectedEmail(savedEmail);
+            if (savedFbUid) setFirebaseUid(savedFbUid);
+            
+            setTransactions(savedTx);
+            setCategories(savedCat);
+            setWallets(savedWallets);
+
+            if (savedFbUid && savedEmail) {
+               setAppState(savedPin ? 'locked' : 'unlocked');
+            } else {
+               setAppState('onboarding');
+            }
+          } catch(e) {
+            console.error("Load app error:", e);
+            setAppState('onboarding');
+          }
+        };
+        loadApp();
+      }, []);
+
+      // Local Cache Sync
+      useEffect(() => { if(appState !== 'loading') idb.set('mawuang_tx', transactions); }, [transactions, appState]);
+      useEffect(() => { if(appState !== 'loading') idb.set('mawuang_cat', categories); }, [categories, appState]);
+      useEffect(() => { if(appState !== 'loading') idb.set('mawuang_wallets', wallets); }, [wallets, appState]);
+      useEffect(() => { if(appState !== 'loading') idb.set('mawuang_lang', lang); }, [lang, appState]);
+      useEffect(() => { if(appState !== 'loading') idb.set('mawuang_currency', displayCurrency); }, [displayCurrency, appState]);
+      useEffect(() => { if(appState !== 'loading') idb.set('mawuang_photo', photoURL); }, [photoURL, appState]);
+
+      useEffect(() => {
+        const handleVisibilityChange = () => {
+          if (document.hidden && appState === 'unlocked' && pin) {
+            setAppState('locked');
+            setPinInput('');
+          }
+        };
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+      }, [appState, pin]);
+
+      useEffect(() => {
+        if (appState === 'locked' && biometricId) {
+          const timer = setTimeout(() => { handleBiometricUnlock(); }, 300);
+          return () => clearTimeout(timer);
+        }
+      }, [appState, biometricId]);
+
+      const fetchExchangeRate = async () => {
+        setIsLoadingRate(true);
+        try {
+          const response = await fetch('https://api.exchangerate-api.com/v4/latest/JPY');
+          const data = await response.json();
+          if (data && data.rates && data.rates.IDR) setExchangeRate(data.rates.IDR);
+        } catch (error) { console.error("Gagal mengambil data kurs:", error); } 
+        finally { setIsLoadingRate(false); }
+      };
+      useEffect(() => { fetchExchangeRate(); }, []);
+
+      const formatCurrency = (amount, currencyCode) => {
+        if (currencyCode === 'JPY') return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(amount);
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+      };
+
+      const getConvertedAmount = (amount, fromCurrency, toCurrency) => {
+        if (fromCurrency === toCurrency) return amount;
+        if (fromCurrency === 'JPY' && toCurrency === 'IDR') return amount * exchangeRate;
+        if (fromCurrency === 'IDR' && toCurrency === 'JPY') return amount / exchangeRate;
+        return amount;
+      };
+
+      const getCatName = (cat) => {
+        if (!cat) return '';
+        return (lang === 'jp' && cat.nameJp) ? cat.nameJp : cat.name;
+      };
+      
+      const getWalletName = (wId) => {
+        const w = wallets.find(x => x.id === wId);
+        if(!w) return wId;
+        return lang === 'id' ? w.name : w.nameJp;
+      }
+
+      const totalIncome = transactions.filter(t => t.type === 'income').reduce((acc, curr) => acc + getConvertedAmount(curr.amount, curr.currency || 'IDR', displayCurrency), 0);
+      const totalExpense = transactions.filter(t => t.type === 'expense').reduce((acc, curr) => acc + getConvertedAmount(curr.amount, curr.currency || 'IDR', displayCurrency), 0);
+      const balance = totalIncome - totalExpense;
+
+      const handleEnableBiometric = async () => {
+        if (!window.PublicKeyCredential) {
+          setMessageDialog({isOpen: true, title: 'Error', message: lang==='id'?'Perangkat/Browser ini tidak mendukung biometrik.':'生体認証はサポートされていません。'});
+          return;
+        }
+        try {
+          const challenge = new Uint8Array(32); crypto.getRandomValues(challenge);
+          const uId = new Uint8Array(16); crypto.getRandomValues(uId);
+          const credential = await navigator.credentials.create({
+            publicKey: {
+              challenge, rp: { name: "mawuang App" }, user: { id: uId, name: "user", displayName: "mawuang User" },
+              pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+              authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+              timeout: 60000
+            }
+          });
+          const credId = Array.from(new Uint8Array(credential.rawId));
+          setBiometricId(credId);
+          await idb.set('mawuang_biometric_id', credId);
+          setMessageDialog({isOpen: true, title: 'Sukses', message: lang==='id'?'Keamanan tambahan berhasil diaktifkan!':'生体認証が有効になりました！'});
+        } catch (err) {
+          console.error(err);
+          setMessageDialog({isOpen: true, title: 'Gagal', message: lang==='id'?'Gagal mengaktifkan keamanan tambahan. Pastikan perangkat Anda mendukungnya.':'有効化に失敗しました。'});
+        }
+      };
+
+      const handleDisableBiometric = async () => {
+        setBiometricId(null);
+        await idb.remove('mawuang_biometric_id');
+        setMessageDialog({isOpen: true, title: 'Sukses', message: lang==='id'?'Keamanan tambahan dinonaktifkan!':'生体認証が無効になりました！'});
+      };
+
+      const handleBiometricUnlock = async () => {
+        try {
+          if (!biometricId) return;
+          const challenge = new Uint8Array(32); crypto.getRandomValues(challenge);
+          await navigator.credentials.get({
+            publicKey: {
+              challenge, allowCredentials: [{ type: "public-key", id: new Uint8Array(biometricId) }],
+              userVerification: "required", timeout: 60000
+            }
+          });
+          setAppState('unlocked'); setLockError(false); setPinInput('');
+        } catch (err) { console.warn("Sensor biometrik dibatalkan:", err); }
+      };
+
+      // --- FUNGSI NLP PENCATATAN CERDAS (Ditingkatkan) ---
+      const parseSmartInput = (text, currentCategories) => {
+          let amount = 0;
+          let currency = 'IDR';
+          let categoryId = '';
+          let suggestedCatName = '';
+          let note = text;
+          let type = 'expense';
+
+          if (text.toLowerCase().includes('yen') || text.includes('¥') || text.includes('円')) currency = 'JPY';
+          if (text.toLowerCase().includes('rp') || text.toLowerCase().includes('rupiah')) currency = 'IDR';
+
+          // Mendukung akhiran 'k' (seperti 25k atau 25 k)
+          const amountRegex = /(\d+([.,]\d+)?)\s*(rb|ribu|k|jt|juta|man|万|sen|千)?/i;
+          const match = text.match(amountRegex);
+
+          if (match) {
+              let rawNum = match[1].replace(/\./g, '').replace(/,/g, ''); 
+              if (match[1].includes('.') && match[1].split('.')[1].length !== 3) {
+                  rawNum = match[1].replace(/,/g, '.');
+              }
+              let baseVal = parseFloat(rawNum);
+              let multiplier = match[3] ? match[3].toLowerCase() : '';
+              
+              if (['rb', 'ribu', 'k'].includes(multiplier)) baseVal *= 1000;
+              if (['jt', 'juta'].includes(multiplier)) baseVal *= 1000000;
+              if (['man', '万'].includes(multiplier)) baseVal *= 10000;
+              if (['sen', '千'].includes(multiplier)) baseVal *= 1000;
+              
+              amount = baseVal;
+              note = text.replace(match[0], '').trim();
+          }
+
+          // Samakan go-jek dan gojek
+          const lowerText = text.toLowerCase().replace('go-jek', 'gojek');
+          
+          // Keyword Map Pintar
+          const keywordMap = {
+              'Makanan': ['makan', 'minum', 'nasi', 'kopi', 'food', 'snack', 'sarapan', 'siang', 'malam', 'sushi', 'ramen', 'bento', 'tabemono', 'nomimono', 'hirugohan', 'bangohan', 'asagohan', 'okashi'],
+              'Transportasi': ['bensin', 'parkir', 'gojek', 'grab', 'maxim', 'ojek', 'indrive', 'kereta', 'bus', 'suica', 'pasmo', 'tol', 'tiket', 'taxi', 'taksi', 'mrt', 'shinkansen', 'densha', 'basu', 'koutsuu', 'kotsu'],
+              'Belanja': ['belanja', 'supermarket', 'pasar', 'minimarket', 'baju', 'sepatu', 'donki', 'daiso', 'kombini', 'kaimono', 'shoppingu', 'pakaian'],
+              'Hobi': ['gundam', 'mainan', 'game', 'nonton', 'bioskop', 'konser', 'hobby', 'anime', 'manga', 'komik', 'figure', 'gacha', 'playstation', 'nintendo'],
+              'Kesehatan': ['obat', 'dokter', 'rs', 'rumah sakit', 'klinik', 'apotek', 'kusuri', 'byouin', 'vitamin'],
+              'Tagihan': ['listrik', 'air', 'internet', 'wifi', 'gas', 'pajak', 'sewa', 'kos', 'yachin', 'denki', 'suidou', 'gasu'],
+              'Gaji': ['gaji', 'bonus', 'bayaran', 'fee', 'arubaito', 'kyuuryou', 'shunyu']
+          };
+
+          // 1. Coba cari di kategori yang sudah ada
+          for (let cat of currentCategories) {
+              if (lowerText.includes(cat.name.toLowerCase()) || (cat.nameJp && lowerText.includes(cat.nameJp.toLowerCase()))) {
+                  categoryId = cat.id; type = cat.type; break;
+              }
+          }
+
+          // 2. Jika tidak ada, periksa peta kata kunci
+          if (!categoryId) {
+              for (const [catName, words] of Object.entries(keywordMap)) {
+                  if (words.some(w => lowerText.includes(w))) {
+                      const matchedCat = currentCategories.find(c => c.name.toLowerCase() === catName.toLowerCase() || c.name.toLowerCase().includes(catName.toLowerCase()));
+                      if (matchedCat) {
+                          categoryId = matchedCat.id; type = matchedCat.type;
+                      } else {
+                          suggestedCatName = catName;
+                          type = catName === 'Gaji' ? 'income' : 'expense';
+                      }
+                      break;
+                  }
+              }
+          }
+          
+          // 3. Fallback absolut (Kategori Lain-lain)
+          if (!categoryId && !suggestedCatName) {
+              suggestedCatName = 'Lain-lain';
+              type = 'expense';
+          }
+
+          return { amount, currency, categoryId, suggestedCatName, type, note };
+      };
+
+      const toggleListen = () => {
+          if (isListening) { setIsListening(false); return; }
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (!SpeechRecognition) {
+              alert(lang === 'id' ? "Browser Anda tidak mendukung fitur Suara (Gunakan Chrome/Safari versi terbaru)." : "ブラウザが音声機能をサポートしていません。");
+              return;
+          }
+          const recognition = new SpeechRecognition();
+          recognition.lang = lang === 'id' ? 'id-ID' : 'ja-JP';
+          recognition.interimResults = false;
+          
+          recognition.onstart = () => setIsListening(true);
+          recognition.onresult = (event) => {
+              setSmartText(event.results[0][0].transcript);
+              setIsListening(false);
+          };
+          recognition.onerror = () => setIsListening(false);
+          recognition.onend = () => setIsListening(false);
+          recognition.start();
+      };
+
+      const handleSmartSubmit = () => {
+          if (!smartText.trim()) return;
+          const parsed = parseSmartInput(smartText, categories);
+          if (!parsed.amount) {
+              setMessageDialog({ isOpen: true, title: 'Oops!', message: lang === 'id' ? 'Nominal angka tidak terdeteksi. Silakan ketik angka (misal: 25rb atau 25k)' : '金額が検出されませんでした。数字を入力してください。' });
+              return;
+          }
+          
+          let finalCategoryId = parsed.categoryId;
+          let currentCats = [...categories];
+
+          // Buat Kategori Baru secara otomatis jika tidak ada
+          if (!finalCategoryId && parsed.suggestedCatName) {
+              const newCat = { id: Date.now().toString(), name: parsed.suggestedCatName, nameJp: parsed.suggestedCatName, type: parsed.type };
+              currentCats.push(newCat);
+              setCategories(currentCats);
+              pushToCloud({ categories: currentCats });
+              finalCategoryId = newCat.id;
+          } else if (!finalCategoryId) {
+              finalCategoryId = categories[0].id; // Fallback darurat
+          }
+          
+          setIsSmartInputOpen(false);
+          setSmartText('');
+          
+          const newTx = {
+            id: Date.now().toString(),
+            type: parsed.type,
+            amount: parseFloat(parsed.amount),
+            currency: parsed.currency,
+            categoryId: finalCategoryId,
+            note: parsed.note,
+            date: new Date().toISOString(),
+            photo: null,
+            walletId: wallets[0]?.id || 'cash'
+          };
+          
+          const newTransactions = [newTx, ...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+          setTransactions(newTransactions);
+          pushToCloud({ transactions: newTransactions }); 
+
+          // Pop-up Notifikasi Sukses
+          setTimeout(() => {
+              setMessageDialog({ isOpen: true, title: lang === 'id' ? 'Sukses' : '成功', message: lang === 'id' ? 'Pencatatan berhasil disimpan!' : '記録が保存されました！' });
+          }, 300);
+      };
+
+      const handleOpenTxModal = (type, prefillAmount = '', prefillCurrency = 'IDR', prefillNote = '', photo = '', wallet = null) => {
+        setTxFormType(type);
+        setTxError('');
+        setTxFormData({ amount: prefillAmount, currency: prefillCurrency, category: '', note: prefillNote, date: getCurrentDateTimeLocal(), photo: photo, walletId: wallet || (wallets[0]?.id || 'cash') });
+        setIsTxModalOpen(true);
+      };
+
+      const handleSaveTx = () => {
+        if (!txFormData.amount) return setTxError(t.amountRequired);
+        if (!txFormData.category) return setTxError(t.categoryRequired);
+        const newTx = {
+          id: Date.now().toString(), type: txFormType, amount: parseFloat(txFormData.amount), currency: txFormData.currency,
+          categoryId: txFormData.category, note: txFormData.note, date: new Date(txFormData.date).toISOString(), photo: txFormData.photo || null, walletId: txFormData.walletId || (wallets[0]?.id || 'cash')
+        };
+        const newTransactions = [newTx, ...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+        setTransactions(newTransactions);
+        setIsTxModalOpen(false);
+        pushToCloud({ transactions: newTransactions }); 
+      };
+
+      const handleDeleteTx = (id) => {
+          const newTransactions = transactions.filter(tx => tx.id !== id);
+          setTransactions(newTransactions);
+          pushToCloud({ transactions: newTransactions }); 
+      };
+      
+      const handleAddCategory = () => {
+        if (!newCatName) return;
+        const newCatList = [...categories, { id: Date.now().toString(), name: newCatName, nameJp: newCatName, type: newCatType }];
+        setCategories(newCatList);
+        setNewCatName('');
+        pushToCloud({ categories: newCatList }); 
+      };
+      const handleUpdateCategory = () => {
+        const newCatList = categories.map(c => c.id === editingCategory.id ? editingCategory : c);
+        setCategories(newCatList);
+        setEditingCategory(null);
+        pushToCloud({ categories: newCatList }); 
+      };
+      const handleDeleteCategory = (id) => {
+        if(categories.length <= 1) return setMessageDialog({isOpen: true, title: 'Error', message: lang === 'id' ? 'Minimal harus ada 1 kategori!' : '少なくとも1つのカテゴリが必要です！'});
+        const newCatList = categories.filter(c => c.id !== id);
+        setCategories(newCatList);
+        pushToCloud({ categories: newCatList }); 
+      };
+
+      const handleAddWallet = () => {
+        if (!newWalletName) return;
+        const newWalletList = [...wallets, { id: Date.now().toString(), name: newWalletName, nameJp: newWalletName }];
+        setWallets(newWalletList);
+        setNewWalletName('');
+        pushToCloud({ wallets: newWalletList }); 
+      };
+      const handleUpdateWallet = () => {
+        const newWalletList = wallets.map(w => w.id === editingWallet.id ? editingWallet : w);
+        setWallets(newWalletList);
+        setEditingWallet(null);
+        pushToCloud({ wallets: newWalletList }); 
+      };
+      const handleDeleteWallet = (id) => {
+        if(wallets.length <= 1) return setMessageDialog({isOpen: true, title: 'Error', message: lang === 'id' ? 'Minimal harus ada 1 dompet!' : '少なくとも1つのウォレットが必要です！'});
+        const newWalletList = wallets.filter(w => w.id !== id);
+        setWallets(newWalletList);
+        pushToCloud({ wallets: newWalletList }); 
+      };
+
+      const handlePhotoUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) compressImage(file, (dataUrl) => setTxFormData({ ...txFormData, photo: dataUrl }));
+      };
+
+      const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          setIsScanning(true);
+          setScanError(false);
+          compressImage(file, async (compressedDataUrl) => {
+            try {
+              const result = await Tesseract.recognize(file, 'ind+eng+jpn');
+              const text = result.data.text.toUpperCase();
+              
+              const isJapaneseReceipt = /(¥|円|合計|お買上額|お預り|お釣|消費税|SUICA|PASMO|PAYPAY)/.test(text);
+              const detectedCurrency = isJapaneseReceipt ? 'JPY' : 'IDR';
+              let detectedWallet = wallets[0]?.id || 'cash';
+              const ewalletRegex = /(QRIS|PAYPAY|SUICA|PASMO|電子マネー|GOPAY|SHOPEEPAY|SPAY|OVO|DANA|LINKAJA|E-WALLET)/;
+              const bankRegex = /(CREDIT|KREDIT|DEBIT|KARTU|CARD|カード|クレジット|MANDIRI|BCA|BNI|BRI|VISA|MASTER)/;
+              
+              if (ewalletRegex.test(text)) detectedWallet = wallets.find(w => w.id === 'ewallet' || w.name.toUpperCase().includes('E-WALLET') || w.name.toUpperCase().includes('PAY'))?.id || detectedWallet;
+              else if (bankRegex.test(text)) detectedWallet = wallets.find(w => w.id === 'bank' || w.name.toUpperCase().includes('BANK') || w.name.toUpperCase().includes('KARTU'))?.id || detectedWallet;
+
+              const flatText = text.replace(/\s+/g, ' ').replace(/T O T A L/g, 'TOTAL').replace(/合 計/g, '合計');
+
+              let foundAmount = '';
+              const getAmountFromProximity = (keywordsArray) => {
+                  let maxVal = 0;
+                  for (let kw of keywordsArray) {
+                      let startIndex = 0, index;
+                      while ((index = flatText.indexOf(kw, startIndex)) > -1) {
+                          const scanRadius = flatText.substring(index, index + kw.length + 60);
+                          const matches = scanRadius.match(/(?:RP|¥)?\s*(\d{1,3}([.,]\d{3})+|\d{3,8})/g);
+                          if (matches) {
+                              for(let m of matches) {
+                                  const cleanVal = parseInt(m.replace(/[^\d]/g, ''), 10);
+                                  if (cleanVal > 0 && cleanVal < 50000000 && cleanVal.toString().length < 9) {
+                                      if(cleanVal > maxVal) maxVal = cleanVal;
+                                  }
+                              }
+                          }
+                          startIndex = index + kw.length;
+                      }
+                      if (maxVal > 0) return maxVal.toString(); 
+                  }
+                  return '';
+              };
+
+              const tier1 = ['TOTAL BELANJA', 'GRAND TOTAL', 'TOTAL TAGIHAN', 'HARGA JUAL', 'お買上額'];
+              const tier2 = ['TOTAL', 'T0TAL', 'AMOUNT', '合計', '計', 'CREDIT', 'KREDIT', 'DEBIT', 'QRIS', 'PAYPAY', 'SUICA', 'PASMO', 'カード', 'クレジット', '電子マネー', 'GOPAY', 'SHOPEEPAY'];
+              const tier3 = ['BAYAR', 'DIBAYAR', 'CASH', 'TUNAI', '預り', 'お預り'];
+
+              foundAmount = getAmountFromProximity(tier1);
+              if (!foundAmount) foundAmount = getAmountFromProximity(tier2);
+              if (!foundAmount) foundAmount = getAmountFromProximity(tier3);
+              
+              if (!foundAmount) {
+                  const fallbackRegex = /(?:RP|¥|YEN|円)\s*(\d+([.,]\d{3})*)/g;
+                  let match, maxFallback = 0;
+                  while ((match = fallbackRegex.exec(flatText)) !== null) {
+                      const val = parseInt(match[1].replace(/[^\d]/g, ''), 10);
+                      if (val > maxFallback && val < 50000000) maxFallback = val;
+                  }
+                  if (maxFallback > 0) foundAmount = maxFallback.toString();
+              }
+
+              setIsScanning(false);
+              setIsScannerOpen(false);
+              
+              if (foundAmount) {
+                 handleOpenTxModal('expense', foundAmount, detectedCurrency, lang === 'id' ? 'Dari Pindai Struk' : 'レシートスキャンから', compressedDataUrl, detectedWallet);
+              } else {
+                 setTempScanPhoto(compressedDataUrl);
+                 setScanError(true);
+                 setIsScannerOpen(true);
+              }
+            } catch (err) {
+              setIsScanning(false);
+              setTempScanPhoto(compressedDataUrl);
+              setScanError(true);
+            }
+          });
+        }
+      };
+
+      const handleExportCSV = () => {
+        let finalFileName = exportFileName.trim() || `mawuang_report_${new Date().toISOString().slice(0, 10)}`;
+        if (!finalFileName.endsWith('.csv')) finalFileName += '.csv';
+        const headers = ['Transaction ID', 'Date', 'Time', 'Type', 'Category', 'Wallet', 'Note', 'Currency', 'Amount', `Converted Amount (${displayCurrency})`];
+        const rows = transactions.map(tx => {
+          const cat = categories.find(c => c.id === tx.categoryId);
+          const txDate = new Date(tx.date);
+          const convertedAmount = getConvertedAmount(tx.amount, tx.currency || 'IDR', displayCurrency);
+          const safeNote = `"${(tx.note || '').replace(/"/g, '""')}"`;
+          const safeCat = `"${(getCatName(cat) || 'Unknown').replace(/"/g, '""')}"`;
+          const rawWallet = getWalletName(tx.walletId) || 'Cash';
+          const safeWallet = `"${String(rawWallet).replace(/"/g, '""')}"`;
+          return [ tx.id, txDate.toLocaleDateString(), txDate.toLocaleTimeString(), tx.type === 'income' ? 'Income' : 'Expense', safeCat, safeWallet, safeNote, tx.currency || 'IDR', tx.amount, convertedAmount.toFixed(2) ].join(';');
+        });
+        const csvContent = "\uFEFF" + [headers.join(';'), ...rows].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url; link.setAttribute('download', finalFileName);
+        document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
+        setIsExportModalOpen(false); setExportFileName('');
+      };
+
+      const handleBackupJSON = () => {
+        const data = { transactions, categories, wallets, pin, lang, username, photoURL };
+        const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a'); link.href = url; link.setAttribute('download', `mawuang_backup_${new Date().toISOString().slice(0, 10)}.json`);
+        document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
+      };
+
+      const handleRestoreJSON = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = JSON.parse(event.target.result);
+            if (data.transactions) setTransactions(data.transactions);
+            if (data.categories) setCategories(data.categories);
+            if (data.wallets) setWallets(data.wallets);
+            if (data.pin !== undefined) setPin(data.pin);
+            if (data.lang) setLang(data.lang);
+            if (data.username) setUsername(data.username);
+            if (data.photoURL) setPhotoURL(data.photoURL);
+            
+            pushToCloud({
+                transactions: data.transactions || transactions,
+                categories: data.categories || categories,
+                wallets: data.wallets || wallets,
+                pin: data.pin !== undefined ? data.pin : pin,
+                lang: data.lang || lang,
+                username: data.username || username,
+                photoURL: data.photoURL || photoURL
+            });
+            
+            setMessageDialog({ isOpen: true, title: lang === 'id' ? 'Berhasil' : '成功', message: lang === 'id' ? 'Data berhasil dipulihkan!' : 'データが復元されました！' });
+          } catch (err) { setMessageDialog({ isOpen: true, title: 'Error', message: 'File backup tidak valid!' }); }
+        };
+        reader.readAsText(file);
+      };
+
+      const handlePinPress = (num) => {
+        const newPin = pinInput + num;
+        setPinInput(newPin);
+        if (newPin.length === 6) {
+          if (newPin === pin) { setAppState('unlocked'); setPinInput(''); setLockError(false); } 
+          else { setLockError(true); setTimeout(() => { setPinInput(''); setLockError(false); }, 800); }
+        }
+      };
+
+      // =======================================================================
+      // NATIVE FIREBASE SIGN IN WITH POPUP (SSOT)
+      // =======================================================================
+      const handleGoogleLogin = async () => {
+          if (!window.firebaseApp || !window.firebaseDb || !window.firebaseAuth || !window.firebaseSignInWithPopup) {
+              setMessageDialog({ isOpen: true, title: 'Koneksi Terputus', message: 'Sistem cloud sedang offline atau diblokir oleh browser. Harap muat ulang.' });
+              return;
+          }
+
+          setSyncStatus('syncing');
+          try {
+              const provider = new window.GoogleAuthProvider();
+              const result = await window.firebaseSignInWithPopup(window.firebaseAuth, provider);
+              
+              const uid = result.user.uid;
+              const email = result.user.email || '';
+              const googleName = result.user.displayName || email.split('@')[0] || 'Pengguna';
+              const googlePhoto = result.user.photoURL || '';
+
+              setFirebaseUid(uid);
+              setConnectedEmail(email);
+
+              await idb.set('mawuang_firebase_uid', uid);
+              await idb.set('mawuang_email', email);
+
+              const appId = typeof __app_id !== 'undefined' ? __app_id : 'mawuang';
+              const docRef = window.firebaseDoc(window.firebaseDb, 'artifacts', appId, 'users', uid);
+              
+              const docSnap = await Promise.race([
+                  window.firebaseGetDoc(docRef),
+                  new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000))
+              ]);
+
+              if (docSnap && docSnap.exists()) {
+                  const data = docSnap.data();
+                  const cloudTx = data.transactions || [];
+                  const cloudCat = data.categories || DEFAULT_CATEGORIES;
+                  const cloudWallets = data.wallets || DEFAULT_WALLETS;
+                  const cloudPin = data.pin !== undefined ? data.pin : '';
+                  const cloudName = data.username || googleName;
+                  const cloudLang = data.lang || 'id';
+                  const cloudPhoto = data.photoURL || googlePhoto;
+
+                  setTransactions(cloudTx); 
+                  setCategories(cloudCat);
+                  setWallets(cloudWallets);
+                  setUsername(cloudName);
+                  setLang(cloudLang);
+                  setPin(cloudPin); 
+                  setPhotoURL(cloudPhoto);
+                  
+                  await idb.set('mawuang_tx', cloudTx);
+                  await idb.set('mawuang_cat', cloudCat);
+                  await idb.set('mawuang_wallets', cloudWallets);
+                  await idb.set('mawuang_username', cloudName);
+                  await idb.set('mawuang_lang', cloudLang);
+                  await idb.set('mawuang_pin', cloudPin); 
+                  await idb.set('mawuang_photo', cloudPhoto);
+
+                  setSyncStatus('success');
+                  setTimeout(() => {
+                      setAppState(cloudPin ? 'locked' : 'unlocked');
+                  }, 500);
+
+              } else {
+                  setUsername(googleName);
+                  setPhotoURL(googlePhoto);
+                  setTransactions([]);
+                  setCategories(DEFAULT_CATEGORIES);
+                  setWallets(DEFAULT_WALLETS);
+                  setPin('');
+                  
+                  await idb.set('mawuang_username', googleName);
+                  await idb.set('mawuang_photo', googlePhoto);
+                  await idb.set('mawuang_tx', []);
+                  await idb.set('mawuang_cat', DEFAULT_CATEGORIES);
+                  await idb.set('mawuang_wallets', DEFAULT_WALLETS);
+                  await idb.set('mawuang_pin', '');
+                  
+                  setSyncStatus('success');
+                  setTimeout(() => {
+                      setOnboardingStep(3); 
+                  }, 500);
+              }
+          } catch (err) {
+              console.error("Firebase Login Error:", err);
+              setSyncStatus('idle'); 
+              let errorMsg = err.message || 'Gagal terhubung ke Cloud. Pastikan koneksi internet aktif.';
+              
+              if (err.code === 'auth/unauthorized-domain') {
+                  errorMsg = 'Domain ini belum diizinkan. Buka Firebase Console > Authentication > Settings > Authorized domains, dan tambahkan domain Anda.';
+              } else if (err.message === 'timeout' || err.code === 'permission-denied') {
+                  errorMsg = 'Akses Database Cloud gagal/lambat. Pastikan Security Rules Firestore Anda diatur ke allow read, write: if request.auth != null;';
+              }
+
+              setMessageDialog({ isOpen: true, title: 'Gagal Masuk', message: errorMsg });
+          }
+      };
+
+      const handleLogout = async () => {
+          try {
+              if (window.firebaseAuth && window.firebaseSignOut) {
+                  await window.firebaseSignOut(window.firebaseAuth);
+              }
+          } catch (e) { console.warn("Sign out error", e); }
+
+          await idb.remove('mawuang_firebase_uid');
+          await idb.remove('mawuang_email');
+          await idb.remove('mawuang_username');
+          await idb.remove('mawuang_photo');
+          await idb.remove('mawuang_pin');
+          await idb.remove('mawuang_biometric_id');
+          await idb.remove('mawuang_tx');
+          await idb.remove('mawuang_cat');
+          await idb.remove('mawuang_wallets');
+
+          setFirebaseUid(null);
+          setConnectedEmail('');
+          setUsername('');
+          setPhotoURL('');
+          setTransactions([]);
+          setCategories(DEFAULT_CATEGORIES);
+          setWallets(DEFAULT_WALLETS);
+          setPin('');
+          setBiometricId(null);
+          setPinInput('');
+          setSetupPinInput('');
+          setTempPinStore('');
+          setPinStepPhase('create');
+          setPinSetupError('');
+          
+          setAppState('onboarding');
+          setOnboardingStep(1);
+          setSyncStatus('idle');
+      };
+
+      const handleSetupPinPress = (num) => {
+          const newPin = setupPinInput + num;
+          setSetupPinInput(newPin);
+          if (newPin.length === 6) {
+              if (pinStepPhase === 'create') {
+                  setTimeout(() => {
+                      setTempPinStore(newPin);
+                      setSetupPinInput('');
+                      setPinStepPhase('confirm');
+                      setPinSetupError('');
+                  }, 300);
+              } else {
+                  setTimeout(async () => {
+                      if (newPin === tempPinStore) {
+                          setPin(newPin);
+                          await idb.set('mawuang_pin', newPin);
+                          setAppState('unlocked');
+                          
+                          const initialPayload = {
+                             transactions: [],
+                             categories: DEFAULT_CATEGORIES,
+                             wallets: DEFAULT_WALLETS,
+                             username: username,
+                             photoURL: photoURL,
+                             lang: lang,
+                             email: connectedEmail,
+                             pin: newPin,
+                          };
+                          pushToCloud(initialPayload);
+                      } else {
+                          setPinSetupError(lang === 'id' ? 'PIN tidak cocok! Silakan ulangi.' : 'PINs do not match! Please try again.');
+                          setSetupPinInput('');
+                          setPinStepPhase('create');
+                          setTempPinStore('');
+                      }
+                  }, 300);
+              }
+          }
+      };
+
+      if (appState === 'loading') {
+          return <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center"><div className="w-10 h-10 border-4 border-[#8B9D83] border-t-transparent rounded-full animate-spin"></div></div>;
+      }
+
+      if (appState === 'onboarding') {
+          return (
+              <div className="min-h-screen bg-[#FDFBF7] md:bg-gray-100 text-[#4A4A4A] font-sans selection:bg-[#8B9D83] selection:text-white flex justify-center md:items-center p-0 md:p-6">
+                  <div className="w-full max-w-md md:max-w-4xl lg:max-w-5xl bg-[#FDFBF7] min-h-screen md:min-h-[650px] md:rounded-[40px] md:shadow-2xl relative overflow-hidden flex flex-col md:flex-row">
+                      
+                      <div className="hidden md:flex w-1/2 bg-[#8B9D83] flex-col items-center justify-center p-12 text-center text-white relative overflow-hidden">
+                           <CashYenGraphic />
+                           <h2 className="text-4xl font-bold mt-12 tracking-tight">mawuang.</h2>
+                           <p className="text-white/80 mt-4 font-medium">Catatan Keuangan Cerdas Perantau</p>
+                      </div>
+
+                      <div className="w-full md:w-1/2 flex flex-col h-full min-h-screen md:min-h-0 items-center justify-center p-8 text-center relative z-10 mx-auto">
+                          
+                          {onboardingStep === 1 && (
+                              <div className="flex flex-col h-full items-center justify-between md:justify-center p-2 w-full animate-fade-in">
+                                  <div className="mt-20 md:hidden">
+                                      <h1 className="text-4xl font-bold text-[#6D7D62] tracking-tight mb-2">mawuang.</h1>
+                                      <p className="text-gray-400 text-sm font-medium">Catatan Keuangan Perantau</p>
+                                  </div>
+                                  
+                                  <div className="my-10 md:hidden"><CashYenGraphic /></div>
+                                  
+                                  <div className="mb-10 md:mb-0 w-full mt-auto md:mt-0">
+                                      <h2 className="text-3xl font-bold text-[#4A4A4A] mb-3">Selamat Datang!</h2>
+                                      <p className="text-gray-500 text-sm mb-10 leading-relaxed px-4">Kelola pemasukan dan pengeluaran harian Anda dengan mudah, rapi, dan cerdas.</p>
+                                      <button onClick={() => setOnboardingStep(2)} className="w-full bg-[#8B9D83] text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-[#778B6F] active:scale-95 transition-all text-lg tracking-wide">Mulai Perjalanan</button>
+                                  </div>
+                              </div>
+                          )}
+                          
+                          {onboardingStep === 2 && (
+                              <div className="flex flex-col h-full items-center justify-center w-full animate-slide-up">
+                                  <div className="mb-6 text-[#D4A373]"><Cloud size={70} strokeWidth="1.5" /></div>
+                                  <h2 className="text-2xl font-bold text-[#4A4A4A] mb-2">Masuk dengan Akun Google</h2>
+                                  <p className="text-gray-500 text-sm mb-6 leading-relaxed px-2">Sinkronkan data keuangan Anda secara aman dan otomatis berdasarkan akun Google Anda.</p>
+                                  
+                                  {syncStatus === 'idle' && (
+                                      <div className="w-full flex flex-col items-center space-y-4 animate-fade-in">
+                                          <button onClick={handleGoogleLogin} className="w-full max-w-[280px] bg-white text-[#4A4A4A] font-bold py-3.5 px-4 rounded-full shadow-md flex items-center justify-center gap-3 border border-gray-100 hover:bg-gray-50 active:scale-95 transition-all">
+                                              <GoogleLogo /> Lanjutkan dengan Google
+                                          </button>
+                                      </div>
+                                  )}
+                                  {syncStatus === 'syncing' && (
+                                      <div className="flex flex-col items-center py-6 animate-fade-in">
+                                          <div className="w-12 h-12 border-4 border-[#8B9D83] border-t-transparent rounded-full animate-spin mb-4"></div>
+                                          <p className="text-[#8B9D83] font-semibold">Menarik data dari Cloud...</p>
+                                      </div>
+                                  )}
+                                  {syncStatus === 'success' && (
+                                      <div className="flex flex-col items-center py-6 animate-fade-in">
+                                          <div className="bg-green-100 text-green-500 p-4 rounded-full mb-4 shadow-sm"><Check size={40} strokeWidth="3" /></div>
+                                          <p className="text-green-600 font-bold text-lg">Berhasil Masuk!</p>
+                                      </div>
+                                  )}
+                              </div>
+                          )}
+
+                          {onboardingStep === 3 && (
+                              <div className="flex flex-col h-full items-center justify-center w-full animate-slide-up">
+                                  <div className="mb-8 relative mt-[-20px]">
+                                      {photoURL ? (
+                                         <img src={photoURL} className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg mx-auto" />
+                                      ) : (
+                                         <div className="w-28 h-28 bg-[#E8EAE6] text-[#8B9D83] rounded-full border-4 border-white shadow-lg flex items-center justify-center mx-auto"><User size={40} /></div>
+                                      )}
+                                      <label className="absolute bottom-1 right-1 bg-[#8B9D83] text-white p-2.5 rounded-full cursor-pointer shadow-md hover:scale-105 active:scale-95 transition-all">
+                                          <Camera size={18} />
+                                          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                              const file = e.target.files[0];
+                                              if(file) compressImage(file, setPhotoURL);
+                                          }} />
+                                      </label>
+                                  </div>
+                                  <h2 className="text-2xl font-bold text-[#4A4A4A] mb-2 tracking-tight">{t.profileSetup}</h2>
+                                  <p className="text-gray-500 text-xs mb-8 px-4">Sesuaikan nama panggilan dan foto profil Anda. (Opsional)</p>
+                                  
+                                  <div className="w-full max-w-[280px] mx-auto">
+                                      <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="Nama Panggilan" className="w-full box-border bg-white border-none rounded-2xl p-4 text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] text-center font-bold mb-8 transition-shadow" />
+                                      <button onClick={() => setOnboardingStep(4)} className="w-full bg-[#8B9D83] text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-[#778B6F] active:scale-95 transition-transform tracking-wide">Lanjutkan</button>
+                                  </div>
+                              </div>
+                          )}
+
+                          {onboardingStep === 4 && (
+                              <div className="flex flex-col h-full items-center justify-center w-full animate-slide-up">
+                                  <div className="mb-4 text-[#8B9D83] bg-[#E8EAE6] p-4 rounded-full"><Lock size={32} /></div>
+                                  <h2 className="text-2xl font-bold text-[#4A4A4A] mb-2 tracking-tight">
+                                      {pinStepPhase === 'create' ? 'Buat PIN Keamanan' : 'Konfirmasi PIN Anda'}
+                                  </h2>
+                                  <p className="text-gray-500 text-xs mb-8 px-4">
+                                      {pinStepPhase === 'create' ? 'Masukkan 6 digit angka untuk mengamankan data Anda.' : 'Masukkan ulang PIN yang sama untuk konfirmasi.'}
+                                  </p>
+                                  
+                                  <div className="flex gap-3 mb-4">
+                                    {[...Array(6)].map((_, i) => (
+                                      <div key={i} className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${setupPinInput.length > i ? 'bg-[#8B9D83] scale-110' : 'bg-gray-200'}`}></div>
+                                    ))}
+                                  </div>
+                                  {pinSetupError && <p className="text-red-400 text-xs font-semibold mb-6 animate-pulse">{pinSetupError}</p>}
+                                  
+                                  <div className="grid grid-cols-3 gap-4 md:gap-6 max-w-[280px] w-full mx-auto">
+                                    {[1,2,3,4,5,6,7,8,9].map(num => (
+                                      <button key={num} onClick={() => handleSetupPinPress(num.toString())} className="w-14 h-14 md:w-16 md:h-16 rounded-full text-xl font-bold bg-gray-50 text-[#4A4A4A] hover:bg-gray-100 active:scale-95 transition-all flex items-center justify-center mx-auto">{num}</button>
+                                    ))}
+                                    <div></div>
+                                    <button onClick={() => handleSetupPinPress('0')} className="w-14 h-14 md:w-16 md:h-16 rounded-full text-xl font-bold bg-gray-50 text-[#4A4A4A] hover:bg-gray-100 active:scale-95 transition-all flex items-center justify-center mx-auto">0</button>
+                                    <button onClick={() => setSetupPinInput(setupPinInput.slice(0,-1))} className="w-14 h-14 md:w-16 md:h-16 rounded-full text-lg font-bold bg-gray-50 text-gray-400 hover:bg-gray-100 active:scale-95 transition-all flex items-center justify-center mx-auto"><X size={20}/></button>
+                                  </div>
+                                  <button onClick={async () => {
+                                      setPin('');
+                                      await idb.set('mawuang_pin', '');
+                                      setAppState('unlocked');
+                                      
+                                      const initialPayload = {
+                                         transactions: [],
+                                         categories: DEFAULT_CATEGORIES,
+                                         wallets: DEFAULT_WALLETS,
+                                         username: username,
+                                         photoURL: photoURL,
+                                         lang: lang,
+                                         email: connectedEmail,
+                                         pin: '',
+                                      };
+                                      pushToCloud(initialPayload);
+                                  }} className="mt-8 text-gray-400 text-xs font-semibold hover:text-gray-600 transition-colors">Lewati PIN</button>
+                              </div>
+                          )}
+                      </div>
+                  </div>
+              </div>
+          );
+      }
+
+      if (appState === 'locked' && pin) {
+        return (
+          <div className="min-h-screen bg-[#8B9D83] text-white flex flex-col items-center justify-center p-6 font-sans selection:bg-[#FDFBF7] selection:text-[#8B9D83]">
+            <Lock size={48} className={`mb-6 opacity-80 ${lockError ? 'animate-bounce text-red-300' : 'animate-fade-in'}`} />
+            <h2 className="text-2xl font-bold mb-8 animate-fade-in tracking-wider">{lockError ? t.wrongPin : t.enterPin}</h2>
+            <div className={`flex gap-3 mb-12 ${lockError ? 'animate-pulse' : 'animate-fade-in'}`}>
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className={`w-4 h-4 rounded-full transition-all duration-300 ${pinInput.length > i ? (lockError ? 'bg-red-400 scale-110' : 'bg-white scale-110') : 'bg-white/30'}`}></div>
+              ))}
+            </div>
+            <div className="grid grid-cols-3 gap-6 max-w-[280px] animate-slide-up">
+              {[1,2,3,4,5,6,7,8,9].map(num => (
+                <button key={num} onClick={() => handlePinPress(num.toString())} className="w-16 h-16 rounded-full text-2xl font-semibold bg-white/10 active:bg-white/30 hover:bg-white/20 active:scale-95 transition-all flex items-center justify-center mx-auto">{num}</button>
+              ))}
+              
+              {biometricId ? (
+                 <button onClick={handleBiometricUnlock} className="w-16 h-16 rounded-full bg-[#D4A373] hover:bg-[#C29363] shadow-[0_0_20px_rgba(212,163,115,0.6)] animate-pulse active:scale-95 transition-all flex items-center justify-center text-white mx-auto">
+                    <Unlock size={28} strokeWidth="2.5" />
+                 </button>
+              ) : <div></div>}
+              
+              <button onClick={() => handlePinPress('0')} className="w-16 h-16 rounded-full text-2xl font-semibold bg-white/10 active:bg-white/30 hover:bg-white/20 active:scale-95 transition-all flex items-center justify-center mx-auto">0</button>
+              <button onClick={() => setPinInput(pinInput.slice(0,-1))} className="w-16 h-16 rounded-full text-xl font-semibold bg-white/10 active:bg-white/30 hover:bg-white/20 active:scale-95 transition-all flex items-center justify-center mx-auto"><X size={24}/></button>
+            </div>
+            {biometricId && (
+               <p onClick={handleBiometricUnlock} className="mt-10 text-xs font-semibold text-white/70 tracking-widest uppercase cursor-pointer hover:text-white transition-colors">
+                  {lang === 'id' ? 'Sentuh sensor untuk membuka' : 'センサーにタッチしてロック解除'}
+               </p>
+            )}
+          </div>
+        );
+      }
+
+      const NavButton = ({ tab, icon: IconComp }) => {
+        const isActive = activeTab === tab;
+        return (
+          <button onClick={() => setActiveTab(tab)} className={`flex items-center justify-center p-3 lg:w-full lg:rounded-2xl transition-all ${isActive ? 'text-[#8B9D83] bg-[#8B9D83]/10 rounded-2xl' : 'text-gray-400 hover:text-gray-600 lg:hover:bg-gray-50'}`}>
+            <IconComp size={24} strokeWidth={isActive ? 2.5 : 2} />
+          </button>
+        );
+      };
+
+      const renderHome = () => (
+        <div className="p-6 md:p-10 pb-24 md:pb-10 relative z-10 animate-fade-in md:grid md:grid-cols-12 md:gap-8 lg:gap-12 md:items-start">
+          <div className="col-span-12 flex justify-between items-center mb-6 md:mb-8">
+            
+            <div className="flex items-center gap-3 overflow-hidden">
+               {photoURL ? (
+                  <img src={photoURL} className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover shadow-sm border-2 border-white flex-shrink-0" />
+               ) : (
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white text-[#8B9D83] flex items-center justify-center shadow-sm flex-shrink-0"><User size={20} /></div>
+               )}
+               <h1 className="text-xl md:text-2xl font-bold text-[#6D7D62] tracking-tight truncate max-w-[160px] md:max-w-full">Hai, {username || 'Pengguna'}!</h1>
+            </div>
+            
+            <div className="flex items-center bg-[#E8EAE6] p-1 rounded-full cursor-pointer shadow-inner flex-shrink-0" onClick={() => setDisplayCurrency(displayCurrency === 'IDR' ? 'JPY' : 'IDR')}>
+               <div className={`px-3 py-1.5 rounded-full text-[10px] font-bold transition-all duration-300 ${displayCurrency === 'IDR' ? 'bg-white text-[#8B9D83] shadow-sm' : 'text-gray-400'}`}>IDR</div>
+               <div className={`px-3 py-1.5 rounded-full text-[10px] font-bold transition-all duration-300 ${displayCurrency === 'JPY' ? 'bg-white text-[#8B9D83] shadow-sm' : 'text-gray-400'}`}>JPY</div>
+            </div>
+          </div>
+
+          <div className="col-span-12 lg:col-span-7 space-y-6">
+            <div className="bg-[#8B9D83] text-[#FDFBF7] rounded-[32px] p-7 shadow-lg relative overflow-hidden">
+              <div className="relative z-10">
+                <div className="flex justify-between items-start mb-2 gap-2">
+                  <p className="text-[#D6DFD0] text-sm font-medium mt-1">{t.totalBalance}</p>
+                  <button onClick={fetchExchangeRate} disabled={isLoadingRate} className="text-[#D6DFD0] text-[10px] font-medium bg-black/10 hover:bg-black/20 active:scale-95 transition-all px-2.5 py-1.5 rounded-full backdrop-blur-sm flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+                    <RefreshCw size={12} className={isLoadingRate ? 'animate-spin' : ''} />
+                    <span>{isLoadingRate ? (lang === 'id' ? 'Memuat...' : '読み込み中...') : `1 JPY = Rp ${exchangeRate.toFixed(2)}`}</span>
+                  </button>
+                </div>
+                <h2 className="text-4xl md:text-5xl font-bold mb-6 md:mb-10 tracking-tight break-words">{formatCurrency(balance, displayCurrency)}</h2>
+                
+                <div className="flex bg-[#778B6F] p-5 rounded-[24px] items-center text-left">
+                  <div className="flex-1 overflow-hidden pr-2">
+                    <p className="text-[#D6DFD0] text-[10px] md:text-xs uppercase tracking-widest font-bold mb-1">{t.income}</p>
+                    <p className="font-bold text-sm md:text-base truncate">{formatCurrency(totalIncome, displayCurrency)}</p>
+                  </div>
+                  <div className="w-px bg-[#8B9D83] h-10 mx-2 self-center rounded-full"></div>
+                  <div className="flex-1 overflow-hidden pl-2">
+                    <p className="text-[#D6DFD0] text-[10px] md:text-xs uppercase tracking-widest font-bold mb-1">{t.expense}</p>
+                    <p className="font-bold text-sm md:text-base truncate">{formatCurrency(totalExpense, displayCurrency)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+              {wallets.map(w => {
+                 const wIn = transactions.filter(tx => tx.type === 'income' && tx.walletId === w.id).reduce((acc, curr) => acc + getConvertedAmount(curr.amount, curr.currency || 'IDR', displayCurrency), 0);
+                 const wOut = transactions.filter(tx => tx.type === 'expense' && tx.walletId === w.id).reduce((acc, curr) => acc + getConvertedAmount(curr.amount, curr.currency || 'IDR', displayCurrency), 0);
+                 const wBal = wIn - wOut;
+                 return (
+                   <div key={w.id} className="bg-white p-4 rounded-3xl min-w-[140px] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-50 flex-shrink-0 flex flex-col justify-between">
+                      <div className="flex items-center gap-2 mb-3 text-gray-400">
+                        <WalletIcon size={14} />
+                        <p className="text-[11px] font-semibold truncate">{lang === 'id' ? w.name : w.nameJp}</p>
+                      </div>
+                      <p className="font-bold text-[#4A4A4A] text-[13px]">{formatCurrency(wBal, displayCurrency)}</p>
+                   </div>
+                 );
+              })}
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <button onClick={() => handleOpenTxModal('income')} className="bg-white hover:bg-gray-50 text-[#8B9D83] p-4 md:py-6 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center transition-transform active:scale-95">
+                <div className="bg-[#E8EAE6] p-3 md:p-4 rounded-full mb-3"><Plus size={20} /></div>
+                <span className="text-xs font-semibold">{t.addIncome}</span>
+              </button>
+              <button onClick={() => handleOpenTxModal('expense')} className="bg-white hover:bg-gray-50 text-[#D4A373] p-4 md:py-6 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center transition-transform active:scale-95">
+                <div className="bg-[#F6EBE1] p-3 md:p-4 rounded-full mb-3"><Minus size={20} /></div>
+                <span className="text-xs font-semibold">{t.addExpense}</span>
+              </button>
+              <button onClick={() => setIsScannerOpen(true)} className="bg-white hover:bg-gray-50 text-[#6D7D62] p-4 md:py-6 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center transition-transform active:scale-95">
+                <div className="bg-[#E8EAE6] p-3 md:p-4 rounded-full mb-3"><Camera size={20} /></div>
+                <span className="text-xs font-semibold">{t.scan}</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="col-span-12 lg:col-span-5 mt-6 lg:mt-0 lg:pl-4">
+            <h3 className="text-lg font-bold text-[#4A4A4A] mb-4">{t.recent}</h3>
+            {transactions.length === 0 ? (
+              <div className="text-center py-10 bg-white rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-gray-50 border-dashed">
+                <EmptyCoinYen className="mx-auto text-[#D4A373] mb-4" size={56} />
+                <p className="text-gray-400 text-sm font-medium">{t.noTransactions}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {transactions.slice(0, 10).map((tx) => {
+                  const cat = categories.find(c => c.id === tx.categoryId);
+                  const isIncome = tx.type === 'income';
+                  return (
+                    <div key={tx.id} onClick={() => setSelectedTx(tx)} className="bg-white p-4 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors active:scale-95">
+                      <div className="flex items-center gap-4 overflow-hidden">
+                        <div className={`p-3 rounded-2xl flex-shrink-0 ${isIncome ? 'bg-[#E8EAE6] text-[#8B9D83]' : 'bg-[#F6EBE1] text-[#D4A373]'}`}>
+                          {isIncome ? <Plus size={18} /> : <Minus size={18} />}
+                        </div>
+                        <div className="overflow-hidden">
+                          <p className="font-semibold text-[#4A4A4A] truncate">{getCatName(cat) || 'Unknown'}</p>
+                          <p className="text-[10px] text-gray-400 mt-0.5 truncate">
+                            {new Date(tx.date).toLocaleDateString(lang === 'id' ? 'id-ID' : 'ja-JP', { month: 'short', day: 'numeric' })} • {getWalletName(tx.walletId)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 flex-shrink-0 pl-2">
+                        <p className={`font-bold ${isIncome ? 'text-[#8B9D83]' : 'text-[#4A4A4A]'}`}>{isIncome ? '+' : '-'}{formatCurrency(tx.amount, tx.currency || 'IDR')}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          {tx.photo && <ImageIcon size={14} className="text-gray-300" />}
+                          <button onClick={(e) => { e.stopPropagation(); handleDeleteTx(tx.id); }} className="text-gray-300 hover:text-red-400 transition-colors p-1"><Trash2 size={16} /></button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+
+      const renderReport = () => {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const isThisWeek = (date) => {
+          const d = new Date(date);
+          const start = new Date(now); start.setDate(now.getDate() - now.getDay()); start.setHours(0,0,0,0);
+          const end = new Date(now); end.setDate(now.getDate() - now.getDay() + 6); end.setHours(23,59,59,999);
+          return d >= start && d <= end;
+        };
+        const filteredTx = transactions.filter(tx => {
+          const d = new Date(tx.date);
+          if (reportPeriod === 'week') return isThisWeek(d);
+          if (reportPeriod === 'month') return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+          if (reportPeriod === 'year') return d.getFullYear() === currentYear;
+          if (reportPeriod === 'custom') {
+            const dt = d.getTime();
+            const start = customStartDate ? new Date(customStartDate).setHours(0,0,0,0) : 0;
+            const end = customEndDate ? new Date(customEndDate).setHours(23,59,59,999) : Infinity;
+            return dt >= start && dt <= end;
+          }
+          return true;
+        });
+        const rIncome = filteredTx.filter(t => t.type === 'income').reduce((acc, curr) => acc + getConvertedAmount(curr.amount, curr.currency || 'IDR', displayCurrency), 0);
+        const rExpense = filteredTx.filter(t => t.type === 'expense').reduce((acc, curr) => acc + getConvertedAmount(curr.amount, curr.currency || 'IDR', displayCurrency), 0);
+        const expenseTx = filteredTx.filter(t => t.type === 'expense');
+        const groupedChart = {};
+        expenseTx.forEach(tx => { groupedChart[tx.categoryId] = (groupedChart[tx.categoryId] || 0) + getConvertedAmount(tx.amount, tx.currency || 'IDR', displayCurrency); });
+        const chartTotal = Object.values(groupedChart).reduce((a,b)=>a+b, 0);
+        const chartColors = ['#8B9D83', '#D4A373', '#6D7D62', '#C29363', '#A3B19B', '#4A4A4A'];
+        let cumulativePercent = 0;
+        const chartSlices = Object.entries(groupedChart).sort((a,b)=>b[1]-a[1]).map(([catId, amount], idx) => {
+           const percent = amount / chartTotal;
+           const slice = { catId, amount, percent, color: chartColors[idx % chartColors.length], start: cumulativePercent };
+           cumulativePercent += percent;
+           return slice;
+        });
+        const gradientString = chartTotal > 0 ? chartSlices.map(s => `${s.color} ${s.start * 100}% ${(s.start + s.percent) * 100}%`).join(', ') : '#f3f4f6 0% 100%';
+
+        return (
+          <div className="p-6 md:p-10 pb-24 md:pb-10 animate-fade-in relative z-10 md:grid md:grid-cols-12 md:gap-8 lg:gap-12 md:items-start">
+            <div className="col-span-12 mb-2 md:mb-4">
+              <h1 className="text-2xl font-bold text-[#6D7D62] tracking-tight">{t.report}</h1>
+            </div>
+
+            <div className="col-span-12 lg:col-span-6 space-y-6">
+              <div className="flex bg-[#E8EAE6] rounded-2xl p-1 shadow-inner">
+                {['week', 'month', 'year', 'custom'].map(period => (
+                  <button key={period} onClick={() => setReportPeriod(period)} className={`flex-1 py-2 text-[10px] sm:text-xs font-bold rounded-xl transition-all duration-300 truncate px-1 ${reportPeriod === period ? 'bg-white text-[#8B9D83] shadow-sm' : 'text-gray-400'}`}>
+                    {period === 'week' ? t.weekly : period === 'month' ? t.monthly : period === 'year' ? t.yearly : t.custom}
+                  </button>
+                ))}
+              </div>
+
+              {reportPeriod === 'custom' && (
+                <div className="flex gap-3 animate-fade-in">
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-[10px] font-semibold text-gray-400 mb-1">{t.startDate}</label>
+                    <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="w-full box-border bg-white border-none rounded-xl px-2 py-2.5 text-[10px] sm:text-xs font-semibold text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] appearance-none"/>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="block text-[10px] font-semibold text-gray-400 mb-1">{t.endDate}</label>
+                    <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="w-full box-border bg-white border-none rounded-xl px-2 py-2.5 text-[10px] sm:text-xs font-semibold text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] appearance-none"/>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-4 md:p-6 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border-l-4 border-[#8B9D83]">
+                  <p className="text-xs text-gray-400 mb-1">{t.income}</p>
+                  <p className="font-bold text-[#8B9D83] truncate md:text-lg">{formatCurrency(rIncome, displayCurrency)}</p>
+                </div>
+                <div className="bg-white p-4 md:p-6 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border-l-4 border-[#D4A373]">
+                  <p className="text-xs text-gray-400 mb-1">{t.expense}</p>
+                  <p className="font-bold text-[#D4A373] truncate md:text-lg">{formatCurrency(rExpense, displayCurrency)}</p>
+                </div>
+              </div>
+
+              <div className="bg-white p-5 md:p-6 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+                <h3 className="font-semibold text-[#4A4A4A] mb-4">{t.chart}</h3>
+                {chartTotal > 0 ? (
+                  <div className="flex items-center gap-6">
+                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-full flex-shrink-0 shadow-inner" style={{ background: `conic-gradient(${gradientString})` }}></div>
+                    <div className="flex-1 space-y-2">
+                      {chartSlices.slice(0, 5).map(s => (
+                        <div key={s.catId} className="flex items-center justify-between text-[10px] md:text-xs">
+                          <div className="flex items-center gap-1.5 overflow-hidden pr-2">
+                            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{backgroundColor: s.color}}></div>
+                            <span className="truncate font-medium">{getCatName(categories.find(c=>c.id===s.catId))}</span>
+                          </div>
+                          <span className="font-bold ml-2 text-gray-500">{Math.round(s.percent * 100)}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400 text-center py-4">{t.noTransactions}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="col-span-12 lg:col-span-6 mt-6 lg:mt-0 lg:pl-4">
+              <h3 className="font-semibold text-[#4A4A4A] mb-4">{t.transactionDetails}</h3>
+              {filteredTx.length === 0 ? (
+                <div className="text-center py-8 bg-white/50 rounded-3xl border border-gray-100 border-dashed">
+                  <EmptyCoinYen className="mx-auto text-[#D4A373] mb-4" size={56} />
+                  <p className="text-gray-400 text-sm font-medium">{t.noTransactions}</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredTx.map((tx) => {
+                    const cat = categories.find(c => c.id === tx.categoryId);
+                    const isIncome = tx.type === 'income';
+                    return (
+                      <div key={tx.id} onClick={() => setSelectedTx(tx)} className="bg-white p-4 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors active:scale-95">
+                        <div className="flex items-center gap-4 overflow-hidden">
+                          <div className={`p-3 rounded-2xl flex-shrink-0 ${isIncome ? 'bg-[#E8EAE6] text-[#8B9D83]' : 'bg-[#F6EBE1] text-[#D4A373]'}`}>
+                            {isIncome ? <Plus size={18} /> : <Minus size={18} />}
+                          </div>
+                          <div className="overflow-hidden">
+                            <p className="font-semibold text-[#4A4A4A] truncate">{getCatName(cat) || 'Unknown'}</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5 truncate">
+                              {new Date(tx.date).toLocaleDateString(lang === 'id' ? 'id-ID' : 'ja-JP', { month: 'short', day: 'numeric' })} • {getWalletName(tx.walletId)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0 pl-2">
+                          <p className={`font-bold ${isIncome ? 'text-[#8B9D83]' : 'text-[#4A4A4A]'}`}>{isIncome ? '+' : '-'}{formatCurrency(tx.amount, tx.currency || 'IDR')}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            {tx.photo && <ImageIcon size={14} className="text-gray-300" />}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      const renderCategories = () => (
+        <div className="p-6 md:p-10 pb-24 md:pb-10 animate-fade-in relative z-10 md:grid md:grid-cols-12 md:gap-8 lg:gap-12 md:items-start">
+          <div className="col-span-12 mb-2 md:mb-4">
+            <h1 className="text-2xl font-bold text-[#6D7D62] tracking-tight">{lang === 'id' ? 'Kategori & Dompet' : 'カテゴリ & ウォレット'}</h1>
+          </div>
+          <div className="col-span-12 md:col-span-6 space-y-6">
+            <div className="bg-white p-5 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+              <h3 className="font-semibold text-[#4A4A4A] mb-4">{t.addCategory}</h3>
+              <div className="flex flex-col gap-3 w-full">
+                <input type="text" placeholder={t.categoryName} value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className="w-full min-w-0 bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none"/>
+                <div className="flex gap-2 w-full">
+                  <select value={newCatType} onChange={(e) => setNewCatType(e.target.value)} className="flex-1 min-w-0 bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none appearance-none">
+                    <option value="expense">{t.expense}</option><option value="income">{t.income}</option>
+                  </select>
+                  <button onClick={handleAddCategory} className="bg-[#8B9D83] text-white px-6 rounded-2xl font-semibold hover:bg-[#778B6F] transition-colors flex-shrink-0"><Plus size={20} /></button>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="font-semibold text-[#4A4A4A] px-2">{t.categories}</h3>
+              {categories.map((c) => (
+                <div key={c.id} className="bg-white p-4 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex items-center justify-between">
+                  {editingCategory?.id === c.id ? (
+                    <div className="flex gap-2 w-full">
+                      <input type="text" value={editingCategory.name} onChange={(e) => setEditingCategory({...editingCategory, name: e.target.value, nameJp: e.target.value})} className="flex-1 w-full min-w-0 bg-gray-50 rounded-xl px-3 py-2 text-sm outline-none" />
+                      <select value={editingCategory.type} onChange={(e) => setEditingCategory({...editingCategory, type: e.target.value})} className="bg-gray-50 rounded-xl px-2 text-sm outline-none">
+                        <option value="expense">Out</option><option value="income">In</option>
+                      </select>
+                      <button onClick={handleUpdateCategory} className="text-[#8B9D83] p-2 hover:bg-gray-50 rounded-lg"><Check size={18}/></button>
+                      <button onClick={() => setEditingCategory(null)} className="text-gray-400 p-2 hover:bg-gray-50 rounded-lg"><X size={18}/></button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3 overflow-hidden pr-2">
+                        <div className={`w-3 h-10 rounded-full flex-shrink-0 ${c.type === 'income' ? 'bg-[#8B9D83]' : 'bg-[#D4A373]'}`}></div>
+                        <span className="font-medium text-[#4A4A4A] truncate">{getCatName(c)}</span>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button onClick={() => setEditingCategory(c)} className="text-gray-300 hover:text-[#8B9D83] p-2 transition-colors"><Edit2 size={18} /></button>
+                        <button onClick={() => handleDeleteCategory(c.id)} className="text-gray-300 hover:text-red-400 p-2 transition-colors"><Trash2 size={18} /></button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="col-span-12 md:col-span-6 space-y-6 mt-6 md:mt-0">
+            <div className="bg-white p-5 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+              <h3 className="font-semibold text-[#4A4A4A] mb-4">{t.addWallet}</h3>
+              <div className="flex gap-2 w-full">
+                <input type="text" placeholder={t.walletName} value={newWalletName} onChange={(e) => setNewWalletName(e.target.value)} className="flex-1 min-w-0 bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none"/>
+                <button onClick={handleAddWallet} className="bg-[#8B9D83] text-white px-6 rounded-2xl font-semibold hover:bg-[#778B6F] transition-colors flex-shrink-0"><Plus size={20} /></button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="font-semibold text-[#4A4A4A] px-2">{t.walletsConfig}</h3>
+              {wallets.map((w) => (
+                <div key={w.id} className="bg-white p-4 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex items-center justify-between">
+                  {editingWallet?.id === w.id ? (
+                    <div className="flex gap-2 w-full">
+                      <input type="text" value={editingWallet.name} onChange={(e) => setEditingWallet({...editingWallet, name: e.target.value, nameJp: e.target.value})} className="flex-1 w-full min-w-0 bg-gray-50 rounded-xl px-3 py-2 text-sm outline-none" />
+                      <button onClick={handleUpdateWallet} className="text-[#8B9D83] p-2 hover:bg-gray-50 rounded-lg"><Check size={18}/></button>
+                      <button onClick={() => setEditingWallet(null)} className="text-gray-400 p-2 hover:bg-gray-50 rounded-lg"><X size={18}/></button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3 overflow-hidden pr-2">
+                        <div className="w-10 h-10 rounded-full bg-[#E8EAE6] text-[#6D7D62] flex items-center justify-center flex-shrink-0"><WalletIcon size={16}/></div>
+                        <span className="font-medium text-[#4A4A4A] truncate">{lang === 'id' ? w.name : w.nameJp}</span>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button onClick={() => setEditingWallet(w)} className="text-gray-300 hover:text-[#8B9D83] p-2 transition-colors"><Edit2 size={18} /></button>
+                        <button onClick={() => handleDeleteWallet(w.id)} className="text-gray-300 hover:text-red-400 p-2 transition-colors"><Trash2 size={18} /></button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+
+      const renderSettings = () => (
+        <div className="p-6 md:p-10 pb-24 md:pb-10 animate-fade-in relative z-10 md:max-w-3xl space-y-4 md:space-y-6">
+          <h1 className="text-2xl font-bold text-[#6D7D62] tracking-tight mb-6 md:mb-8">{t.settings}</h1>
+          
+          <div className="bg-white p-5 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] mb-6 flex items-center justify-between">
+             <div className="flex items-center gap-4 overflow-hidden pr-2">
+                 {photoURL ? (
+                    <img src={photoURL} className="w-16 h-16 rounded-full object-cover shadow-sm flex-shrink-0" />
+                 ) : (
+                    <div className="w-16 h-16 rounded-full bg-[#E8EAE6] text-[#8B9D83] flex items-center justify-center shadow-sm flex-shrink-0"><User size={32} /></div>
+                 )}
+                 <div className="overflow-hidden">
+                     <p className="text-lg font-bold text-[#4A4A4A] truncate">{username || 'Pengguna'}</p>
+                     <p className="text-xs text-gray-400 truncate">{connectedEmail}</p>
+                 </div>
+             </div>
+             <button onClick={() => { setProfileFormData({username, photoURL}); setIsProfileModalOpen(true); }} className="bg-gray-50 p-3 rounded-2xl text-[#8B9D83] hover:bg-gray-100 active:scale-95 transition-all flex-shrink-0">
+                 <Edit2 size={20} />
+             </button>
+          </div>
+
+          <div className="bg-white p-5 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="bg-[#E8EAE6] p-2 rounded-xl text-[#6D7D62]"><Globe size={20}/></div>
+              <h3 className="font-semibold text-[#4A4A4A]">{t.language}</h3>
+            </div>
+            <div className="w-16 h-8 bg-[#E8EAE6] rounded-full p-1 cursor-pointer relative shadow-inner" onClick={() => {
+                const newLang = lang === 'id' ? 'jp' : 'id';
+                setLang(newLang);
+                pushToCloud({ lang: newLang }); 
+            }}>
+              <div className={`w-6 h-6 bg-white rounded-full shadow transform transition-transform duration-300 ease-out flex items-center justify-center ${lang === 'jp' ? 'translate-x-8' : 'translate-x-0'}`}>
+                <span className="text-[10px] font-bold text-[#8B9D83]">{lang === 'id' ? 'ID' : 'JP'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-5 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-[#F6EBE1] p-2 rounded-xl text-[#D4A373]">{pin ? <Lock size={20}/> : <Unlock size={20}/>}</div>
+                <h3 className="font-semibold text-[#4A4A4A]">{t.pinSecurity}</h3>
+              </div>
+              <div className={`w-12 h-6 rounded-full p-1 cursor-pointer relative shadow-inner transition-colors duration-300 ${pin ? 'bg-[#8B9D83]' : 'bg-gray-200'}`} onClick={() => setPinSetup({ isOpen: true, step: pin ? 'remove' : 'create', input: '', error: '' })}>
+                <div className={`w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-300 ease-out ${pin ? 'translate-x-6' : 'translate-x-0'}`}></div>
+              </div>
+            </div>
+            
+            {pin && (
+              <div className="flex justify-between items-center pl-12 border-t border-gray-50 pt-4 mt-2">
+                <div className="flex items-center gap-2">
+                  <Lock size={16} className="text-gray-400"/>
+                  <span className="text-xs font-semibold text-gray-500">{biometricId ? t.removeBiometric : t.setupBiometric}</span>
+                </div>
+                <div className={`w-10 h-5 rounded-full p-1 cursor-pointer relative shadow-inner transition-colors duration-300 ${biometricId ? 'bg-[#D4A373]' : 'bg-gray-200'}`} onClick={biometricId ? handleDisableBiometric : handleEnableBiometric}>
+                  <div className={`w-3 h-3 bg-white rounded-full shadow transform transition-transform duration-300 ease-out ${biometricId ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white p-5 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="bg-[#E8EAE6] p-2 rounded-xl text-[#6D7D62]"><Cloud size={20}/></div>
+              <h3 className="font-semibold text-[#4A4A4A]">{t.cloudBackup}</h3>
+            </div>
+            <p className="text-[10px] md:text-xs text-gray-400 mb-4 ml-11 md:ml-12">{t.backupDesc}</p>
+            <div className="flex gap-2 ml-11 md:ml-12">
+              <button onClick={handleBackupJSON} className="flex-1 bg-[#8B9D83] text-white py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-transform"><UploadCloud size={14}/> {t.exportData}</button>
+              <label className="flex-1 bg-gray-100 text-[#4A4A4A] py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 transition-transform"><DownloadCloud size={14}/> {t.importData} <input type="file" accept=".json" className="hidden" onChange={handleRestoreJSON}/></label>
+            </div>
+          </div>
+
+          <div className="bg-white p-5 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-[#E8EAE6] p-2 rounded-xl text-[#6D7D62]"><Download size={20}/></div>
+              <h3 className="font-semibold text-[#4A4A4A]">{t.exportExcel}</h3>
+            </div>
+            <button onClick={() => { setExportFileName(`mawuang_report_${new Date().toISOString().slice(0, 10)}`); setIsExportModalOpen(true); }} className="w-full bg-[#4A4A4A] text-white p-4 rounded-2xl font-semibold hover:bg-gray-800 transition-colors flex justify-center items-center gap-2">
+              <Download size={18} /> {t.exportExcel}
+            </button>
+          </div>
+
+          <div className="bg-white p-5 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="bg-[#F6EBE1] p-2 rounded-xl text-[#D4A373]"><Info size={20}/></div>
+              <h3 className="font-semibold text-[#4A4A4A]">{t.aboutApp}</h3>
+            </div>
+            <p className="text-xs md:text-sm text-gray-500 leading-relaxed pl-11 md:pl-12">{t.aboutAppDesc}</p>
+          </div>
+
+          <div className="bg-white p-5 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+            <button onClick={handleLogout} className="w-full bg-red-50 text-red-500 hover:bg-red-100 p-4 rounded-2xl font-bold transition-colors flex justify-center items-center gap-2">
+              <LogOut size={18} /> {t.logout}
+            </button>
+          </div>
+        </div>
+      );
+
+      return (
+        <div className="min-h-screen bg-gray-100 text-[#4A4A4A] font-sans selection:bg-[#8B9D83] selection:text-white flex justify-center md:items-center p-0 md:p-6">
+          <div className="w-full max-w-md md:max-w-4xl lg:max-w-6xl bg-[#FDFBF7] min-h-screen md:min-h-[800px] relative md:rounded-[40px] md:shadow-2xl flex flex-col md:flex-row overflow-hidden md:my-0 mx-auto">
+            
+            <nav className="fixed bottom-0 md:relative w-full md:w-24 lg:w-24 bg-white/90 md:bg-white/50 backdrop-blur-md border-t md:border-t-0 md:border-r border-gray-100 p-2 pb-6 md:pb-8 flex md:flex-col justify-around md:justify-start items-center md:pt-8 z-40 rounded-t-3xl md:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.03)] md:shadow-none flex-shrink-0">
+              <div className="hidden md:flex flex-col w-full mb-8 items-center justify-center gap-2">
+                 {photoURL ? (
+                    <img src={photoURL} className="w-10 h-10 rounded-full object-cover shadow-sm border-2 border-white" />
+                 ) : (
+                    <div className="w-10 h-10 rounded-full bg-white text-[#8B9D83] flex items-center justify-center shadow-sm"><User size={20} /></div>
+                 )}
+              </div>
+              <div className="flex w-full md:flex-col justify-around md:justify-start gap-2 md:gap-4 lg:px-2">
+                <NavButton tab="home" icon={Home} />
+                <NavButton tab="report" icon={BarChart2} />
+                
+                <button onClick={() => setIsSmartInputOpen(true)} className="flex items-center justify-center p-3 transition-all text-gray-400 hover:text-gray-600 lg:w-full lg:rounded-2xl lg:hover:bg-gray-50 active:scale-95">
+                  <MessageCircle size={24} strokeWidth={2} />
+                </button>
+
+                <NavButton tab="categories" icon={Tags} />
+                <NavButton tab="settings" icon={Settings} />
+              </div>
+            </nav>
+
+            <div className="flex-1 w-full relative h-screen md:h-auto overflow-y-auto hide-scrollbar bg-transparent">
+              {activeTab === 'home' && renderHome()}
+              {activeTab === 'report' && renderReport()}
+              {activeTab === 'categories' && renderCategories()}
+              {activeTab === 'settings' && renderSettings()}
+            </div>
+
+            {/* Modal Smart Input (NLP) */}
+            {isSmartInputOpen && (
+              <div className="fixed inset-0 z-[90] flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm p-0 md:p-4 animate-fade-in" onClick={() => setIsSmartInputOpen(false)}>
+                 <div className="bg-white w-full max-w-md rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 shadow-2xl relative mx-auto animate-slide-up" onClick={e => e.stopPropagation()}>
+                    <button onClick={() => setIsSmartInputOpen(false)} className="absolute top-6 right-6 p-2 bg-gray-50 rounded-full text-gray-400 hover:text-gray-700 transition-colors"><X size={20}/></button>
+                    <h2 className="text-xl font-bold mb-2 text-[#4A4A4A] tracking-tight">{t.smartInputTitle}</h2>
+                    <p className="text-xs text-gray-400 mb-8 font-medium">{t.smartInputPlaceholder}</p>
+
+                    <div className="flex bg-gray-50 rounded-3xl p-2 items-center mb-6 focus-within:ring-2 focus-within:ring-[#8B9D83] transition-shadow border border-gray-100 shadow-inner">
+                        <button onClick={toggleListen} className={`p-3.5 rounded-2xl transition-colors ${isListening ? 'bg-red-100 text-red-500 animate-pulse' : 'bg-white text-gray-400 hover:text-[#8B9D83] shadow-sm'}`}>
+                           <Mic size={22} />
+                        </button>
+                        <input
+                           type="text"
+                           value={smartText}
+                           onChange={e => setSmartText(e.target.value)}
+                           placeholder={lang === 'id' ? "makan 25rb atau 25k..." : "昼ごはん 500円..."}
+                           className="flex-1 bg-transparent border-none outline-none px-4 text-[#4A4A4A] font-medium"
+                           onKeyDown={e => e.key === 'Enter' && handleSmartSubmit()}
+                           autoFocus
+                        />
+                        <button onClick={handleSmartSubmit} className="p-3.5 bg-[#8B9D83] text-white rounded-2xl shadow-sm hover:bg-[#778B6F] transition-colors active:scale-95">
+                           <Send size={22} />
+                        </button>
+                    </div>
+                    {isListening && <p className="text-center text-xs text-red-400 animate-pulse font-semibold">Mendengarkan ucapan Anda...</p>}
+                 </div>
+              </div>
+            )}
+
+            {/* Modal Edit Profil */}
+            {isProfileModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-0 md:p-4">
+                  <div className="bg-white w-full max-w-sm rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 animate-slide-up shadow-2xl relative mx-auto">
+                      <button onClick={() => setIsProfileModalOpen(false)} className="absolute top-6 right-6 p-2 bg-gray-50 rounded-full text-gray-400 hover:text-gray-700"><X size={20} /></button>
+                      <h2 className="text-xl font-bold mb-6 text-[#4A4A4A] text-center">{t.editProfile}</h2>
+
+                      <div className="flex justify-center mb-8">
+                          <div className="relative">
+                              {profileFormData.photoURL ? (
+                                 <img src={profileFormData.photoURL} className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg mx-auto" />
+                              ) : (
+                                 <div className="w-24 h-24 bg-[#E8EAE6] text-[#8B9D83] rounded-full border-4 border-white shadow-lg flex items-center justify-center mx-auto"><User size={32} /></div>
+                              )}
+                              <label className="absolute bottom-0 right-0 bg-[#8B9D83] text-white p-2 rounded-full cursor-pointer shadow-md hover:scale-105 active:scale-95 transition-all">
+                                  <Camera size={16} />
+                                  <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                      const file = e.target.files[0];
+                                      if(file) compressImage(file, (data) => setProfileFormData({...profileFormData, photoURL: data}));
+                                  }} />
+                              </label>
+                          </div>
+                      </div>
+
+                      <div className="w-full mb-8">
+                          <label className="block text-xs font-semibold text-gray-400 mb-2">Nama Panggilan</label>
+                          <input type="text" value={profileFormData.username} onChange={e => setProfileFormData({...profileFormData, username: e.target.value})} className="w-full bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none font-bold text-center" />
+                      </div>
+
+                      <button onClick={() => {
+                          setUsername(profileFormData.username);
+                          setPhotoURL(profileFormData.photoURL);
+                          pushToCloud({ username: profileFormData.username, photoURL: profileFormData.photoURL });
+                          setIsProfileModalOpen(false);
+                      }} className="w-full py-4 rounded-2xl font-bold text-white bg-[#8B9D83] hover:bg-[#778B6F] shadow-lg transition-transform active:scale-95">{t.saveProfile}</button>
+                  </div>
+              </div>
+            )}
+
+            {isTxModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-0 md:p-4">
+                <div className="bg-white w-full max-w-md rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 animate-slide-up shadow-2xl relative max-h-[90vh] overflow-y-auto hide-scrollbar mx-auto">
+                  <button onClick={() => setIsTxModalOpen(false)} className="absolute top-6 right-6 p-2 bg-gray-50 rounded-full text-gray-400 hover:text-gray-700"><X size={20} /></button>
+                  <h2 className="text-xl font-bold mb-6 text-[#4A4A4A]">{t.newTransaction} - {txFormType === 'income' ? t.addIncome : t.addExpense}</h2>
+                  
+                  {txFormType === 'expense' && parseFloat(txFormData.amount) > 0 && getConvertedAmount(parseFloat(txFormData.amount), txFormData.currency, displayCurrency) > balance && (
+                    <div className="bg-orange-50 text-orange-500 p-3 rounded-2xl text-sm font-semibold flex items-center gap-2 mb-4 animate-fade-in"><AlertCircle size={18} /> {t.insufficientBalance}</div>
+                  )}
+                  {txError && <div className="bg-red-50 text-red-500 p-3 rounded-2xl text-sm font-semibold flex items-center gap-2 mb-4 animate-fade-in"><AlertCircle size={18} /> {txError}</div>}
+
+                  <div className="space-y-4">
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold text-gray-400 mb-2">{t.amount}</label>
+                      <div className="flex gap-3 w-full">
+                        <select value={txFormData.currency} onChange={(e) => setTxFormData({...txFormData, currency: e.target.value})} className="bg-gray-50 border-none rounded-2xl px-3 font-bold text-[#8B9D83] focus:ring-2 focus:ring-[#8B9D83] outline-none cursor-pointer flex-shrink-0 appearance-none">
+                          <option value="IDR">IDR</option><option value="JPY">JPY</option>
+                        </select>
+                        <input type="number" value={txFormData.amount} onChange={(e) => {setTxFormData({...txFormData, amount: e.target.value}); setTxError('');}} placeholder="0" className="flex-1 w-full min-w-0 bg-gray-50 border-none rounded-2xl p-4 text-2xl font-bold text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none transition-shadow"/>
+                      </div>
+                    </div>
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold text-gray-400 mb-2">{t.categories}</label>
+                      <select value={txFormData.category} onChange={(e) => {setTxFormData({...txFormData, category: e.target.value}); setTxError('');}} className="w-full min-w-0 bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none appearance-none">
+                        <option value="" disabled>{t.selectCategory}</option>
+                        {categories.filter(c => c.type === txFormType).map(c => (<option key={c.id} value={c.id}>{getCatName(c)}</option>))}
+                      </select>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <label className="block text-xs font-semibold text-gray-400 mb-2">{t.dateTime}</label>
+                        <input type="datetime-local" value={txFormData.date} onChange={(e) => setTxFormData({...txFormData, date: e.target.value})} className="w-full max-w-full block box-border min-w-0 bg-gray-50 border-none rounded-2xl px-3 py-4 text-xs sm:text-sm text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none transition-shadow appearance-none"/>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <label className="block text-xs font-semibold text-gray-400 mb-2">{t.wallets}</label>
+                        <select value={txFormData.walletId || 'cash'} onChange={(e) => setTxFormData({...txFormData, walletId: e.target.value})} className="w-full min-w-0 bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none appearance-none">
+                          {wallets.map(w => <option key={w.id} value={w.id}>{lang === 'id' ? w.name : w.nameJp}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="w-full">
+                      <label className="block text-xs font-semibold text-gray-400 mb-2">{t.note}</label>
+                      <input type="text" value={txFormData.note} onChange={(e) => setTxFormData({...txFormData, note: e.target.value})} placeholder="..." className="w-full box-border min-w-0 bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none transition-shadow"/>
+                    </div>
+                    <div className="w-full pt-2">
+                      <label className="block text-xs font-semibold text-gray-400 mb-2">{t.addPhoto}</label>
+                      {txFormData.photo ? (
+                        <div className="relative inline-block mt-1">
+                          <img src={txFormData.photo} onClick={() => setPreviewImage(txFormData.photo)} alt="Lampiran" className="h-28 w-28 object-cover rounded-2xl border-2 border-gray-100 shadow-sm cursor-pointer hover:opacity-90 transition-opacity" />
+                          <button onClick={() => setTxFormData({...txFormData, photo: ''})} className="absolute -top-3 -right-3 bg-red-400 text-white rounded-full p-1.5 hover:bg-red-500 shadow-md transition-transform active:scale-95"><X size={14} /></button>
+                        </div>
+                      ) : (
+                        <label className="flex items-center justify-center gap-2 w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-4 text-gray-400 cursor-pointer hover:bg-gray-100 transition-colors">
+                          <ImageIcon size={20} /> <span className="text-sm font-semibold">{t.addPhoto}</span>
+                          <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                        </label>
+                      )}
+                    </div>
+                    <button onClick={handleSaveTx} className={`w-full py-4 rounded-2xl font-bold text-white mt-6 shadow-lg transition-transform active:scale-95 ${txFormType === 'income' ? 'bg-[#8B9D83] hover:bg-[#778B6F]' : 'bg-[#D4A373] hover:bg-[#C29363]'}`}>{t.save}</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isScannerOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4">
+                <div className="bg-white w-full max-w-sm rounded-[32px] p-6 text-center relative overflow-hidden mx-auto shadow-2xl">
+                  <button onClick={() => { if(!isScanning) { setIsScannerOpen(false); setScanError(false); setTempScanPhoto(null); } }} className="absolute top-4 right-4 p-2 bg-gray-50 rounded-full text-gray-400 hover:text-gray-700"><X size={20} /></button>
+                  <div className="my-8">
+                    {isScanning ? (
+                      <div className="flex flex-col items-center">
+                        <div className="w-16 h-16 border-4 border-[#8B9D83] border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <p className="font-semibold text-[#6D7D62]">{t.scanning}</p>
+                      </div>
+                    ) : scanError ? (
+                      <div className="flex flex-col items-center animate-fade-in">
+                        <div className="bg-red-50 p-6 rounded-full mb-6"><AlertCircle size={40} className="text-red-400" /></div>
+                        <h3 className="font-bold text-lg mb-2 text-[#4A4A4A] text-center leading-snug">{t.scanFailed}</h3>
+                        <div className="flex gap-3 mt-4 w-full">
+                           <button onClick={() => { setIsScannerOpen(false); handleOpenTxModal('expense', '', 'IDR', lang === 'id' ? 'Ketik nominal manual' : '手動で入力', tempScanPhoto); setTempScanPhoto(null); }} className="flex-1 bg-gray-100 text-[#4A4A4A] px-4 py-4 rounded-2xl font-semibold shadow-sm transition-all active:scale-95">Manual</button>
+                           <label className="flex-1 bg-[#4A4A4A] text-white px-4 py-4 rounded-2xl font-semibold cursor-pointer shadow-lg transition-all active:scale-95">
+                             Ulangi <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                           </label>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center">
+                        <div className="bg-[#E8EAE6] p-6 rounded-full mb-6"><Camera size={40} className="text-[#8B9D83]" /></div>
+                        <h3 className="font-bold text-lg mb-2 text-[#4A4A4A]">{t.scanInstruction}</h3>
+                        <label className="mt-4 bg-[#8B9D83] text-white px-8 py-4 rounded-2xl font-semibold cursor-pointer shadow-lg hover:bg-[#778B6F] transition-all active:scale-95">
+                          {t.scan} <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isExportModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4">
+                <div className="bg-white w-full max-w-sm rounded-[32px] p-6 relative overflow-hidden animate-slide-up shadow-2xl mx-auto">
+                  <button onClick={() => setIsExportModalOpen(false)} className="absolute top-4 right-4 p-2 bg-gray-50 rounded-full text-gray-400 hover:text-gray-700"><X size={20} /></button>
+                  <h3 className="font-bold text-lg mb-4 text-[#4A4A4A] text-center">{t.exportFileName}</h3>
+                  <input type="text" value={exportFileName} onChange={(e) => setExportFileName(e.target.value)} placeholder="mawuang_report..." className="w-full box-border min-w-0 bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none transition-shadow mb-6 text-center font-medium"/>
+                  <button onClick={handleExportCSV} className="w-full bg-[#8B9D83] text-white p-4 rounded-2xl font-bold transition-all hover:bg-[#778B6F] active:scale-95 shadow-lg flex justify-center items-center gap-2">
+                    <Download size={18} /> {t.exportConfirm}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {pinSetup.isOpen && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
+                <div className="bg-white w-full max-w-sm rounded-[32px] p-6 relative shadow-2xl text-center mx-auto">
+                  <div className="mx-auto w-12 h-12 bg-[#F6EBE1] text-[#D4A373] rounded-full flex items-center justify-center mb-4">
+                     {pinSetup.step === 'create' ? <Lock size={24}/> : <Unlock size={24}/>}
+                  </div>
+                  <h3 className="text-lg font-bold text-[#4A4A4A] mb-2">{pinSetup.step === 'create' ? t.setupPin : t.removePin}</h3>
+                  <p className="text-xs text-gray-400 mb-6">{pinSetup.step === 'create' ? (lang==='id'?'Masukkan 6 digit angka keamanan':'6桁のセキュリティ番号を入力してください') : (lang==='id'?'Apakah Anda yakin ingin menghapus keamanan PIN?':'PINセキュリティを削除してもよろしいですか？')}</p>
+                  
+                  {pinSetup.step === 'create' && (
+                    <div className="mb-6">
+                       <input type="password" maxLength="6" placeholder="••••••" value={pinSetup.input} onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); setPinSetup({...pinSetup, input: val, error: ''}); }} className="w-full text-center tracking-[0.5em] text-2xl bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none" />
+                       {pinSetup.error && <p className="text-red-400 text-xs font-semibold mt-2">{pinSetup.error}</p>}
+                    </div>
+                  )}
+
+                  <div className="flex gap-3">
+                    <button onClick={() => setPinSetup({isOpen: false, step: 'create', input: '', error: ''})} className="flex-1 bg-gray-100 text-[#4A4A4A] p-3 rounded-2xl font-bold">{pinSetup.step === 'create' ? t.cancel : (lang === 'id' ? 'Tidak' : 'いいえ')}</button>
+                    <button onClick={async () => {
+                       if (pinSetup.step === 'create') {
+                         if (pinSetup.input.length === 6) { 
+                             setPin(pinSetup.input); 
+                             setPinSetup({isOpen: false, step: 'create', input: '', error: ''}); 
+                             setMessageDialog({ isOpen: true, title: lang === 'id' ? 'Sukses' : '成功', message: lang==='id'?'PIN berhasil dipasang!':'PINが正常に設定されました！' }); 
+                             pushToCloud({ pin: pinSetup.input });
+                         }
+                         else setPinSetup({...pinSetup, error: lang==='id'?'Harus 6 digit angka!':'6桁の数字である必要があります！'});
+                       } else {
+                         setPin(''); setBiometricId(null); setPinSetup({isOpen: false, step: 'create', input: '', error: ''}); setMessageDialog({ isOpen: true, title: lang === 'id' ? 'Berhasil' : '成功', message: lang==='id'?'PIN dan Keamanan berhasil dihapus!':'PINと生体認証が削除されました！' });
+                         pushToCloud({ pin: '' }); 
+                       }
+                    }} className={`flex-1 text-white p-3 rounded-2xl font-bold ${pinSetup.step === 'create' ? 'bg-[#8B9D83] hover:bg-[#778B6F]' : 'bg-red-400 hover:bg-red-500'}`}>{pinSetup.step === 'create' ? t.save : (lang === 'id' ? 'Ya, Hapus' : 'はい、削除します')}</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {messageDialog.isOpen && (
+              <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
+                <div className="bg-white w-full max-w-[280px] rounded-[32px] p-6 text-center shadow-2xl mx-auto">
+                  <h3 className="font-bold text-lg text-[#4A4A4A] mb-2">{messageDialog.title}</h3>
+                  <p className="text-sm text-gray-500 mb-6">{messageDialog.message}</p>
+                  <button onClick={() => setMessageDialog({isOpen: false, title: '', message: ''})} className="w-full bg-[#8B9D83] text-white p-3 rounded-2xl font-bold hover:bg-[#778B6F]">OK</button>
+                </div>
+              </div>
+            )}
+
+            {selectedTx && (
+              <div className="fixed inset-0 z-[80] flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-0 md:p-4" onClick={() => setSelectedTx(null)}>
+                <div className="bg-white w-full max-w-md rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 animate-slide-up shadow-2xl relative max-h-[90vh] overflow-y-auto hide-scrollbar mx-auto" onClick={e => e.stopPropagation()}>
+                  <button onClick={() => setSelectedTx(null)} className="absolute top-6 right-6 p-2 bg-gray-50 rounded-full text-gray-400 hover:text-gray-700"><X size={20} /></button>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className={`p-4 rounded-[20px] ${selectedTx.type === 'income' ? 'bg-[#E8EAE6] text-[#8B9D83]' : 'bg-[#F6EBE1] text-[#D4A373]'}`}>
+                       {selectedTx.type === 'income' ? <Plus size={24} /> : <Minus size={24} />}
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-[#4A4A4A]">{t.transactionDetails}</h2>
+                      <p className="text-xs text-gray-400 font-medium">{new Date(selectedTx.date).toLocaleDateString(lang === 'id' ? 'id-ID' : 'ja-JP', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-gray-50 p-5 rounded-[24px] space-y-4 mb-6">
+                     <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                        <span className="text-xs text-gray-400 font-semibold uppercase">{t.amount}</span>
+                        <span className={`text-lg font-bold ${selectedTx.type === 'income' ? 'text-[#8B9D83]' : 'text-[#4A4A4A]'}`}>{formatCurrency(selectedTx.amount, selectedTx.currency || 'IDR')}</span>
+                     </div>
+                     <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                        <span className="text-xs text-gray-400 font-semibold uppercase">{t.categories}</span>
+                        <span className="text-sm font-bold text-[#4A4A4A]">{getCatName(categories.find(c => c.id === selectedTx.categoryId)) || '-'}</span>
+                     </div>
+                     <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                        <span className="text-xs text-gray-400 font-semibold uppercase">{t.wallets}</span>
+                        <span className="text-sm font-bold text-[#4A4A4A]">{getWalletName(selectedTx.walletId)}</span>
+                     </div>
+                     <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                        <span className="text-xs text-gray-400 font-semibold uppercase">{t.dateTime}</span>
+                        <span className="text-sm font-bold text-[#4A4A4A]">{new Date(selectedTx.date).toLocaleTimeString(lang === 'id' ? 'id-ID' : 'ja-JP', { hour: '2-digit', minute: '2-digit' })}</span>
+                     </div>
+                     <div className="flex flex-col gap-1">
+                        <span className="text-xs text-gray-400 font-semibold uppercase">{t.note}</span>
+                        <span className="text-sm font-medium text-gray-600 italic">"{selectedTx.note || '-'}"</span>
+                     </div>
+                  </div>
+
+                  {selectedTx.photo && (
+                    <div>
+                      <span className="text-xs text-gray-400 font-semibold uppercase mb-2 block">Foto / Struk</span>
+                      <img src={selectedTx.photo} onClick={() => setPreviewImage(selectedTx.photo)} className="w-full h-40 md:h-48 object-cover rounded-[24px] shadow-sm cursor-pointer hover:opacity-90 transition-opacity" alt="Attachment" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {previewImage && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fade-in" onClick={() => setPreviewImage(null)}>
+                <button className="absolute top-6 right-6 p-3 bg-white/10 rounded-full text-white hover:bg-white/25 transition-colors backdrop-blur-lg"><X size={24} /></button>
+                <img src={previewImage} onClick={e => e.stopPropagation()} className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl animate-slide-up" alt="Preview" />
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    );
+  </script>
+</body>
+</html>
