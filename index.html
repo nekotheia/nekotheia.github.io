@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>mawuang - Catatan Keuangan</title>
   
-  <!-- Open Graph Meta Tags untuk WhatsApp Thumbnail -->
   <meta property="og:title" content="mawuang - Catatan Keuangan">
   <meta property="og:description" content="Aplikasi pencatat keuangan pintar untuk perantau Jepang dari Indonesia.">
   <meta property="og:image" content="thumbnail.jpg">
@@ -22,12 +21,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // =========================================================================
-    // KONFIGURASI FIREBASE ANDA (SUDAH DIPERBAIKI & ANTI-BENTROK)
-    // =========================================================================
     const firebaseConfig = {
       apiKey: "AIzaSyDKzhyWK42di8IuFhCtbKIE0WgFQAoC1-o",
       authDomain: "mawuang-831dd.firebaseapp.com",
@@ -43,6 +39,8 @@
     window.firebaseAuth = null;
     window.GoogleAuthProvider = GoogleAuthProvider;
     window.firebaseSignInWithPopup = signInWithPopup; 
+    window.firebaseSignInWithRedirect = signInWithRedirect;
+    window.firebaseGetRedirectResult = getRedirectResult;
     window.firebaseSignOut = signOut;
     window.firebaseDoc = doc;
     window.firebaseGetDoc = getDoc;
@@ -176,7 +174,6 @@
     const Mic = (p) => <Icon {...p} path='<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>' />;
     const Send = (p) => <Icon {...p} path='<line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>' />;
 
-    // Ikon Koin Yen (Empty State Baru)
     const EmptyCoinYen = (p) => (
       <svg width={p.size || 48} height={p.size || 48} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={p.className}>
         <circle cx="12" cy="12" r="10" />
@@ -234,6 +231,7 @@
         removeBiometric: 'Matikan Keamanan', logout: 'Keluar Akun (Log Out)', connectedAccount: 'Akun Terhubung', profileSetup: 'Profil Pengguna',
         editProfile: 'Edit Profil', saveProfile: 'Simpan Profil', changePhoto: 'Ubah Foto',
         smartInputTitle: 'Pencatatan Cerdas', smartInputPlaceholder: 'Ketik (contoh: makan 25k, atau dapat 1 jt)', smartInputNav: 'Ketik',
+        enableBiometric: 'Nyalakan Biometrik', disableBiometric: 'Matikan Biometrik', edit: 'Ubah'
       },
       jp: {
         appTitle: 'mawuang', totalBalance: '総残高', income: '収入', expense: '支出',
@@ -255,6 +253,7 @@
         removeBiometric: 'セキュリティを無効にする', logout: 'ログアウト', connectedAccount: '連携アカウント', profileSetup: 'プロフィール',
         editProfile: 'プロフィールを編集', saveProfile: 'プロフィールを保存', changePhoto: '写真を変更',
         smartInputTitle: 'スマート入力', smartInputPlaceholder: '入力例: 昼ごはん 500円、または 1000円 もらった', smartInputNav: '入力',
+        enableBiometric: '生体認証を有効にする', disableBiometric: '生体認証を無効にする', edit: '編集'
       }
     };
 
@@ -329,6 +328,7 @@
 
       const [isTxModalOpen, setIsTxModalOpen] = useState(false);
       const [txFormType, setTxFormType] = useState('expense'); 
+      const [editingTxId, setEditingTxId] = useState(null);
       const [txFormData, setTxFormData] = useState({ amount: '', currency: 'IDR', category: '', note: '', date: '', photo: '', walletId: 'cash' });
       const [txError, setTxError] = useState(''); 
 
@@ -337,7 +337,6 @@
       const [scanError, setScanError] = useState(false);
       const [tempScanPhoto, setTempScanPhoto] = useState(null);
 
-      // Smart Input (NLP & Voice) States
       const [isSmartInputOpen, setIsSmartInputOpen] = useState(false);
       const [smartText, setSmartText] = useState('');
       const [isListening, setIsListening] = useState(false);
@@ -369,7 +368,6 @@
 
       const t = dict[lang];
 
-      // --- SINKRONISASI INSTAN KE CLOUD FIRESTORE (SSOT) ---
       const pushToCloud = async (payload) => {
           if (!firebaseUid) return;
           try {
@@ -393,7 +391,6 @@
           }
       };
 
-      // --- REAL-TIME LISTENER (MENDETEKSI PERUBAHAN CLOUD LANGSUNG) ---
       useEffect(() => {
           if (!firebaseUid || !window.firebaseOnSnapshot || !window.firebaseDb) return;
           const appId = typeof __app_id !== 'undefined' ? __app_id : 'mawuang';
@@ -409,7 +406,6 @@
                   if (data.photoURL) setPhotoURL(data.photoURL);
                   if (data.pin !== undefined) setPin(data.pin);
                   
-                  // Perbarui Cache Lokal seketika
                   idb.set('mawuang_tx', data.transactions || []);
                   idb.set('mawuang_cat', data.categories || DEFAULT_CATEGORIES);
                   idb.set('mawuang_wallets', data.wallets || DEFAULT_WALLETS);
@@ -422,7 +418,6 @@
           return () => unsubscribe();
       }, [firebaseUid]);
 
-      // --- INISIALISASI AWAL (Membaca Cache) ---
       useEffect(() => {
         const loadApp = async () => {
           try {
@@ -464,7 +459,6 @@
         loadApp();
       }, []);
 
-      // Local Cache Sync
       useEffect(() => { if(appState !== 'loading') idb.set('mawuang_tx', transactions); }, [transactions, appState]);
       useEffect(() => { if(appState !== 'loading') idb.set('mawuang_cat', categories); }, [categories, appState]);
       useEffect(() => { if(appState !== 'loading') idb.set('mawuang_wallets', wallets); }, [wallets, appState]);
@@ -500,6 +494,47 @@
         finally { setIsLoadingRate(false); }
       };
       useEffect(() => { fetchExchangeRate(); }, []);
+
+      useEffect(() => {
+          if (!window.firebaseAuth || !window.firebaseGetRedirectResult) return;
+          window.firebaseGetRedirectResult(window.firebaseAuth).then(async (result) => {
+              if (result && result.user) {
+                  const user = result.user;
+                  const uid = user.uid;
+                  const email = user.email || '';
+                  const googleName = user.displayName || email.split('@')[0] || 'Pengguna';
+                  const googlePhoto = user.photoURL || '';
+
+                  setFirebaseUid(uid);
+                  setConnectedEmail(email);
+
+                  await idb.set('mawuang_firebase_uid', uid);
+                  await idb.set('mawuang_email', email);
+
+                  const appId = typeof __app_id !== 'undefined' ? __app_id : 'mawuang';
+                  const docRef = window.firebaseDoc(window.firebaseDb, 'artifacts', appId, 'users', uid);
+                  const docSnap = await window.firebaseGetDoc(docRef);
+
+                  if (docSnap.exists()) {
+                      const data = docSnap.data();
+                      setTransactions(data.transactions || []);
+                      setCategories(data.categories || DEFAULT_CATEGORIES);
+                      setWallets(data.wallets || DEFAULT_WALLETS);
+                      setUsername(data.username || googleName);
+                      setLang(data.lang || 'id');
+                      setPin(data.pin !== undefined ? data.pin : '');
+                      setPhotoURL(data.photoURL || googlePhoto);
+                      setAppState(data.pin ? 'locked' : 'unlocked');
+                  } else {
+                      setUsername(googleName);
+                      setPhotoURL(googlePhoto);
+                      setOnboardingStep(3);
+                  }
+              }
+          }).catch((err) => {
+              console.warn("Redirect login result error:", err);
+          });
+      }, []);
 
       const formatCurrency = (amount, currencyCode) => {
         if (currencyCode === 'JPY') return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(amount);
@@ -574,7 +609,6 @@
         } catch (err) { console.warn("Sensor biometrik dibatalkan:", err); }
       };
 
-      // --- FUNGSI NLP PENCATATAN CERDAS (Ditingkatkan) ---
       const parseSmartInput = (text, currentCategories) => {
           let amount = 0;
           let currency = 'IDR';
@@ -582,10 +616,8 @@
           let suggestedCatName = '';
           let type = 'expense';
 
-          // Ubah ejaan dan terjemahkan kata angka ke digit
           let processText = text.toLowerCase().replace('go-jek', 'gojek');
           
-          // Terjemahkan kata ke angka terlebih dahulu
           const numMap = {'satu': 1, 'dua': 2, 'tiga': 3, 'empat': 4, 'lima': 5, 'enam': 6, 'tujuh': 7, 'delapan': 8, 'lapan': 8, 'sembilan': 9};
           for (const [word, digit] of Object.entries(numMap)) {
               processText = processText.replace(new RegExp(`\\b${word} ratus\\b`, 'g'), `${digit}00`);
@@ -594,13 +626,11 @@
               processText = processText.replace(new RegExp(`\\b${word}\\b`, 'g'), digit);
           }
 
-          // Tangani slang "setengah" (misal: "1 juta setengah" -> "1.5 juta")
           processText = processText.replace(/(\d+(?:[.,]\d+)?)\s*juta\s*setengah/g, "$1.5 juta");
           processText = processText.replace(/(\d+(?:[.,]\d+)?)\s*ribu\s*setengah/g, "$1.5 ribu");
           processText = processText.replace(/(\d+(?:[.,]\d+)?)\s*setengah/g, "$1.5");
           processText = processText.replace(/\bsetengah\b/g, "0.5");
           
-          // Slang angka sehari-hari & Hokkien (Pembaruan Ceban, Goban, dll)
           processText = processText.replace(/\bseceng\b/g, "1 ribu");
           processText = processText.replace(/\bcenggo\b/g, "1.5 ribu");
           processText = processText.replace(/\bgoceng\b/g, "5 ribu");
@@ -609,7 +639,6 @@
           processText = processText.replace(/\bcetiaw\b/g, "1 juta");
           processText = processText.replace(/\bgotiaw\b/g, "5 juta");
           
-          // Untuk puluhan/ratusan yang terpengaruh Auto-Scale (misal "cepek" = 100 x 1000 = 100rb)
           processText = processText.replace(/\bgocap\b/g, "50");
           processText = processText.replace(/\bcepek\b/g, "100");
           processText = processText.replace(/\bpekgo\b/g, "150");
@@ -625,7 +654,6 @@
           if (processText.includes('yen') || processText.includes('¥') || processText.includes('円')) currency = 'JPY';
           if (processText.includes('rp') || processText.includes('rupiah')) currency = 'IDR';
 
-          // Mendukung akhiran 'k', 'rb', 'jt', 'ceng' dan pembacaan pemisah ribuan (1.500.000 atau 1,500,000)
           const amountRegex = /(\d+([.,]\d+)*)\s*(rb|ribu|ribuan|k|jt|juta|jutaan|man|万|sen|千|ceng)?/i;
           const match = processText.match(amountRegex);
 
@@ -633,12 +661,10 @@
               let rawStr = match[1];
               let baseVal = 0;
               
-              // Cek jika formatnya murni ribuan baku (contoh: 1.500.000 atau 1,500,000 atau 1.500)
               if (/^(\d{1,3})([.,]\d{3})+$/.test(rawStr)) {
                   baseVal = parseFloat(rawStr.replace(/[.,]/g, ''));
               } else {
-                  // Jika mengandung desimal atau pecahan (contoh: 1.5 atau 1,5 atau 1.500.000,50)
-                  rawStr = rawStr.replace(/,/g, '.'); // Standarkan koma menjadi titik desimal
+                  rawStr = rawStr.replace(/,/g, '.');
                   const parts = rawStr.split('.');
                   if (parts.length > 1) {
                       const decimalPart = parts.pop();
@@ -655,9 +681,6 @@
               if (['man', '万'].includes(multiplier)) baseVal *= 10000;
               if (['sen', '千'].includes(multiplier)) baseVal *= 1000;
               
-              // ==========================================================
-              // AUTO-SCALE LOGIC (Asumsi Cerdas Kebiasaan Orang Indonesia)
-              // ==========================================================
               if (!multiplier && currency === 'IDR') {
                   if (baseVal > 0 && baseVal <= 999) {
                       baseVal *= 1000; 
@@ -665,7 +688,6 @@
               }
 
               amount = baseVal;
-              // Ekstraksi catatan (Hapus angka dan kata mata uang)
               note = processText.replace(match[0], '').trim();
               note = note.replace(/\b(yen|rp|rupiah|円|rb|ribu|k|juta|jt|ceng)\b/gi, '').trim();
               note = note.replace(/\s+/g, ' ').trim(); 
@@ -674,7 +696,6 @@
           note = note.charAt(0).toUpperCase() + note.slice(1);
           const lowerText = processText;
           
-          // Keyword Map Pintar
           const keywordMap = {
               'Makanan': ['makan', 'minum', 'nasi', 'kopi', 'food', 'snack', 'sarapan', 'siang', 'malam', 'sushi', 'ramen', 'bento', 'tabemono', 'nomimono', 'hirugohan', 'bangohan', 'asagohan', 'okashi'],
               'Transportasi': ['bensin', 'parkir', 'gojek', 'grab', 'maxim', 'ojek', 'indrive', 'kereta', 'bus', 'suica', 'pasmo', 'tol', 'tiket', 'taxi', 'taksi', 'mrt', 'shinkansen', 'densha', 'basu', 'koutsuu', 'kotsu'],
@@ -686,14 +707,12 @@
               'Pendapatan Lain': ['dapat', 'dapet', 'dikasih', 'terima', 'pemasukan', 'pendapatan', 'untung', 'laba', 'profit', 'menang', 'jual', 'cair', 'diberi', 'nemu', 'cashback', 'thr', 'angpao', 'angpau', 'amplop']
           };
 
-          // 1. Coba cari di kategori yang sudah ada
           for (let cat of currentCategories) {
               if (lowerText.includes(cat.name.toLowerCase()) || (cat.nameJp && lowerText.includes(cat.nameJp.toLowerCase()))) {
                   categoryId = cat.id; type = cat.type; break;
               }
           }
 
-          // 2. Jika tidak ada, periksa peta kata kunci
           if (!categoryId) {
               for (const [catName, words] of Object.entries(keywordMap)) {
                   if (words.some(w => lowerText.includes(w))) {
@@ -709,9 +728,7 @@
               }
           }
           
-          // 3. Fallback absolut (Kategori Lain-lain)
           if (!categoryId && !suggestedCatName) {
-              // Cek dulu apakah kategori "Lain-lain" sudah pernah dibuat agar tidak duplikat
               const existingLainLain = currentCategories.find(c => c.name.toLowerCase() === 'lain-lain' || c.name.toLowerCase() === 'lainnya' || c.name.toLowerCase() === 'lain - lain');
               
               if (existingLainLain) {
@@ -758,15 +775,20 @@
           let finalCategoryId = parsed.categoryId;
           let currentCats = [...categories];
 
-          // Buat Kategori Baru secara otomatis jika tidak ada
           if (!finalCategoryId && parsed.suggestedCatName) {
-              const newCat = { id: Date.now().toString(), name: parsed.suggestedCatName, nameJp: parsed.suggestedCatName, type: parsed.type };
-              currentCats.push(newCat);
-              setCategories(currentCats);
-              pushToCloud({ categories: currentCats });
-              finalCategoryId = newCat.id;
+              const existingMatch = currentCats.find(c => c.name.toLowerCase() === parsed.suggestedCatName.toLowerCase() || (parsed.suggestedCatName.toLowerCase() === 'lain-lain' && ['lain-lain', 'lainnya', 'lain - lain'].includes(c.name.toLowerCase())));
+              
+              if (existingMatch) {
+                  finalCategoryId = existingMatch.id;
+              } else {
+                  const newCat = { id: Date.now().toString(), name: parsed.suggestedCatName, nameJp: parsed.suggestedCatName, type: parsed.type };
+                  currentCats.push(newCat);
+                  setCategories(currentCats);
+                  pushToCloud({ categories: currentCats });
+                  finalCategoryId = newCat.id;
+              }
           } else if (!finalCategoryId) {
-              finalCategoryId = categories[0].id; // Fallback darurat
+              finalCategoryId = categories[0].id;
           }
           
           setIsSmartInputOpen(false);
@@ -788,28 +810,61 @@
           setTransactions(newTransactions);
           pushToCloud({ transactions: newTransactions }); 
 
-          // Pop-up Toast Sukses (Otomatis Tertutup)
           setToastMsg(lang === 'id' ? 'Pencatatan berhasil disimpan!' : '記録が保存されました！');
           setTimeout(() => setToastMsg(''), 2500);
       };
 
-      const handleOpenTxModal = (type, prefillAmount = '', prefillCurrency = 'IDR', prefillNote = '', photo = '', wallet = null) => {
+      const handleOpenTxModal = (type, prefillAmount = '', prefillCurrency = 'IDR', prefillNote = '', photo = '', wallet = null, txId = null) => {
         setTxFormType(type);
         setTxError('');
-        setTxFormData({ amount: prefillAmount, currency: prefillCurrency, category: '', note: prefillNote, date: getCurrentDateTimeLocal(), photo: photo, walletId: wallet || (wallets[0]?.id || 'cash') });
+        setEditingTxId(txId);
+        setTxFormData({ 
+          amount: prefillAmount, 
+          currency: prefillCurrency, 
+          category: '', 
+          note: prefillNote, 
+          date: getCurrentDateTimeLocal(), 
+          photo: photo, 
+          walletId: wallet || (wallets[0]?.id || 'cash') 
+        });
         setIsTxModalOpen(true);
       };
 
       const handleSaveTx = () => {
         if (!txFormData.amount) return setTxError(t.amountRequired);
         if (!txFormData.category) return setTxError(t.categoryRequired);
-        const newTx = {
-          id: Date.now().toString(), type: txFormType, amount: parseFloat(txFormData.amount), currency: txFormData.currency,
-          categoryId: txFormData.category, note: txFormData.note, date: new Date(txFormData.date).toISOString(), photo: txFormData.photo || null, walletId: txFormData.walletId || (wallets[0]?.id || 'cash')
-        };
-        const newTransactions = [newTx, ...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        let newTransactions;
+        if (editingTxId) {
+          newTransactions = transactions.map(tx => tx.id === editingTxId ? {
+            ...tx,
+            type: txFormType,
+            amount: parseFloat(txFormData.amount),
+            currency: txFormData.currency,
+            categoryId: txFormData.category,
+            note: txFormData.note,
+            date: new Date(txFormData.date).toISOString(),
+            photo: txFormData.photo || null,
+            walletId: txFormData.walletId || (wallets[0]?.id || 'cash')
+          } : tx);
+        } else {
+          const newTx = {
+            id: Date.now().toString(), 
+            type: txFormType, 
+            amount: parseFloat(txFormData.amount), 
+            currency: txFormData.currency,
+            categoryId: txFormData.category, 
+            note: txFormData.note, 
+            date: new Date(txFormData.date).toISOString(), 
+            photo: txFormData.photo || null, 
+            walletId: txFormData.walletId || (wallets[0]?.id || 'cash')
+          };
+          newTransactions = [newTx, ...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
         setTransactions(newTransactions);
         setIsTxModalOpen(false);
+        setEditingTxId(null);
         pushToCloud({ transactions: newTransactions }); 
       };
 
@@ -1015,19 +1070,26 @@
         }
       };
 
-      // =======================================================================
-      // NATIVE FIREBASE SIGN IN WITH POPUP (SSOT)
-      // =======================================================================
       const handleGoogleLogin = async () => {
-          if (!window.firebaseApp || !window.firebaseDb || !window.firebaseAuth || !window.firebaseSignInWithPopup) {
-              setMessageDialog({ isOpen: true, title: 'Koneksi Terputus', message: 'Sistem cloud sedang offline atau diblokir oleh browser. Harap muat ulang.' });
+          if (!window.firebaseApp || !window.firebaseDb || !window.firebaseAuth) {
+              setMessageDialog({ isOpen: true, title: 'Koneksi Terputus', message: 'Sistem cloud sedang offline. Harap muat ulang.' });
               return;
           }
 
           setSyncStatus('syncing');
           try {
               const provider = new window.GoogleAuthProvider();
-              const result = await window.firebaseSignInWithPopup(window.firebaseAuth, provider);
+              let result;
+              try {
+                  result = await window.firebaseSignInWithPopup(window.firebaseAuth, provider);
+              } catch (popupErr) {
+                  console.warn("Popup diblokir atau gagal, beralih ke Redirect...", popupErr);
+                  if (window.firebaseSignInWithRedirect) {
+                      await window.firebaseSignInWithRedirect(window.firebaseAuth, provider);
+                      return; 
+                  }
+                  throw popupErr;
+              }
               
               const uid = result.user.uid;
               const email = result.user.email || '';
@@ -1105,9 +1167,11 @@
               let errorMsg = err.message || 'Gagal terhubung ke Cloud. Pastikan koneksi internet aktif.';
               
               if (err.code === 'auth/unauthorized-domain') {
-                  errorMsg = 'Domain ini belum diizinkan. Buka Firebase Console > Authentication > Settings > Authorized domains, dan tambahkan domain Anda.';
+                  errorMsg = 'Domain ini belum diizinkan di Firebase Console > Authentication > Settings > Authorized domains.';
+              } else if (err.code === 'auth/popup-blocked-by-browser') {
+                  errorMsg = 'Popup login diblokir oleh browser Anda. Silakan izinkan popup atau buka di tab baru.';
               } else if (err.message === 'timeout' || err.code === 'permission-denied') {
-                  errorMsg = 'Akses Database Cloud gagal/lambat. Pastikan Security Rules Firestore Anda diatur ke allow read, write: if request.auth != null;';
+                  errorMsg = 'Akses Database Cloud gagal. Periksa Security Rules Firestore Anda.';
               }
 
               setMessageDialog({ isOpen: true, title: 'Gagal Masuk', message: errorMsg });
@@ -1767,17 +1831,15 @@
               </div>
             </div>
             
-            {pin && (
-              <div className="flex justify-between items-center pl-12 border-t border-gray-50 pt-4 mt-2">
-                <div className="flex items-center gap-2">
-                  <Lock size={16} className="text-gray-400"/>
-                  <span className="text-xs font-semibold text-gray-500">{biometricId ? t.removeBiometric : t.setupBiometric}</span>
-                </div>
-                <div className={`w-10 h-5 rounded-full p-1 cursor-pointer relative shadow-inner transition-colors duration-300 ${biometricId ? 'bg-[#D4A373]' : 'bg-gray-200'}`} onClick={biometricId ? handleDisableBiometric : handleEnableBiometric}>
-                  <div className={`w-3 h-3 bg-white rounded-full shadow transform transition-transform duration-300 ease-out ${biometricId ? 'translate-x-5' : 'translate-x-0'}`}></div>
-                </div>
+            <div className="flex justify-between items-center pl-12 border-t border-gray-50 pt-4 mt-2">
+              <div className="flex items-center gap-2">
+                <Lock size={16} className="text-gray-400"/>
+                <span className="text-xs font-semibold text-gray-500">{pin ? (biometricId ? t.removeBiometric : t.setupBiometric) : t.enableBiometric}</span>
               </div>
-            )}
+              <div className={`w-10 h-5 rounded-full p-1 cursor-pointer relative shadow-inner transition-colors duration-300 ${biometricId ? 'bg-[#D4A373]' : 'bg-gray-200'}`} onClick={biometricId ? handleDisableBiometric : handleEnableBiometric}>
+                <div className={`w-3 h-3 bg-white rounded-full shadow transform transition-transform duration-300 ease-out ${biometricId ? 'translate-x-5' : 'translate-x-0'}`}></div>
+              </div>
+            </div>
           </div>
 
           <div className="bg-white p-5 rounded-3xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
@@ -1850,7 +1912,6 @@
               {activeTab === 'settings' && renderSettings()}
             </div>
 
-            {/* Modal Smart Input (NLP) */}
             {isSmartInputOpen && (
               <div className="fixed inset-0 z-[90] flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm p-0 md:p-4 animate-fade-in" onClick={() => setIsSmartInputOpen(false)}>
                  <div className="bg-white w-full max-w-md rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 shadow-2xl relative mx-auto animate-slide-up" onClick={e => e.stopPropagation()}>
@@ -1880,7 +1941,6 @@
               </div>
             )}
 
-            {/* Modal Edit Profil */}
             {isProfileModalOpen && (
               <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-0 md:p-4">
                   <div className="bg-white w-full max-w-sm rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 animate-slide-up shadow-2xl relative mx-auto">
@@ -1923,7 +1983,7 @@
               <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-0 md:p-4">
                 <div className="bg-white w-full max-w-md rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 animate-slide-up shadow-2xl relative max-h-[90vh] overflow-y-auto hide-scrollbar mx-auto">
                   <button onClick={() => setIsTxModalOpen(false)} className="absolute top-6 right-6 p-2 bg-gray-50 rounded-full text-gray-400 hover:text-gray-700"><X size={20} /></button>
-                  <h2 className="text-xl font-bold mb-6 text-[#4A4A4A]">{t.newTransaction} - {txFormType === 'income' ? t.addIncome : t.addExpense}</h2>
+                  <h2 className="text-xl font-bold mb-6 text-[#4A4A4A]">{editingTxId ? 'Edit Transaksi' : `${t.newTransaction} - ${txFormType === 'income' ? t.addIncome : t.addExpense}`}</h2>
                   
                   {txFormType === 'expense' && parseFloat(txFormData.amount) > 0 && getConvertedAmount(parseFloat(txFormData.amount), txFormData.currency, displayCurrency) > balance && (
                     <div className="bg-orange-50 text-orange-500 p-3 rounded-2xl text-sm font-semibold flex items-center gap-2 mb-4 animate-fade-in"><AlertCircle size={18} /> {t.insufficientBalance}</div>
@@ -2032,7 +2092,7 @@
             )}
 
             {pinSetup.isOpen && (
-              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
+              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4">
                 <div className="bg-white w-full max-w-sm rounded-[32px] p-6 relative shadow-2xl text-center mx-auto">
                   <div className="mx-auto w-12 h-12 bg-[#F6EBE1] text-[#D4A373] rounded-full flex items-center justify-center mb-4">
                      {pinSetup.step === 'create' ? <Lock size={24}/> : <Unlock size={24}/>}
@@ -2116,11 +2176,28 @@
                   </div>
 
                   {selectedTx.photo && (
-                    <div>
+                    <div className="mb-6">
                       <span className="text-xs text-gray-400 font-semibold uppercase mb-2 block">Foto / Struk</span>
                       <img src={selectedTx.photo} onClick={() => setPreviewImage(selectedTx.photo)} className="w-full h-40 md:h-48 object-cover rounded-[24px] shadow-sm cursor-pointer hover:opacity-90 transition-opacity" alt="Attachment" />
                     </div>
                   )}
+
+                  <div className="flex gap-3">
+                    <button onClick={() => {
+                      const txToEdit = selectedTx;
+                      setSelectedTx(null);
+                      handleOpenTxModal(txToEdit.type, txToEdit.amount, txToEdit.currency || 'IDR', txToEdit.note || '', txToEdit.photo || '', txToEdit.walletId, txToEdit.id);
+                    }} className="flex-1 bg-[#8B9D83] text-white py-3.5 rounded-2xl font-bold shadow-md active:scale-95 transition-transform flex items-center justify-center gap-2">
+                      <Edit2 size={18} /> {t.edit}
+                    </button>
+                    <button onClick={() => {
+                      const id = selectedTx.id;
+                      setSelectedTx(null);
+                      handleDeleteTx(id);
+                    }} className="flex-1 bg-red-50 text-red-500 py-3.5 rounded-2xl font-bold shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-2">
+                      <Trash2 size={18} /> {t.delete}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -2132,10 +2209,9 @@
               </div>
             )}
             
-            {/* TOAST NOTIFIKASI */}
             {toastMsg && (
               <div className="fixed bottom-28 lg:bottom-12 left-1/2 transform -translate-x-1/2 z-[110] bg-[#8B9D83] text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-2 animate-slide-up">
-                 <Check size={18} />
+                 <Check size= {18} />
                  <span className="font-bold text-sm tracking-wide">{toastMsg}</span>
               </div>
             )}
