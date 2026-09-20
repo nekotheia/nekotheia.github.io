@@ -1084,6 +1084,9 @@
                   result = await window.firebaseSignInWithPopup(window.firebaseAuth, provider);
               } catch (popupErr) {
                   console.warn("Popup diblokir atau gagal, beralih ke Redirect...", popupErr);
+                  if (popupErr.code === 'auth/unauthorized-domain') {
+                      throw popupErr;
+                  }
                   if (window.firebaseSignInWithRedirect) {
                       await window.firebaseSignInWithRedirect(window.firebaseAuth, provider);
                       return; 
@@ -1166,15 +1169,15 @@
               setSyncStatus('idle'); 
               let errorMsg = err.message || 'Gagal terhubung ke Cloud. Pastikan koneksi internet aktif.';
               
-              if (err.code === 'auth/unauthorized-domain') {
-                  errorMsg = 'Domain ini belum diizinkan di Firebase Console > Authentication > Settings > Authorized domains.';
+              if (err.code === 'auth/unauthorized-domain' || (err.message && err.message.includes('unauthorized-domain'))) {
+                  errorMsg = `Domain preview saat ini belum terdaftar di Firebase Console > Authentication > Settings > Authorized domains. Silakan tambahkan domain ini atau gunakan Mode Lokal di bawah.`;
               } else if (err.code === 'auth/popup-blocked-by-browser') {
                   errorMsg = 'Popup login diblokir oleh browser Anda. Silakan izinkan popup atau buka di tab baru.';
               } else if (err.message === 'timeout' || err.code === 'permission-denied') {
                   errorMsg = 'Akses Database Cloud gagal. Periksa Security Rules Firestore Anda.';
               }
 
-              setMessageDialog({ isOpen: true, title: 'Gagal Masuk', message: errorMsg });
+              setMessageDialog({ isOpen: true, title: 'Kendala Autentikasi Google', message: errorMsg });
           }
       };
 
@@ -1299,6 +1302,9 @@
                                       <div className="w-full flex flex-col items-center space-y-4 animate-fade-in">
                                           <button onClick={handleGoogleLogin} className="w-full max-w-[280px] bg-white text-[#4A4A4A] font-bold py-3.5 px-4 rounded-full shadow-md flex items-center justify-center gap-3 border border-gray-100 hover:bg-gray-50 active:scale-95 transition-all">
                                               <GoogleLogo /> Lanjutkan dengan Google
+                                          </button>
+                                          <button onClick={() => { setConnectedEmail('lokal@mawuang.app'); setUsername('Perantau'); setOnboardingStep(3); }} className="text-xs text-gray-500 font-semibold hover:text-[#8B9D83] transition-colors mt-2 cursor-pointer">
+                                              Atau Lanjut Mode Lokal / Tanpa Login →
                                           </button>
                                       </div>
                                   )}
