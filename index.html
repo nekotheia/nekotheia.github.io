@@ -1932,6 +1932,291 @@
               {activeTab === 'categories' && renderCategories()}
               {activeTab === 'settings' && renderSettings()}
             </div>
+            
+            {}
+            {toastMsg && (
+              <div className="fixed top-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-2xl z-[100] animate-slide-up text-sm font-bold flex items-center gap-2">
+                <Check size={18} className="text-green-400" />
+                {toastMsg}
+              </div>
+            )}
+
+            {messageDialog.isOpen && (
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 animate-fade-in">
+                <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center">
+                  <div className="w-16 h-16 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-4"><Info size={32} /></div>
+                  <h3 className="text-xl font-bold text-[#4A4A4A] mb-2">{messageDialog.title}</h3>
+                  <p className="text-gray-500 text-sm mb-6">{messageDialog.message}</p>
+                  <button onClick={() => setMessageDialog({ isOpen: false, title: '', message: '' })} className="w-full bg-[#8B9D83] text-white py-3.5 rounded-2xl font-bold active:scale-95 transition-transform">Tutup</button>
+                </div>
+              </div>
+            )}
+
+            {isTxModalOpen && (
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] flex items-end justify-center sm:items-center p-0 sm:p-6 animate-fade-in">
+                <div className="bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md shadow-2xl animate-slide-up max-h-[90vh] overflow-y-auto hide-scrollbar">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className={`text-xl font-bold ${txFormType === 'income' ? 'text-[#8B9D83]' : 'text-[#D4A373]'}`}>{txFormType === 'income' ? t.addIncome : t.addExpense}</h3>
+                    <button onClick={() => setIsTxModalOpen(false)} className="text-gray-400 p-2 hover:bg-gray-100 rounded-full"><X size={20}/></button>
+                  </div>
+                  
+                  {txError && <p className="text-red-500 text-xs font-bold mb-4 bg-red-50 p-3 rounded-xl">{txError}</p>}
+                  
+                  <div className="space-y-4 mb-6">
+                    <div className="flex gap-2">
+                      <select value={txFormData.currency} onChange={e => setTxFormData({...txFormData, currency: e.target.value})} className="bg-gray-50 border-none rounded-2xl px-4 py-4 text-[#4A4A4A] font-bold focus:ring-2 focus:ring-[#8B9D83] outline-none w-24">
+                        <option value="IDR">IDR</option><option value="JPY">JPY</option>
+                      </select>
+                      <input type="number" value={txFormData.amount} onChange={e => setTxFormData({...txFormData, amount: e.target.value})} placeholder={t.amount} className="flex-1 min-w-0 bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] font-bold text-lg focus:ring-2 focus:ring-[#8B9D83] outline-none"/>
+                    </div>
+                    
+                    <select value={txFormData.category} onChange={e => setTxFormData({...txFormData, category: e.target.value})} className="w-full bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none appearance-none">
+                      <option value="" disabled>{t.selectCategory}</option>
+                      {categories.filter(c => c.type === txFormType || c.name.toLowerCase().includes('lain')).map(c => (
+                        <option key={c.id} value={c.id}>{getCatName(c)}</option>
+                      ))}
+                    </select>
+                    
+                    <select value={txFormData.walletId} onChange={e => setTxFormData({...txFormData, walletId: e.target.value})} className="w-full bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none appearance-none">
+                      {wallets.map(w => <option key={w.id} value={w.id}>{getWalletName(w.id)}</option>)}
+                    </select>
+
+                    <input type="text" value={txFormData.note} onChange={e => setTxFormData({...txFormData, note: e.target.value})} placeholder={t.note} className="w-full bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none"/>
+                    <input type="datetime-local" value={txFormData.date} onChange={e => setTxFormData({...txFormData, date: e.target.value})} className="w-full bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none appearance-none"/>
+                    
+                    <div className="flex items-center gap-3">
+                      {txFormData.photo ? (
+                        <div className="relative w-16 h-16">
+                          <img src={txFormData.photo} className="w-full h-full object-cover rounded-xl" />
+                          <button onClick={() => setTxFormData({...txFormData, photo: null})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"><X size={12}/></button>
+                        </div>
+                      ) : (
+                        <label className="flex items-center justify-center gap-2 bg-gray-50 text-gray-500 p-4 rounded-2xl w-full cursor-pointer hover:bg-gray-100 transition-colors border-2 border-dashed border-gray-200">
+                          <Camera size={20}/> <span className="font-semibold text-sm">{t.addPhoto}</span>
+                          <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <button onClick={handleSaveTx} className={`w-full text-white py-4 rounded-2xl font-bold active:scale-95 transition-transform shadow-lg ${txFormType === 'income' ? 'bg-[#8B9D83]' : 'bg-[#D4A373]'}`}>{t.save}</button>
+                </div>
+              </div>
+            )}
+
+            {isSmartInputOpen && (
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] flex items-end justify-center sm:items-center p-0 sm:p-6 animate-fade-in">
+                <div className="bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md shadow-2xl animate-slide-up">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-[#4A4A4A] flex items-center gap-2"><MessageCircle size={24} className="text-[#8B9D83]"/> {t.smartInputTitle}</h3>
+                    <button onClick={() => setIsSmartInputOpen(false)} className="text-gray-400 p-2 hover:bg-gray-100 rounded-full transition-colors"><X size={20}/></button>
+                  </div>
+                  <div className="relative mb-6">
+                    <textarea value={smartText} onChange={(e) => setSmartText(e.target.value)} placeholder={t.smartInputPlaceholder} className="w-full bg-gray-50 border-none rounded-2xl p-4 pr-14 text-[#4A4A4A] h-32 resize-none focus:ring-2 focus:ring-[#8B9D83] outline-none" autoFocus></textarea>
+                    <button onClick={toggleListen} className={`absolute bottom-3 right-3 p-3 rounded-xl transition-all shadow-md ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-[#8B9D83]'}`} title="Gunakan Suara">
+                      <Mic size={20} />
+                    </button>
+                  </div>
+                  <button onClick={handleSmartSubmit} className="w-full bg-[#8B9D83] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-lg"><Send size={20}/> Simpan Otomatis</button>
+                </div>
+              </div>
+            )}
+
+            {isScannerOpen && (
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-6 animate-fade-in">
+                <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl text-center relative overflow-hidden">
+                  {isScanning ? (
+                    <div className="py-10">
+                      <div className="w-16 h-16 border-4 border-[#8B9D83] border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+                      <h3 className="text-xl font-bold text-[#4A4A4A] mb-2">{t.scanning}</h3>
+                      <p className="text-gray-500 text-sm">Mohon tunggu, AI sedang mengekstrak angka dari struk...</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-20 h-20 bg-gray-50 text-[#8B9D83] rounded-full flex items-center justify-center mx-auto mb-6"><Camera size={40} /></div>
+                      <h3 className="text-xl font-bold text-[#4A4A4A] mb-2">{scanError ? t.scanFailed : 'Pindai Struk'}</h3>
+                      <p className="text-gray-500 text-sm mb-8">{scanError ? 'Anda dapat menyalin manual angka dari foto struk.' : t.scanInstruction}</p>
+                      
+                      <div className="space-y-3">
+                        <label className="block w-full bg-[#8B9D83] text-white py-4 rounded-2xl font-bold cursor-pointer active:scale-95 transition-transform shadow-lg">
+                          {scanError ? t.tryAgain : 'Pilih Foto Struk'}
+                          <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileUpload} />
+                        </label>
+                        {scanError && tempScanPhoto && (
+                          <button onClick={() => { setIsScannerOpen(false); handleOpenTxModal('expense', '', 'IDR', 'Struk manual', tempScanPhoto, wallets[0]?.id); setTempScanPhoto(null); }} className="w-full bg-[#D4A373] text-white py-4 rounded-2xl font-bold active:scale-95 transition-transform shadow-lg">Isi Manual & Lampirkan</button>
+                        )}
+                        <button onClick={() => {setIsScannerOpen(false); setScanError(false); setTempScanPhoto(null);}} className="w-full bg-gray-100 text-gray-500 py-3.5 rounded-2xl font-bold active:scale-95 transition-transform">Batal</button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {isExportModalOpen && (
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] flex items-center justify-center p-6 animate-fade-in">
+                <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+                  <h3 className="text-lg font-bold text-[#4A4A4A] mb-4">Ekspor ke Excel (CSV)</h3>
+                  <input type="text" value={exportFileName} onChange={(e) => setExportFileName(e.target.value)} placeholder="Nama File" className="w-full bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] focus:ring-2 focus:ring-[#8B9D83] outline-none mb-6"/>
+                  <div className="flex gap-3">
+                    <button onClick={() => setIsExportModalOpen(false)} className="flex-1 bg-gray-100 text-gray-500 py-3.5 rounded-2xl font-bold active:scale-95 transition-transform">Batal</button>
+                    <button onClick={handleExportCSV} className="flex-1 bg-[#4A4A4A] text-white py-3.5 rounded-2xl font-bold active:scale-95 transition-transform shadow-md">Ekspor</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isProfileModalOpen && (
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] flex items-end sm:items-center justify-center p-0 sm:p-6 animate-fade-in">
+                <div className="bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md shadow-2xl animate-slide-up">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold text-[#4A4A4A]">{t.editProfile}</h3>
+                    <button onClick={() => setIsProfileModalOpen(false)} className="text-gray-400 p-2 hover:bg-gray-100 rounded-full"><X size={20}/></button>
+                  </div>
+                  <div className="flex flex-col items-center mb-6">
+                    <div className="relative mb-4">
+                      {profileFormData.photoURL ? (
+                        <img src={profileFormData.photoURL} className="w-24 h-24 rounded-full object-cover shadow-md border-4 border-white" />
+                      ) : (
+                        <div className="w-24 h-24 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center shadow-md border-4 border-white"><User size={40}/></div>
+                      )}
+                      <label className="absolute bottom-0 right-0 bg-[#8B9D83] text-white p-2.5 rounded-full cursor-pointer shadow-lg hover:scale-105 transition-transform">
+                        <Camera size={16}/>
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                          const file = e.target.files[0];
+                          if(file) compressImage(file, (dataUrl) => setProfileFormData({...profileFormData, photoURL: dataUrl}));
+                        }} />
+                      </label>
+                    </div>
+                    <input type="text" value={profileFormData.username} onChange={(e) => setProfileFormData({...profileFormData, username: e.target.value})} placeholder="Nama Panggilan" className="w-full bg-gray-50 border-none rounded-2xl p-4 text-[#4A4A4A] text-center font-bold focus:ring-2 focus:ring-[#8B9D83] outline-none"/>
+                  </div>
+                  <button onClick={() => {
+                    setUsername(profileFormData.username); setPhotoURL(profileFormData.photoURL);
+                    pushToCloud({ username: profileFormData.username, photoURL: profileFormData.photoURL });
+                    setIsProfileModalOpen(false);
+                  }} className="w-full bg-[#8B9D83] text-white py-4 rounded-2xl font-bold active:scale-95 transition-transform shadow-lg">{t.saveProfile}</button>
+                </div>
+              </div>
+            )}
+
+            {pinSetup.isOpen && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-[100] flex items-center justify-center p-6 animate-fade-in">
+                <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl text-center">
+                  <div className="w-16 h-16 bg-gray-50 text-[#8B9D83] rounded-full flex items-center justify-center mx-auto mb-4"><Lock size={32} /></div>
+                  <h3 className="text-xl font-bold text-[#4A4A4A] mb-2">{pinSetup.step === 'create' ? t.setupPin : (pinSetup.step === 'confirm' ? 'Konfirmasi PIN' : t.removePin)}</h3>
+                  <p className="text-gray-500 text-sm mb-6">{pinSetup.step === 'create' ? 'Masukkan 6 digit PIN baru.' : (pinSetup.step === 'confirm' ? 'Masukkan ulang PIN.' : 'Masukkan PIN lama untuk menghapus.')}</p>
+                  
+                  <div className="flex justify-center gap-3 mb-6">
+                    {[...Array(6)].map((_, i) => (
+                      <div key={i} className={`w-3.5 h-3.5 rounded-full transition-colors ${pinSetup.input.length > i ? 'bg-[#8B9D83]' : 'bg-gray-200'}`}></div>
+                    ))}
+                  </div>
+                  {pinSetup.error && <p className="text-red-500 text-xs font-bold mb-4">{pinSetup.error}</p>}
+                  
+                  <div className="grid grid-cols-3 gap-4 mb-6">
+                     {[1,2,3,4,5,6,7,8,9].map(num => (
+                       <button key={num} onClick={() => {
+                         const newPin = pinSetup.input + num;
+                         setPinSetup({...pinSetup, input: newPin});
+                         if(newPin.length === 6) {
+                            setTimeout(() => {
+                                if (pinSetup.step === 'create') {
+                                    setTempPinStore(newPin);
+                                    setPinSetup({ ...pinSetup, step: 'confirm', input: '', error: '' });
+                                } else if (pinSetup.step === 'confirm') {
+                                    if (newPin === tempPinStore) {
+                                        setPin(newPin); pushToCloud({ pin: newPin });
+                                        setPinSetup({ isOpen: false, step: 'create', input: '', error: '' });
+                                        setToastMsg('PIN berhasil dibuat!'); setTimeout(() => setToastMsg(''), 2500);
+                                    } else {
+                                        setPinSetup({ ...pinSetup, input: '', error: 'PIN tidak cocok!' });
+                                    }
+                                } else if (pinSetup.step === 'remove') {
+                                    if (newPin === pin) {
+                                        setPin(''); setBiometricId(null); pushToCloud({ pin: '' });
+                                        setPinSetup({ isOpen: false, step: 'create', input: '', error: '' });
+                                        setToastMsg('Keamanan dihapus.'); setTimeout(() => setToastMsg(''), 2500);
+                                    } else {
+                                        setPinSetup({ ...pinSetup, input: '', error: 'PIN salah!' });
+                                    }
+                                }
+                            }, 300);
+                         }
+                       }} className="h-14 rounded-full text-xl font-bold bg-gray-50 text-[#4A4A4A] active:bg-gray-200">{num}</button>
+                     ))}
+                     <button onClick={() => setPinSetup({ isOpen: false, step: 'create', input: '', error: '' })} className="h-14 rounded-full text-sm font-bold text-gray-400">Batal</button>
+                     <button onClick={() => {
+                        const newPin = pinSetup.input + '0';
+                         setPinSetup({...pinSetup, input: newPin});
+                         if(newPin.length === 6) {
+                            setTimeout(() => {
+                                if (pinSetup.step === 'create') {
+                                    setTempPinStore(newPin);
+                                    setPinSetup({ ...pinSetup, step: 'confirm', input: '', error: '' });
+                                } else if (pinSetup.step === 'confirm') {
+                                    if (newPin === tempPinStore) {
+                                        setPin(newPin); pushToCloud({ pin: newPin });
+                                        setPinSetup({ isOpen: false, step: 'create', input: '', error: '' });
+                                        setToastMsg('PIN berhasil dibuat!'); setTimeout(() => setToastMsg(''), 2500);
+                                    } else {
+                                        setPinSetup({ ...pinSetup, input: '', error: 'PIN tidak cocok!' });
+                                    }
+                                } else if (pinSetup.step === 'remove') {
+                                    if (newPin === pin) {
+                                        setPin(''); setBiometricId(null); pushToCloud({ pin: '' });
+                                        setPinSetup({ isOpen: false, step: 'create', input: '', error: '' });
+                                        setToastMsg('Keamanan dihapus.'); setTimeout(() => setToastMsg(''), 2500);
+                                    } else {
+                                        setPinSetup({ ...pinSetup, input: '', error: 'PIN salah!' });
+                                    }
+                                }
+                            }, 300);
+                         }
+                     }} className="h-14 rounded-full text-xl font-bold bg-gray-50 text-[#4A4A4A] active:bg-gray-200">0</button>
+                     <button onClick={() => setPinSetup({...pinSetup, input: pinSetup.input.slice(0, -1)})} className="h-14 rounded-full text-gray-400 active:bg-gray-200 flex items-center justify-center"><X size={20}/></button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedTx && (
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fade-in" onClick={() => setSelectedTx(null)}>
+                <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl relative" onClick={e => e.stopPropagation()}>
+                  <button onClick={() => setSelectedTx(null)} className="absolute top-4 right-4 bg-gray-100 p-2 rounded-full text-gray-500 hover:bg-gray-200"><X size={18}/></button>
+                  <div className="text-center mb-6 pt-4">
+                     <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner ${selectedTx.type === 'income' ? 'bg-[#E8EAE6] text-[#8B9D83]' : 'bg-[#F6EBE1] text-[#D4A373]'}`}>
+                         {selectedTx.type === 'income' ? <Plus size={32}/> : <Minus size={32}/>}
+                     </div>
+                     <h3 className="text-2xl font-bold text-[#4A4A4A]">{formatCurrency(selectedTx.amount, selectedTx.currency || 'IDR')}</h3>
+                     <p className="text-gray-500 text-sm font-medium">{getCatName(categories.find(c => c.id === selectedTx.categoryId))}</p>
+                  </div>
+                  
+                  <div className="bg-gray-50 rounded-2xl p-4 space-y-3 mb-6">
+                     <div className="flex justify-between items-center text-sm"><span className="text-gray-500">{t.dateTime}</span><span className="font-semibold text-[#4A4A4A]">{new Date(selectedTx.date).toLocaleString(lang === 'id' ? 'id-ID' : 'ja-JP')}</span></div>
+                     <div className="flex justify-between items-center text-sm"><span className="text-gray-500">{t.wallets}</span><span className="font-semibold text-[#4A4A4A]">{getWalletName(selectedTx.walletId)}</span></div>
+                     {selectedTx.note && (
+                       <div className="flex justify-between items-start text-sm"><span className="text-gray-500 whitespace-nowrap mr-4">{t.note}</span><span className="font-semibold text-[#4A4A4A] text-right">{selectedTx.note}</span></div>
+                     )}
+                  </div>
+                  
+                  {selectedTx.photo && (
+                     <div className="mb-6 relative rounded-2xl overflow-hidden border border-gray-100 cursor-pointer" onClick={() => setPreviewImage(selectedTx.photo)}>
+                        <img src={selectedTx.photo} className="w-full h-32 object-cover hover:scale-105 transition-transform duration-300" />
+                        <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"><ImageIcon size={24} className="text-white"/></div>
+                     </div>
+                  )}
+                  
+                  <button onClick={() => { handleDeleteTx(selectedTx.id); setSelectedTx(null); setToastMsg(lang === 'id' ? 'Transaksi dihapus' : '取引を削除しました'); setTimeout(() => setToastMsg(''), 2500); }} className="w-full bg-red-50 text-red-500 py-3.5 rounded-2xl font-bold active:scale-95 transition-transform flex items-center justify-center gap-2"><Trash2 size={18}/> {t.delete}</button>
+                </div>
+              </div>
+            )}
+
+            {previewImage && (
+              <div className="fixed inset-0 bg-black/90 z-[110] flex items-center justify-center p-4 animate-fade-in" onClick={() => setPreviewImage(null)}>
+                 <button onClick={() => setPreviewImage(null)} className="absolute top-6 right-6 text-white/50 hover:text-white p-2"><X size={32}/></button>
+                 <img src={previewImage} className="max-w-full max-h-full object-contain rounded-xl" onClick={e => e.stopPropagation()} />
+              </div>
+            )}
           </div>
         </div>
       );
