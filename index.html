@@ -683,7 +683,7 @@
               'Kesehatan': ['obat', 'dokter', 'rs', 'rumah sakit', 'klinik', 'apotek', 'kusuri', 'byouin', 'vitamin'],
               'Tagihan': ['listrik', 'air', 'internet', 'wifi', 'gas', 'pajak', 'sewa', 'kos', 'yachin', 'denki', 'suidou', 'gasu'],
               'Gaji': ['gaji', 'bonus', 'bayaran', 'fee', 'arubaito', 'kyuuryou', 'shunyu'],
-              'Pendapatan Lain': ['dapat', 'dapet', 'dikasih', 'terima', 'pemasukan', 'pendapatan', 'untung', 'laba', 'profit', 'menang', 'jual', 'cair', 'diberi', 'nemu', 'cashback']
+              'Pendapatan Lain': ['dapat', 'dapet', 'dikasih', 'terima', 'pemasukan', 'pendapatan', 'untung', 'laba', 'profit', 'menang', 'jual', 'cair', 'diberi', 'nemu', 'cashback', 'thr', 'angpao', 'angpau', 'amplop']
           };
 
           // 1. Coba cari di kategori yang sudah ada
@@ -711,8 +711,16 @@
           
           // 3. Fallback absolut (Kategori Lain-lain)
           if (!categoryId && !suggestedCatName) {
-              suggestedCatName = 'Lain-lain';
-              type = 'expense';
+              // Cek dulu apakah kategori "Lain-lain" sudah pernah dibuat agar tidak duplikat
+              const existingLainLain = currentCategories.find(c => c.name.toLowerCase() === 'lain-lain' || c.name.toLowerCase() === 'lainnya' || c.name.toLowerCase() === 'lain - lain');
+              
+              if (existingLainLain) {
+                  categoryId = existingLainLain.id;
+                  type = existingLainLain.type;
+              } else {
+                  suggestedCatName = 'Lain-lain';
+                  type = 'expense';
+              }
           }
 
           return { amount, currency, categoryId, suggestedCatName, type, note };
