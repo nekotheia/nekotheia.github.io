@@ -233,7 +233,7 @@
         addWallet: 'Tambah Dompet', walletName: 'Nama Dompet', walletsConfig: 'Daftar Dompet', setupBiometric: 'Gunakan Sidik Jari/Wajah',
         removeBiometric: 'Matikan Keamanan', logout: 'Keluar Akun (Log Out)', connectedAccount: 'Akun Terhubung', profileSetup: 'Profil Pengguna',
         editProfile: 'Edit Profil', saveProfile: 'Simpan Profil', changePhoto: 'Ubah Foto',
-        smartInputTitle: 'Pencatatan Cerdas', smartInputPlaceholder: 'Ketik (contoh: makan nasi goreng 25rb atau 25k)', smartInputNav: 'Ketik',
+        smartInputTitle: 'Pencatatan Cerdas', smartInputPlaceholder: 'Ketik (contoh: makan 25k, atau dapat 1 jt)', smartInputNav: 'Ketik',
       },
       jp: {
         appTitle: 'mawuang', totalBalance: '総残高', income: '収入', expense: '支出',
@@ -254,7 +254,7 @@
         addWallet: 'ウォレット追加', walletName: 'ウォレット名', walletsConfig: 'ウォレット一覧', setupBiometric: '指紋/顔認証を使用',
         removeBiometric: 'セキュリティを無効にする', logout: 'ログアウト', connectedAccount: '連携アカウント', profileSetup: 'プロフィール',
         editProfile: 'プロフィールを編集', saveProfile: 'プロフィールを保存', changePhoto: '写真を変更',
-        smartInputTitle: 'スマート入力', smartInputPlaceholder: '入力例: 昼ごはん 500円 または音声を使用', smartInputNav: '入力',
+        smartInputTitle: 'スマート入力', smartInputPlaceholder: '入力例: 昼ごはん 500円、または 1000円 もらった', smartInputNav: '入力',
       }
     };
 
@@ -636,7 +636,8 @@
               'Hobi': ['gundam', 'mainan', 'game', 'nonton', 'bioskop', 'konser', 'hobby', 'anime', 'manga', 'komik', 'figure', 'gacha', 'playstation', 'nintendo'],
               'Kesehatan': ['obat', 'dokter', 'rs', 'rumah sakit', 'klinik', 'apotek', 'kusuri', 'byouin', 'vitamin'],
               'Tagihan': ['listrik', 'air', 'internet', 'wifi', 'gas', 'pajak', 'sewa', 'kos', 'yachin', 'denki', 'suidou', 'gasu'],
-              'Gaji': ['gaji', 'bonus', 'bayaran', 'fee', 'arubaito', 'kyuuryou', 'shunyu']
+              'Gaji': ['gaji', 'bonus', 'bayaran', 'fee', 'arubaito', 'kyuuryou', 'shunyu'],
+              'Pendapatan Lain': ['dapat', 'dapet', 'dikasih', 'terima', 'pemasukan', 'pendapatan', 'untung', 'laba', 'profit', 'menang', 'jual', 'cair', 'diberi', 'nemu', 'cashback']
           };
 
           // 1. Coba cari di kategori yang sudah ada
@@ -655,7 +656,7 @@
                           categoryId = matchedCat.id; type = matchedCat.type;
                       } else {
                           suggestedCatName = catName;
-                          type = catName === 'Gaji' ? 'income' : 'expense';
+                          type = ['Gaji', 'Pendapatan Lain'].includes(catName) ? 'income' : 'expense';
                       }
                       break;
                   }
@@ -1811,7 +1812,7 @@
                            type="text"
                            value={smartText}
                            onChange={e => setSmartText(e.target.value)}
-                           placeholder={lang === 'id' ? "makan 25rb atau 25k..." : "昼ごはん 500円..."}
+                           placeholder={lang === 'id' ? "makan 25k, atau dapat 1 jt..." : "昼ごはん 500円..."}
                            className="flex-1 bg-transparent border-none outline-none px-4 text-[#4A4A4A] font-medium"
                            onKeyDown={e => e.key === 'Enter' && handleSmartSubmit()}
                            autoFocus
