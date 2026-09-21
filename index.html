@@ -53,11 +53,18 @@
   <style>
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-    .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
-    .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes floatPulse { 0% { box-shadow: 0 0 0 0 rgba(var(--c-primary-rgb), 0.4); } 70% { box-shadow: 0 0 0 10px rgba(var(--c-primary-rgb), 0); } 100% { box-shadow: 0 0 0 0 rgba(var(--c-primary-rgb), 0); } }
+    
+    .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    .animate-slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-pulse-glow { animation: floatPulse 2s infinite; }
+    
     body { -webkit-tap-highlight-color: transparent; }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* Smooth scrolling */
+    html { scroll-behavior: smooth; }
   </style>
 </head>
 <body class="bg-gray-100">
@@ -77,11 +84,11 @@
         if (this.state.hasError) {
           return (
             <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6 font-sans">
-              <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md w-full text-center border border-red-100">
-                <div className="w-16 h-16 bg-red-50 text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">!</div>
-                <h2 className="text-xl font-bold text-gray-700 mb-2">Terjadi Kendala Sistem</h2>
-                <p className="text-xs text-gray-500 mb-6">{this.state.error?.message || 'Gagal memuat komponen aplikasi.'}</p>
-                <button onClick={() => window.location.reload()} className="w-full bg-blue-500 text-white py-3.5 rounded-2xl font-bold shadow-md active:scale-95 transition-transform">Muat Ulang Aplikasi</button>
+              <div className="bg-white p-8 rounded-[32px] shadow-2xl max-w-md w-full text-center border border-red-50">
+                <div className="w-20 h-20 bg-red-50 text-red-400 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold">!</div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-3">Terjadi Kendala Sistem</h2>
+                <p className="text-sm text-gray-500 mb-8">{this.state.error?.message || 'Gagal memuat komponen aplikasi.'}</p>
+                <button onClick={() => window.location.reload()} className="w-full bg-blue-500 text-white py-4 rounded-2xl font-bold shadow-lg hover:shadow-blue-500/30 active:scale-95 transition-all">Muat Ulang Aplikasi</button>
               </div>
             </div>
           );
@@ -181,14 +188,14 @@
 
     const CashYenGraphic = () => (
       <div className="relative w-48 h-48 md:w-64 md:h-64 mx-auto flex items-center justify-center">
-        <svg viewBox="0 0 200 200" className="w-full h-full text-theme drop-shadow-xl transition-colors duration-500">
-          <rect x="25" y="45" width="120" height="75" rx="8" fill="currentColor" opacity="0.3" transform="rotate(-10 85 82)" />
-          <circle cx="85" cy="82" r="16" fill="currentColor" opacity="0.4" transform="rotate(-10 85 82)" />
+        <svg viewBox="0 0 200 200" className="w-full h-full text-theme drop-shadow-2xl transition-colors duration-500">
+          <rect x="25" y="45" width="120" height="75" rx="16" fill="currentColor" opacity="0.2" transform="rotate(-10 85 82)" />
+          <circle cx="85" cy="82" r="16" fill="currentColor" opacity="0.3" transform="rotate(-10 85 82)" />
           <text x="75" y="88" fill="#FFFFFF" fontSize="18" fontWeight="bold" transform="rotate(-10 85 82)">¥</text>
-          <rect x="50" y="70" width="125" height="80" rx="10" fill="#E8EAE6" stroke="currentColor" strokeWidth="3" transform="rotate(5 112 110)" />
-          <circle cx="112" cy="110" r="20" fill="currentColor" opacity="0.2" transform="rotate(5 112 110)" />
+          <rect x="50" y="70" width="125" height="80" rx="16" fill="var(--c-card)" stroke="currentColor" strokeWidth="3" transform="rotate(5 112 110)" />
+          <circle cx="112" cy="110" r="20" fill="currentColor" opacity="0.1" transform="rotate(5 112 110)" />
           <text x="102" y="118" fill="currentColor" fontSize="24" fontWeight="bold" transform="rotate(5 112 110)">¥</text>
-          <circle cx="145" cy="55" r="12" fill="#F59E0B" opacity="0.8" />
+          <circle cx="145" cy="55" r="14" fill="#F59E0B" opacity="0.9" />
           <text x="141" y="60" fill="white" fontSize="12" fontWeight="bold">¥</text>
         </svg>
       </div>
@@ -209,49 +216,49 @@
       id: {
         appTitle: 'mawuang', totalBalance: 'Saldo Total', income: 'Pemasukan', expense: 'Pengeluaran',
         recent: 'Transaksi Terakhir', addIncome: 'Pemasukan', addExpense: 'Pengeluaran', scan: 'Pindai Struk',
-        home: 'Beranda', categories: 'Master Data', settings: 'Pengaturan', save: 'Simpan', cancel: 'Batal',
-        amount: 'Nominal', note: 'Catatan', exportExcel: 'Ekspor ke Excel (CSV)', language: 'Bahasa (Language)',
-        scanInstruction: 'Pilih foto atau ambil gambar struk belanja / bank', scanning: 'Menganalisis teks pada gambar...',
+        home: 'Beranda', categories: 'Kategori', settings: 'Pengaturan', save: 'Simpan', cancel: 'Batal',
+        amount: 'Nominal', note: 'Catatan', exportExcel: 'Ekspor Data (CSV)', language: 'Bahasa (Language)',
+        scanInstruction: 'Pilih foto atau ambil gambar struk belanja / transfer bank', scanning: 'Menganalisis teks pada gambar...',
         categoryName: 'Nama Kategori', addCategory: 'Tambah Kategori', noTransactions: 'Belum ada transaksi, yuk mulai mencatat!',
         delete: 'Hapus', selectCategory: 'Pilih Kategori', newTransaction: 'Transaksi Baru', editTransaction: 'Edit Transaksi', type: 'Jenis',
         categoryRequired: 'Oops, Kategori belum dipilih!', amountRequired: 'Nominal belum diisi!', insufficientBalance: 'Saldo anda tidak mencukupi',
-        dateTime: 'Tanggal & Waktu', report: 'Laporan Analisis', yearly: 'Tahunan', monthly: 'Bulanan', weekly: 'Mingguan',
+        dateTime: 'Tanggal & Waktu', report: 'Analitik', yearly: 'Tahunan', monthly: 'Bulanan', weekly: 'Mingguan',
         addPhoto: 'Tambah Foto / Struk', custom: 'Kustom', startDate: 'Dari Tanggal', endDate: 'Sampai Tanggal',
         transactionDetails: 'Rincian Transaksi', aboutApp: 'Tentang Aplikasi', aboutAppDesc: 'Aplikasi pencatat keuangan pintar untuk perantau jepang dari indonesia, dengan kurs real-time.',
         exportFileName: 'Nama File Ekspor', exportConfirm: 'Ekspor Data', scanFailed: 'Gagal mengekstrak angka. Anda dapat menyalinnya manual dari foto.',
         tryAgain: 'Coba Ulang / Manual', pinSecurity: 'Keamanan (PIN 6-Digit)', setupPin: 'Atur PIN Baru', removePin: 'Hapus Keamanan',
         enterPin: 'Masukkan PIN Anda', wrongPin: 'PIN Salah!', cloudBackup: 'Backup & Sinkronisasi', backupDesc: 'Simpan data ke Google Drive / Pulihkan dari JSON',
-        exportData: 'Backup Data', importData: 'Pulihkan', wallets: 'Dompet / Metode', chart: 'Porsi Pengeluaran',
+        exportData: 'Backup Data', importData: 'Pulihkan', wallets: 'Metode Pembayaran', chart: 'Porsi Pengeluaran',
         addWallet: 'Tambah Dompet', walletName: 'Nama Dompet', walletsConfig: 'Daftar Dompet', setupBiometric: 'Gunakan Sidik Jari/Wajah',
         removeBiometric: 'Matikan Keamanan', logout: 'Keluar Akun (Log Out)', connectedAccount: 'Akun Terhubung', profileSetup: 'Profil Pengguna',
         editProfile: 'Edit Profil', saveProfile: 'Simpan Profil', changePhoto: 'Ubah Foto',
-        smartInputTitle: 'Pencatatan Cerdas', smartInputPlaceholder: 'Ketik (contoh: makan 25k, atau dapat 1 jt)', smartInputNav: 'Ketik',
-        edit: 'Ubah', newsTitle: 'Berita Ekonomi & Keuangan Jepang',
+        smartInputTitle: 'Pencatatan Suara/Teks', smartInputPlaceholder: 'Ketik (contoh: makan 25k, atau dapat 1 jt)', smartInputNav: 'Ketik',
+        edit: 'Ubah', newsTitle: 'Kabar Ekonomi Jepang',
         danaTalang: 'Simulasi Dana Talang LPK', totalLoan: 'Total Pinjaman', paidAmount: 'Sudah Dibayar', remainingLoan: 'Sisa Hutang', setupLoan: 'Atur Dana Talang', saveLoan: 'Simpan',
-        editWidget: 'Pengaturan Widget Beranda', widgetSubtitle: 'Pengeluaran Hari Ini', themeSettings: 'Kustomisasi Tema & Warna', themeDesc: 'Ubah semua warna sesuai keinginan Anda.',
-        dailyBudget: 'Target Pengeluaran Harian (Limit)', safeMode: 'Gambar Background Default', dangerMode: 'Gambar Background (Batas Budget)', statusSafe: 'AMAN'
+        editWidget: 'Pengaturan Widget Beranda', widgetSubtitle: 'Pengeluaran Hari Ini', themeSettings: 'Kustomisasi Tema Visual', themeDesc: 'Ubah semua warna sesuai keinginan Anda.',
+        dailyBudget: 'Target Pengeluaran Harian (Limit)', safeMode: 'Background Mode Aman', dangerMode: 'Background Mode Peringatan', statusSafe: 'AMAN'
       },
       jp: {
         appTitle: 'mawuang', totalBalance: '総残高', income: '収入', expense: '支出',
         recent: '最近の取引', addIncome: '収入', addExpense: '支出', scan: 'スキャン',
-        home: 'ホーム', categories: 'マスターデータ', settings: '設定', save: '保存', cancel: 'キャンセル',
+        home: 'ホーム', categories: 'カテゴリ', settings: '設定', save: '保存', cancel: 'キャンセル',
         amount: '金額', note: 'メモ', exportExcel: 'Excelへ出力 (CSV)', language: '言語 (Language)',
         scanInstruction: 'レシートや振込画面の写真を選択してください', scanning: '画像のテキストを分析中...',
         categoryName: 'カテゴリ名', addCategory: 'カテゴリ追加', noTransactions: '取引はありません。記録を始めましょう！',
         delete: '削除', selectCategory: 'カテゴリを選択', newTransaction: '新しい取引', editTransaction: '取引を編集', type: '種類',
         categoryRequired: 'カテゴリを選択してください！', amountRequired: '金額を入力してください！', insufficientBalance: '残高が不足しています',
-        dateTime: '日時', report: '分析レポート', yearly: '年間', monthly: '月間', weekly: '週間',
+        dateTime: '日時', report: '分析', yearly: '年間', monthly: '月間', weekly: '週間',
         addPhoto: '写真を追加', custom: 'カスタム', startDate: '開始日', endDate: '終了日',
         transactionDetails: '取引の詳細', aboutApp: 'アプリについて', aboutAppDesc: 'インドネシアから日本への移住者のための家計簿アプリ。リアルタイム為替レート機能付き。',
         exportFileName: '出力ファイル名', exportConfirm: '出力', scanFailed: '数字の抽出に失敗しました。写真から手動でコピーできます。',
         tryAgain: '再試行 / 手動', pinSecurity: 'セキュリティ (PIN 6桁)', setupPin: 'PINを設定', removePin: 'セキュリティを削除',
         enterPin: 'PINを入力してください', wrongPin: 'PINが間違っています！', cloudBackup: 'バックアップと同期', backupDesc: 'Googleドライブに保存 / JSONから復元',
-        exportData: 'バックアップ', importData: '復元', wallets: 'ウォレット / 支払方法', chart: '支出の割合',
+        exportData: 'バックアップ', importData: '復元', wallets: '支払方法', chart: '支出の割合',
         addWallet: 'ウォレット追加', walletName: 'ウォレット名', walletsConfig: 'ウォレット一覧', setupBiometric: '指紋/顔認証を使用',
         removeBiometric: 'セキュリティを無効にする', logout: 'ログアウト', connectedAccount: '連携アカウント', profileSetup: 'プロフィール',
         editProfile: 'プロフィールを編集', saveProfile: 'プロフィールを保存', changePhoto: '写真を変更',
         smartInputTitle: 'スマート入力', smartInputPlaceholder: '入力例: 昼ごはん 500円、または 1000円 もらった', smartInputNav: '入力',
-        edit: '編集', newsTitle: '日本経済・金融ニュース',
+        edit: '編集', newsTitle: '日本経済ニュース',
         danaTalang: '立替金シミュレーション', totalLoan: '借入総額', paidAmount: '支払済', remainingLoan: '残高', setupLoan: '設定', saveLoan: '保存',
         editWidget: 'ホームウィジェット設定', widgetSubtitle: '今日の支出', themeSettings: 'テーマと色をカスタマイズ', themeDesc: 'すべての色を自由に変更できます。',
         dailyBudget: '1日の支出目標 (上限)', safeMode: 'デフォルト背景画像', dangerMode: '警告背景画像 (上限時)', statusSafe: '安全'
@@ -318,7 +325,7 @@
       const [activeTab, setActiveTab] = useState('home'); 
       
       const [customTheme, setCustomTheme] = useState(DEFAULT_THEME);
-      const [themeExpanded, setThemeExpanded] = useState(false); // Accordion state
+      const [themeExpanded, setThemeExpanded] = useState(false);
       
       const [transactions, setTransactions] = useState([]);
       const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
@@ -395,7 +402,7 @@
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then(() => setDeferredPrompt(null));
         } else {
-            setMessageDialog({ isOpen: true, title: 'Info Pemasangan', message: 'Untuk menambahkan widget/aplikasi ini ke layar utama:\n\nDi Android/Chrome: Buka menu browser (titik tiga) lalu pilih "Tambahkan ke Layar Utama" / "Install App".\n\nDi iPhone/Safari: Ketuk tombol Bagikan lalu pilih "Tambahkan ke Layar Utama".' });
+            setMessageDialog({ isOpen: true, title: 'Info Pemasangan', message: 'Untuk menambahkan aplikasi ini ke layar utama:\n\nDi Android (Chrome): Buka menu titik tiga lalu pilih "Tambahkan ke Layar Utama" / "Install App".\n\nDi iPhone (Safari): Ketuk tombol Bagikan lalu pilih "Tambahkan ke Layar Utama".' });
         }
       };
 
@@ -1173,19 +1180,20 @@
         <style>{`
           :root {
             --c-primary: ${customTheme.primary};
-            --c-primary-light: color-mix(in srgb, ${customTheme.primary} 15%, transparent);
+            --c-primary-rgb: ${parseInt(customTheme.primary.slice(1,3),16)}, ${parseInt(customTheme.primary.slice(3,5),16)}, ${parseInt(customTheme.primary.slice(5,7),16)};
+            --c-primary-light: color-mix(in srgb, ${customTheme.primary} 12%, transparent);
             --c-bg: ${customTheme.bg};
             --c-card: ${customTheme.cardBg};
             --c-text: ${customTheme.text};
-            --c-text-muted: color-mix(in srgb, ${customTheme.text} 50%, transparent);
-            --c-input: color-mix(in srgb, ${customTheme.text} 3%, ${customTheme.cardBg});
-            --c-border: color-mix(in srgb, ${customTheme.text} 5%, transparent);
+            --c-text-muted: color-mix(in srgb, ${customTheme.text} 55%, transparent);
+            --c-input: color-mix(in srgb, ${customTheme.text} 4%, ${customTheme.cardBg});
+            --c-border: color-mix(in srgb, ${customTheme.text} 6%, transparent);
             --c-income: ${customTheme.income};
-            --c-income-light: color-mix(in srgb, ${customTheme.income} 15%, transparent);
+            --c-income-light: color-mix(in srgb, ${customTheme.income} 12%, transparent);
             --c-expense: ${customTheme.expense};
-            --c-expense-light: color-mix(in srgb, ${customTheme.expense} 15%, transparent);
+            --c-expense-light: color-mix(in srgb, ${customTheme.expense} 12%, transparent);
           }
-          body { background-color: var(--c-bg); color: var(--c-text); transition: background-color 0.5s, color 0.5s; }
+          body { background-color: var(--c-bg); color: var(--c-text); transition: background-color 0.4s ease-out, color 0.4s ease-out; }
           .app-bg { background-color: var(--c-bg) !important; }
           .card-bg { background-color: var(--c-card) !important; }
           .text-main { color: var(--c-text) !important; }
@@ -1212,13 +1220,14 @@
           input[type="color"] {
               -webkit-appearance: none;
               border: none;
-              width: 32px;
-              height: 32px;
+              width: 36px;
+              height: 36px;
               border-radius: 50%;
               padding: 0;
               overflow: hidden;
               background-color: transparent;
               cursor: pointer;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.05);
           }
           input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
           input[type="color"]::-webkit-color-swatch {
@@ -1286,7 +1295,7 @@
                                   <div className="mb-10 md:mb-0 w-full mt-auto md:mt-0">
                                       <h2 className="text-3xl font-bold text-main mb-3">Selamat Datang!</h2>
                                       <p className="text-muted text-sm mb-10 leading-relaxed px-4">Kelola pemasukan dan pengeluaran harian Anda dengan mudah, rapi, dan cerdas.</p>
-                                      <button onClick={() => setOnboardingStep(2)} className="w-full bg-theme text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all text-lg tracking-wide hover:opacity-90">Mulai Perjalanan</button>
+                                      <button onClick={() => setOnboardingStep(2)} className="w-full bg-theme text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all text-lg tracking-wide hover:opacity-90 hover:shadow-xl hover:-translate-y-0.5">Mulai Perjalanan</button>
                                   </div>
                               </div>
                           )}
@@ -1299,13 +1308,13 @@
                                   
                                   {syncStatus === 'idle' && (
                                       <div className="w-full flex flex-col items-center space-y-4 animate-fade-in">
-                                          <button onClick={handleGoogleLogin} className="w-full max-w-[280px] card-bg text-main font-bold py-3.5 px-4 rounded-full shadow-md flex items-center justify-center gap-3 border-soft hover:opacity-90 active:scale-95 transition-all">
+                                          <button onClick={handleGoogleLogin} className="w-full max-w-[280px] card-bg text-main font-bold py-4 px-4 rounded-full shadow-md flex items-center justify-center gap-3 border-soft hover:opacity-90 hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all">
                                               <GoogleLogo /> Lanjutkan dengan Google
                                           </button>
                                           <button onClick={() => {
                                               setUsername(''); setPhotoURL(''); setTransactions([]); setCategories(DEFAULT_CATEGORIES); setWallets(DEFAULT_WALLETS); setPin(''); setDanaTalang({ total: 0, paid: 0, currency: 'IDR' }); setWidgetConfig({ safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR' }); setCustomTheme(DEFAULT_THEME);
                                               setOnboardingStep(3);
-                                          }} className="text-muted text-xs font-semibold hover:opacity-80 transition-all pt-2">
+                                          }} className="text-muted text-xs font-semibold hover:opacity-80 transition-all pt-2 p-2">
                                               Gunakan Mode Offline (Lewati Login)
                                           </button>
                                       </div>
@@ -1329,7 +1338,7 @@
                               <div className="flex flex-col h-full items-center justify-center w-full animate-slide-up">
                                   <div className="mb-8 relative mt-[-20px]">
                                       {photoURL ? ( <img src={photoURL} className="w-28 h-28 rounded-full object-cover border-4 border-soft shadow-lg mx-auto" /> ) : ( <div className="w-28 h-28 bg-theme-light text-theme rounded-full border-4 border-soft shadow-lg flex items-center justify-center mx-auto"><User size={40} /></div> )}
-                                      <label className="absolute bottom-1 right-1 bg-theme text-white p-2.5 rounded-full cursor-pointer shadow-md hover:scale-105 active:scale-95 transition-all">
+                                      <label className="absolute bottom-1 right-1 bg-theme text-white p-2.5 rounded-full cursor-pointer shadow-md hover:scale-110 active:scale-95 transition-all">
                                           <Camera size={18} />
                                           <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files[0]; if(file) compressImage(file, setPhotoURL); }} />
                                       </label>
@@ -1339,7 +1348,7 @@
                                   
                                   <div className="w-full max-w-[280px] mx-auto">
                                       <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="Nama Panggilan" className="w-full box-border card-bg border-none rounded-2xl p-4 text-main outline-none shadow-sm text-center font-bold mb-8 transition-shadow ring-theme" />
-                                      <button onClick={() => setOnboardingStep(4)} className="w-full bg-theme text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform tracking-wide hover:opacity-90">Lanjutkan</button>
+                                      <button onClick={() => setOnboardingStep(4)} className="w-full bg-theme text-white py-4 rounded-2xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all tracking-wide">Lanjutkan</button>
                                   </div>
                               </div>
                           )}
@@ -1361,17 +1370,17 @@
                                   {pinSetupError && <p className="text-red-400 text-xs font-semibold mb-6 animate-pulse">{pinSetupError}</p>}
                                   <div className="grid grid-cols-3 gap-4 md:gap-6 max-w-[280px] w-full mx-auto">
                                     {[1,2,3,4,5,6,7,8,9].map(num => (
-                                      <button key={num} onClick={() => handleSetupPinPress(num.toString())} className="w-14 h-14 md:w-16 md:h-16 rounded-full text-xl font-bold input-bg text-main hover:opacity-80 active:scale-95 transition-all mx-auto">{num}</button>
+                                      <button key={num} onClick={() => handleSetupPinPress(num.toString())} className="w-14 h-14 md:w-16 md:h-16 rounded-full text-xl font-bold input-bg text-main hover:opacity-80 active:scale-95 transition-all mx-auto shadow-sm">{num}</button>
                                     ))}
                                     <div></div>
-                                    <button onClick={() => handleSetupPinPress('0')} className="w-14 h-14 md:w-16 md:h-16 rounded-full text-xl font-bold input-bg text-main hover:opacity-80 active:scale-95 transition-all mx-auto">0</button>
-                                    <button onClick={() => setSetupPinInput(setupPinInput.slice(0,-1))} className="w-14 h-14 md:w-16 md:h-16 rounded-full text-lg font-bold input-bg text-muted hover:opacity-80 active:scale-95 transition-all mx-auto"><X size={20}/></button>
+                                    <button onClick={() => handleSetupPinPress('0')} className="w-14 h-14 md:w-16 md:h-16 rounded-full text-xl font-bold input-bg text-main hover:opacity-80 active:scale-95 transition-all mx-auto shadow-sm">0</button>
+                                    <button onClick={() => setSetupPinInput(setupPinInput.slice(0,-1))} className="w-14 h-14 md:w-16 md:h-16 rounded-full text-lg font-bold input-bg text-muted hover:opacity-80 active:scale-95 transition-all mx-auto shadow-sm"><X size={20}/></button>
                                   </div>
                                   <button onClick={async () => {
                                       setPin(''); await idb.set('mawuang_pin', ''); setAppState('unlocked');
                                       const initialPayload = { transactions: [], categories: DEFAULT_CATEGORIES, wallets: DEFAULT_WALLETS, username, photoURL, lang, email: connectedEmail, pin: '', danaTalang: {total:0, paid:0, currency:'IDR'}, widgetConfig: {safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR'}, customTheme: DEFAULT_THEME };
                                       pushToCloud(initialPayload);
-                                  }} className="mt-8 text-muted text-xs font-semibold hover:opacity-80 transition-colors">Lewati PIN</button>
+                                  }} className="mt-8 text-muted text-xs font-semibold hover:opacity-80 transition-colors p-2">Lewati PIN</button>
                               </div>
                           )}
                       </div>
@@ -1393,13 +1402,13 @@
             </div>
             <div className="grid grid-cols-3 gap-6 max-w-[280px] animate-slide-up">
               {[1,2,3,4,5,6,7,8,9].map(num => (
-                <button key={num} onClick={() => handlePinPress(num.toString())} className="w-16 h-16 rounded-full text-2xl font-semibold bg-white/10 active:bg-white/30 hover:bg-white/20 active:scale-95 transition-all mx-auto">{num}</button>
+                <button key={num} onClick={() => handlePinPress(num.toString())} className="w-16 h-16 rounded-full text-2xl font-semibold bg-white/10 active:bg-white/30 hover:bg-white/20 active:scale-95 transition-all mx-auto backdrop-blur-sm">{num}</button>
               ))}
               {biometricId ? (
                  <button onClick={handleBiometricUnlock} className="w-16 h-16 rounded-full bg-expense shadow-lg animate-pulse active:scale-95 transition-all flex items-center justify-center mx-auto hover:opacity-90"><Unlock size={28} strokeWidth="2.5" color="white" /></button>
               ) : <div></div>}
-              <button onClick={() => handlePinPress('0')} className="w-16 h-16 rounded-full text-2xl font-semibold bg-white/10 active:bg-white/30 hover:bg-white/20 active:scale-95 transition-all mx-auto">0</button>
-              <button onClick={() => setPinInput(pinInput.slice(0,-1))} className="w-16 h-16 rounded-full text-xl font-semibold bg-white/10 active:bg-white/30 hover:bg-white/20 active:scale-95 transition-all mx-auto"><X size={24}/></button>
+              <button onClick={() => handlePinPress('0')} className="w-16 h-16 rounded-full text-2xl font-semibold bg-white/10 active:bg-white/30 hover:bg-white/20 active:scale-95 transition-all mx-auto backdrop-blur-sm">0</button>
+              <button onClick={() => setPinInput(pinInput.slice(0,-1))} className="w-16 h-16 rounded-full text-xl font-semibold bg-white/10 active:bg-white/30 hover:bg-white/20 active:scale-95 transition-all mx-auto backdrop-blur-sm"><X size={24}/></button>
             </div>
             {biometricId && ( <p onClick={handleBiometricUnlock} className="mt-10 text-xs font-semibold text-white/70 tracking-widest uppercase cursor-pointer hover:text-white transition-colors">{lang === 'id' ? 'Sentuh sensor untuk membuka' : 'センサーにタッチしてロック解除'}</p> )}
           </div>
@@ -1409,7 +1418,7 @@
       const NavButton = ({ tab, icon: IconComp }) => {
         const isActive = activeTab === tab;
         return (
-          <button onClick={() => setActiveTab(tab)} className={`flex items-center justify-center p-3 lg:w-full lg:rounded-2xl transition-all ${isActive ? 'text-theme bg-theme-light rounded-2xl' : 'text-muted hover:opacity-80 lg:hover:input-bg'}`}>
+          <button onClick={() => setActiveTab(tab)} className={`flex items-center justify-center p-3 lg:w-full lg:rounded-2xl transition-all duration-300 ${isActive ? 'text-theme bg-theme-light rounded-2xl shadow-sm' : 'text-muted hover:opacity-80 lg:hover:input-bg active:scale-95'}`}>
             <IconComp size={24} strokeWidth={isActive ? 2.5 : 2} />
           </button>
         );
@@ -1429,68 +1438,68 @@
         const isWarningMode = currentLimitInDisplay > 0 && todayExpense >= (currentLimitInDisplay * 0.8) && todayExpense < currentLimitInDisplay;
         
         const currentWidgetBg = isDangerMode ? widgetConfig.dangerBg : widgetConfig.safeBg;
-        const widgetOverlay = currentWidgetBg ? (isDangerMode ? 'bg-red-900/70' : (isWarningMode ? 'bg-orange-900/60' : 'bg-black/40')) : '';
+        const widgetOverlay = currentWidgetBg ? (isDangerMode ? 'bg-red-900/60' : (isWarningMode ? 'bg-orange-900/50' : 'bg-black/30')) : '';
 
         return (
-          <div className="p-6 md:p-10 pb-24 md:pb-10 relative z-10 animate-fade-in md:grid md:grid-cols-12 md:gap-8 lg:gap-12 md:items-start">
+          <div className="p-6 md:p-10 pb-32 md:pb-10 relative z-10 animate-fade-in md:grid md:grid-cols-12 md:gap-8 lg:gap-12 md:items-start">
             <div className="col-span-12 flex justify-between items-center mb-6 md:mb-8">
               <div className="flex items-center gap-3 overflow-hidden">
                  {photoURL ? ( <img src={photoURL} className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover shadow-sm border-2 border-soft flex-shrink-0" /> ) : ( <div className="w-10 h-10 md:w-12 md:h-12 rounded-full card-bg text-theme flex items-center justify-center shadow-sm flex-shrink-0 border-soft"><User size={20} /></div> )}
                  <h1 className="text-xl md:text-2xl font-bold text-main tracking-tight truncate max-w-[160px] md:max-w-full">Hai, {username || 'Pengguna'}!</h1>
               </div>
-              <div className="flex items-center input-bg p-1 rounded-full cursor-pointer shadow-inner flex-shrink-0 border-soft" onClick={() => setDisplayCurrency(displayCurrency === 'IDR' ? 'JPY' : 'IDR')}>
-                 <div className={`px-3 py-1.5 rounded-full text-[10px] font-bold transition-all duration-300 ${displayCurrency === 'IDR' ? 'card-bg text-theme shadow-sm' : 'text-muted'}`}>IDR</div>
-                 <div className={`px-3 py-1.5 rounded-full text-[10px] font-bold transition-all duration-300 ${displayCurrency === 'JPY' ? 'card-bg text-theme shadow-sm' : 'text-muted'}`}>JPY</div>
+              <div className="flex items-center input-bg p-1.5 rounded-full cursor-pointer shadow-inner flex-shrink-0 border-soft" onClick={() => setDisplayCurrency(displayCurrency === 'IDR' ? 'JPY' : 'IDR')}>
+                 <div className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all duration-300 ${displayCurrency === 'IDR' ? 'card-bg text-theme shadow-sm' : 'text-muted'}`}>IDR</div>
+                 <div className={`px-4 py-1.5 rounded-full text-[10px] font-bold transition-all duration-300 ${displayCurrency === 'JPY' ? 'card-bg text-theme shadow-sm' : 'text-muted'}`}>JPY</div>
               </div>
             </div>
 
             {/* WIDGET KUSTOM BERANDA DENGAN MODE WAS-WAS */}
-            <div className={`col-span-12 mb-6 relative rounded-[32px] overflow-hidden shadow-sm min-h-[160px] flex flex-col justify-between p-6 transition-all duration-500 group ${!currentWidgetBg && (isDangerMode ? 'bg-red-500' : (isWarningMode ? 'bg-orange-400' : 'bg-theme'))}`} 
+            <div className={`col-span-12 mb-6 relative rounded-[32px] overflow-hidden shadow-lg min-h-[170px] flex flex-col justify-between p-6 transition-all duration-500 group border-soft ${!currentWidgetBg && (isDangerMode ? 'bg-red-500' : (isWarningMode ? 'bg-orange-400' : 'bg-theme'))}`} 
                  style={currentWidgetBg ? { backgroundImage: `url(${currentWidgetBg})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
-               {currentWidgetBg && <div className={`absolute inset-0 backdrop-blur-[2px] transition-all group-hover:backdrop-blur-sm ${widgetOverlay}`}></div>}
+               {currentWidgetBg && <div className={`absolute inset-0 backdrop-blur-[2px] transition-all duration-500 group-hover:backdrop-blur-sm ${widgetOverlay}`}></div>}
                <div className="relative z-10 flex justify-between items-start">
                   <div>
-                     <div className="flex items-center gap-2 mb-1">
-                        <p className="text-white/80 text-[10px] md:text-xs font-bold uppercase tracking-widest">{t.widgetSubtitle}</p>
+                     <div className="flex items-center gap-2 mb-1.5">
+                        <p className="text-white/90 text-[10px] md:text-xs font-bold uppercase tracking-widest drop-shadow-sm">{t.widgetSubtitle}</p>
                         {currentLimitInDisplay > 0 && (
-                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase shadow-sm ${isDangerMode ? 'bg-red-500 text-white animate-pulse' : (isWarningMode ? 'bg-orange-500 text-white' : 'bg-green-400 text-white')}`}>
+                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase shadow-sm border border-white/20 backdrop-blur-md ${isDangerMode ? 'bg-red-500 text-white animate-pulse' : (isWarningMode ? 'bg-orange-500 text-white' : 'bg-green-400/80 text-white')}`}>
                                 {isDangerMode ? (lang==='id'?'HABIS':'枯渇') : (isWarningMode ? (lang==='id'?'MENIPIS':'減少') : t.statusSafe)}
                             </span>
                         )}
                      </div>
-                     <h2 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-md">{formatCurrency(todayExpense, displayCurrency)}</h2>
+                     <h2 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg tracking-tight">{formatCurrency(todayExpense, displayCurrency)}</h2>
                      {currentLimitInDisplay > 0 && (
-                         <p className="text-white/70 text-[10px] mt-1 font-medium">Limit: {formatCurrency(currentLimitInDisplay, displayCurrency)}</p>
+                         <p className="text-white/80 text-[10px] mt-1 font-medium drop-shadow-sm">Limit: {formatCurrency(currentLimitInDisplay, displayCurrency)}</p>
                      )}
                   </div>
-                  <button onClick={() => setIsWidgetModalOpen(true)} className="p-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl text-white transition-all shadow-sm active:scale-95 border border-white/10">
+                  <button onClick={() => setIsWidgetModalOpen(true)} className="p-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl text-white transition-all shadow-sm active:scale-95 border border-white/10 hover:shadow-lg hover:-translate-y-0.5">
                      <Edit2 size={16} />
                   </button>
                </div>
                <div className="relative z-10 mt-6 md:mt-8">
-                  <button onClick={() => setIsScannerOpen(true)} className="inline-flex items-center gap-2 bg-white/25 hover:bg-white/35 backdrop-blur-md text-white px-5 py-3 rounded-2xl text-xs md:text-sm font-bold transition-all shadow-sm active:scale-95 border border-white/10">
+                  <button onClick={() => setIsScannerOpen(true)} className="inline-flex items-center gap-2 bg-white/25 hover:bg-white/35 backdrop-blur-md text-white px-5 py-3 rounded-2xl text-xs md:text-sm font-bold transition-all shadow-sm active:scale-95 border border-white/10 hover:shadow-lg hover:-translate-y-0.5">
                      <Camera size={18} /> {lang === 'id' ? 'Scan Struk / Bank' : 'スキャン'}
                   </button>
                </div>
             </div>
 
             <div className="col-span-12 lg:col-span-7 space-y-6">
-              <div className="grid grid-cols-2 gap-3">
-                <button onClick={() => handleOpenTxModal('income')} className="card-bg hover:opacity-80 text-income p-4 md:py-6 rounded-3xl shadow-sm border-soft flex flex-col items-center justify-center transition-transform active:scale-95">
+              <div className="grid grid-cols-2 gap-4">
+                <button onClick={() => handleOpenTxModal('income')} className="card-bg hover:shadow-md text-income p-4 md:py-6 rounded-3xl shadow-sm border-soft flex flex-col items-center justify-center transition-all active:scale-95 hover:-translate-y-1">
                   <div className="bg-income-light p-3 md:p-4 rounded-full mb-3"><Plus size={20} /></div>
-                  <span className="text-xs font-semibold text-main">{t.addIncome}</span>
+                  <span className="text-xs font-bold text-main">{t.addIncome}</span>
                 </button>
-                <button onClick={() => handleOpenTxModal('expense')} className="card-bg hover:opacity-80 text-expense p-4 md:py-6 rounded-3xl shadow-sm border-soft flex flex-col items-center justify-center transition-transform active:scale-95">
+                <button onClick={() => handleOpenTxModal('expense')} className="card-bg hover:shadow-md text-expense p-4 md:py-6 rounded-3xl shadow-sm border-soft flex flex-col items-center justify-center transition-all active:scale-95 hover:-translate-y-1">
                   <div className="bg-expense-light p-3 md:p-4 rounded-full mb-3"><Minus size={20} /></div>
-                  <span className="text-xs font-semibold text-main">{t.addExpense}</span>
+                  <span className="text-xs font-bold text-main">{t.addExpense}</span>
                 </button>
               </div>
 
               {/* FINANCIAL NEWS ACCORDION */}
-              <div className="card-bg rounded-[32px] shadow-sm border-soft overflow-hidden">
-                <button onClick={() => setNewsExpanded(!newsExpanded)} className="w-full p-5 flex items-center justify-between input-bg hover:opacity-80 transition-colors">
+              <div className="card-bg rounded-[32px] shadow-sm border-soft overflow-hidden transition-all hover:shadow-md">
+                <button onClick={() => setNewsExpanded(!newsExpanded)} className="w-full p-5 flex items-center justify-between input-bg hover:bg-black/5 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-theme-light text-theme rounded-2xl"><Newspaper size={20} /></div>
+                    <div className="p-2.5 bg-theme-light text-theme rounded-2xl shadow-sm"><Newspaper size={20} /></div>
                     <span className="text-sm font-bold text-main">{t.newsTitle}</span>
                   </div>
                   {newsExpanded ? <ChevronUp size={20} className="text-muted" /> : <ChevronDown size={20} className="text-muted" />}
@@ -1503,14 +1512,14 @@
                       <p className="text-xs text-muted text-center py-4">Tidak ada berita saat ini.</p>
                     ) : (
                       newsList.map((item, idx) => (
-                        <a key={idx} href={item.link} target="_blank" rel="noopener noreferrer" className="block p-3.5 rounded-2xl input-bg hover:opacity-80 transition-opacity group border-soft">
-                          <div className="flex justify-between items-start gap-2 mb-1">
-                            <h4 className="text-xs font-bold text-main group-hover:text-theme transition-colors line-clamp-2">{item.title}</h4>
+                        <a key={idx} href={item.link} target="_blank" rel="noopener noreferrer" className="block p-4 rounded-2xl input-bg hover:shadow-sm hover:-translate-y-0.5 hover:bg-black/5 transition-all group border-soft">
+                          <div className="flex justify-between items-start gap-3 mb-2">
+                            <h4 className="text-xs font-bold text-main group-hover:text-theme transition-colors line-clamp-2 leading-snug">{item.title}</h4>
                             <ExternalLink size={14} className="text-muted group-hover:text-theme flex-shrink-0 mt-0.5" />
                           </div>
                           <div className="flex items-center justify-between text-[10px] text-muted mt-2">
-                            <span className="card-bg px-2 py-0.5 rounded-md shadow-sm border-soft">{item.author || 'Google News'}</span>
-                            <span>{new Date(item.pubDate).toLocaleDateString()}</span>
+                            <span className="card-bg px-2.5 py-1 rounded-md shadow-sm border-soft font-semibold">{item.author || 'Google News'}</span>
+                            <span className="font-medium">{new Date(item.pubDate).toLocaleDateString()}</span>
                           </div>
                         </a>
                       ))
@@ -1524,7 +1533,7 @@
               <h3 className="text-lg font-bold text-main mb-4">{t.recent}</h3>
               {transactions.length === 0 ? (
                 <div className="text-center py-10 card-bg rounded-3xl shadow-sm border-soft border-dashed">
-                  <EmptyCoinYen className="mx-auto text-expense mb-4" size={56} />
+                  <EmptyCoinYen className="mx-auto text-expense mb-4 opacity-50" size={56} />
                   <p className="text-muted text-sm font-medium">{t.noTransactions}</p>
                 </div>
               ) : (
@@ -1533,21 +1542,21 @@
                     const cat = categories.find(c => c.id === tx.categoryId);
                     const isIncome = tx.type === 'income';
                     return (
-                      <div key={tx.id} onClick={() => setSelectedTx(tx)} className="card-bg p-4 rounded-3xl shadow-sm border-soft flex items-center justify-between cursor-pointer hover:opacity-80 transition-opacity active:scale-95">
+                      <div key={tx.id} onClick={() => setSelectedTx(tx)} className="card-bg p-4 rounded-3xl shadow-sm border-soft flex items-center justify-between cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all active:scale-95 group">
                         <div className="flex items-center gap-4 overflow-hidden">
-                          <div className={`p-3 rounded-2xl flex-shrink-0 ${isIncome ? 'bg-income-light text-income' : 'bg-expense-light text-expense'}`}>
+                          <div className={`p-3 rounded-2xl flex-shrink-0 shadow-sm ${isIncome ? 'bg-income-light text-income' : 'bg-expense-light text-expense'}`}>
                             {isIncome ? <Plus size={18} /> : <Minus size={18} />}
                           </div>
                           <div className="overflow-hidden">
-                            <p className="font-semibold text-main truncate">{getCatName(cat) || 'Unknown'}</p>
-                            <p className="text-[10px] text-muted mt-0.5 truncate">{new Date(tx.date).toLocaleDateString()} • {getWalletName(tx.walletId)}</p>
+                            <p className="font-bold text-main truncate group-hover:text-theme transition-colors">{getCatName(cat) || 'Unknown'}</p>
+                            <p className="text-[10px] text-muted mt-0.5 truncate font-medium">{new Date(tx.date).toLocaleDateString()} • {getWalletName(tx.walletId)}</p>
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-1 flex-shrink-0 pl-2">
                           <p className={`font-bold ${isIncome ? 'text-income' : 'text-main'}`}>{isIncome ? '+' : '-'}{formatCurrency(tx.amount, tx.currency || 'IDR')}</p>
                           <div className="flex items-center gap-2 mt-1">
                             {tx.photo && <ImageIcon size={14} className="text-muted" />}
-                            <button onClick={(e) => { e.stopPropagation(); handleDeleteTx(tx.id); }} className="text-muted hover:text-red-400 p-1"><Trash2 size={16} /></button>
+                            <button onClick={(e) => { e.stopPropagation(); handleDeleteTx(tx.id); }} className="text-muted hover:text-red-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity md:opacity-100"><Trash2 size={14} /></button>
                           </div>
                         </div>
                       </div>
@@ -1607,35 +1616,37 @@
         const gradientString = chartTotal > 0 ? chartSlices.map(s => `${s.color} ${s.start * 100}% ${(s.start + s.percent) * 100}%`).join(', ') : 'var(--c-input) 0% 100%';
 
         return (
-          <div className="p-6 md:p-10 pb-24 md:pb-10 animate-fade-in relative z-10 md:grid md:grid-cols-12 md:gap-8 lg:gap-12 md:items-start">
+          <div className="p-6 md:p-10 pb-32 md:pb-10 animate-fade-in relative z-10 md:grid md:grid-cols-12 md:gap-8 lg:gap-12 md:items-start">
             <div className="col-span-12 mb-2 md:mb-4 flex justify-between items-center">
               <h1 className="text-2xl font-bold text-main tracking-tight">{t.report}</h1>
-              <button onClick={fetchExchangeRate} disabled={isLoadingRate} className="text-muted text-[10px] font-medium input-bg hover:opacity-80 active:scale-95 transition-all px-2.5 py-1.5 rounded-full flex items-center gap-1.5 whitespace-nowrap cursor-pointer border-soft">
+              <button onClick={fetchExchangeRate} disabled={isLoadingRate} className="text-muted text-[10px] font-bold input-bg hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all px-3 py-2 rounded-full flex items-center gap-1.5 whitespace-nowrap cursor-pointer border-soft shadow-sm">
                  <RefreshCw size={12} className={isLoadingRate ? 'animate-spin' : ''} />
                  <span>{isLoadingRate ? (lang === 'id' ? 'Memuat...' : '読み込み中...') : `1 JPY = Rp ${exchangeRate.toFixed(2)}`}</span>
               </button>
             </div>
 
             <div className="col-span-12 mb-6">
-               <div className="bg-theme text-white rounded-[32px] p-7 shadow-sm relative overflow-hidden transition-colors duration-500">
+               <div className="bg-theme text-white rounded-[32px] p-7 shadow-lg relative overflow-hidden transition-colors duration-500">
+                {/* Subtle gradient overlay for extra depth */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none"></div>
                 <div className="relative z-10">
                   <div className="flex justify-between items-start">
-                      <p className="text-white/80 text-sm font-medium mt-1">{t.totalBalance}</p>
+                      <p className="text-white/80 text-sm font-semibold mt-1 drop-shadow-sm">{t.totalBalance}</p>
                       {isBalanceDepleted ? (
-                          <span className="bg-red-500/80 text-white text-[10px] font-bold px-2.5 py-1 rounded-full animate-pulse border border-red-400">⚠️ {lang==='id'?'Saldo Habis':'残高枯渇'}</span>
+                          <span className="bg-red-500/90 text-white text-[10px] font-bold px-3 py-1.5 rounded-full animate-pulse border border-red-400 shadow-sm backdrop-blur-md">⚠️ {lang==='id'?'Saldo Habis':'残高枯渇'}</span>
                       ) : isBalanceLow ? (
-                          <span className="bg-orange-500/80 text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-orange-400">⚠️ {lang==='id'?'Saldo Menipis':'残高減少'}</span>
+                          <span className="bg-orange-500/90 text-white text-[10px] font-bold px-3 py-1.5 rounded-full border border-orange-400 shadow-sm backdrop-blur-md">⚠️ {lang==='id'?'Saldo Menipis':'残高減少'}</span>
                       ) : null}
                   </div>
-                  <h2 className="text-4xl md:text-5xl font-bold mb-6 md:mb-10 tracking-tight break-words">{formatCurrency(balance, displayCurrency)}</h2>
-                  <div className="flex bg-black/10 p-5 rounded-[24px] items-center text-left backdrop-blur-sm border border-white/10">
+                  <h2 className="text-4xl md:text-5xl font-extrabold mb-6 md:mb-10 tracking-tight break-words drop-shadow-md">{formatCurrency(balance, displayCurrency)}</h2>
+                  <div className="flex bg-black/15 p-5 rounded-[24px] items-center text-left backdrop-blur-md border border-white/10 shadow-inner">
                     <div className="flex-1 overflow-hidden pr-2">
-                      <p className="text-white/70 text-[10px] md:text-xs uppercase tracking-widest font-bold mb-1">{t.income}</p>
+                      <p className="text-white/80 text-[10px] md:text-xs uppercase tracking-widest font-bold mb-1">{t.income}</p>
                       <p className="font-bold text-sm md:text-base truncate">{formatCurrency(totalIncome, displayCurrency)}</p>
                     </div>
                     <div className="w-px bg-white/20 h-10 mx-2 self-center rounded-full"></div>
                     <div className="flex-1 overflow-hidden pl-2">
-                      <p className="text-white/70 text-[10px] md:text-xs uppercase tracking-widest font-bold mb-1">{t.expense}</p>
+                      <p className="text-white/80 text-[10px] md:text-xs uppercase tracking-widest font-bold mb-1">{t.expense}</p>
                       <p className="font-bold text-sm md:text-base truncate">{formatCurrency(totalExpense, displayCurrency)}</p>
                     </div>
                   </div>
@@ -1644,104 +1655,104 @@
             </div>
 
             <div className="col-span-12 mb-6 lg:col-span-12">
-              <div className="card-bg p-5 md:p-6 rounded-[32px] shadow-sm border-soft relative overflow-hidden">
-                 <div className="flex justify-between items-center mb-4">
+              <div className="card-bg p-6 md:p-8 rounded-[32px] shadow-sm border-soft relative overflow-hidden transition-all hover:shadow-md">
+                 <div className="flex justify-between items-center mb-6">
                     <div className="flex items-center gap-3">
-                       <div className="bg-expense-light p-2.5 rounded-xl text-expense"><BarChart2 size={20}/></div>
-                       <h3 className="font-bold text-main">{t.danaTalang}</h3>
+                       <div className="bg-expense-light p-3 rounded-2xl text-expense shadow-sm"><BarChart2 size={20}/></div>
+                       <h3 className="font-bold text-main text-lg">{t.danaTalang}</h3>
                     </div>
-                    <button onClick={() => setIsDanaTalangModalOpen(true)} className="text-xs font-bold text-theme bg-theme-light px-3.5 py-2 rounded-xl active:scale-95 transition-all">{danaTalang.total > 0 ? t.edit : t.setupLoan}</button>
+                    <button onClick={() => setIsDanaTalangModalOpen(true)} className="text-xs font-bold text-theme bg-theme-light px-4 py-2.5 rounded-xl hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all">{danaTalang.total > 0 ? t.edit : t.setupLoan}</button>
                  </div>
                  {danaTalang.total > 0 ? (
                     <div>
-                       <div className="flex justify-between text-xs text-muted mb-2 font-medium">
+                       <div className="flex justify-between text-xs text-muted mb-2 font-semibold">
                           <span>{t.paidAmount}: {formatCurrency(danaTalang.paid, danaTalang.currency)}</span>
                           <span>{t.totalLoan}: {formatCurrency(danaTalang.total, danaTalang.currency)}</span>
                        </div>
-                       <div className="w-full input-bg rounded-full h-3 mb-3 overflow-hidden shadow-inner border-soft">
-                          <div className="bg-theme h-3 rounded-full transition-all duration-500" style={{width: `${Math.min(danaTalang.total > 0 ? (danaTalang.paid / danaTalang.total) * 100 : 0, 100)}%`}}></div>
+                       <div className="w-full input-bg rounded-full h-4 mb-4 overflow-hidden shadow-inner border-soft">
+                          <div className="bg-theme h-4 rounded-full transition-all duration-1000 ease-out" style={{width: `${Math.min(danaTalang.total > 0 ? (danaTalang.paid / danaTalang.total) * 100 : 0, 100)}%`}}></div>
                        </div>
-                       <div className="flex justify-between items-center mt-2 pt-2 border-t border-soft">
-                          <span className="text-sm font-semibold text-muted">{t.remainingLoan}</span>
-                          <span className="text-xl font-bold text-expense">{formatCurrency(Math.max(danaTalang.total - danaTalang.paid, 0), danaTalang.currency)}</span>
+                       <div className="flex justify-between items-center mt-4 pt-4 border-t border-soft">
+                          <span className="text-sm font-bold text-muted">{t.remainingLoan}</span>
+                          <span className="text-2xl font-extrabold text-expense">{formatCurrency(Math.max(danaTalang.total - danaTalang.paid, 0), danaTalang.currency)}</span>
                        </div>
                     </div>
                  ) : (
-                    <p className="text-xs text-muted leading-relaxed">{lang === 'id' ? 'Catat dan pantau sisa hutang dana talang LPK Anda di sini.' : 'ここで立替金の残高を記録・追跡します。'}</p>
+                    <p className="text-sm text-muted leading-relaxed font-medium">{lang === 'id' ? 'Catat dan pantau sisa hutang dana talang LPK Anda di sini.' : 'ここで立替金の残高を記録・追跡します。'}</p>
                  )}
               </div>
             </div>
 
-            <div className="col-span-12 mb-6 flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+            <div className="col-span-12 mb-6 flex gap-4 overflow-x-auto hide-scrollbar pb-2 px-1">
                 {wallets.map(w => {
                    const wBal = transactions.filter(tx => tx.walletId === w.id).reduce((acc, curr) => acc + (curr.type === 'income' ? 1 : -1) * getConvertedAmount(curr.amount, curr.currency || 'IDR', displayCurrency), 0);
                    return (
-                     <div key={w.id} className="card-bg p-4 rounded-3xl min-w-[140px] shadow-sm border-soft flex-shrink-0 flex flex-col justify-between">
-                        <div className="flex items-center gap-2 mb-3 text-muted">
-                          <WalletIcon size={14} /><p className="text-[11px] font-semibold truncate">{lang === 'id' ? w.name : w.nameJp}</p>
+                     <div key={w.id} className="card-bg p-5 rounded-3xl min-w-[150px] shadow-sm border-soft flex-shrink-0 flex flex-col justify-between hover:shadow-md hover:-translate-y-1 transition-all cursor-default">
+                        <div className="flex items-center gap-2 mb-4 text-muted">
+                          <WalletIcon size={16} /><p className="text-xs font-bold truncate">{lang === 'id' ? w.name : w.nameJp}</p>
                         </div>
-                        <p className="font-bold text-main text-[13px]">{formatCurrency(wBal, displayCurrency)}</p>
+                        <p className="font-extrabold text-main text-sm">{formatCurrency(wBal, displayCurrency)}</p>
                      </div>
                    );
                 })}
             </div>
 
             <div className="col-span-12 lg:col-span-6 space-y-6">
-              <div className="flex input-bg rounded-2xl p-1 shadow-inner border-soft">
+              <div className="flex input-bg rounded-2xl p-1.5 shadow-inner border-soft">
                 {['week', 'month', 'year', 'custom'].map(period => (
-                  <button key={period} onClick={() => setReportPeriod(period)} className={`flex-1 py-2 text-[10px] sm:text-xs font-bold rounded-xl transition-all duration-300 truncate px-1 ${reportPeriod === period ? 'card-bg text-theme shadow-sm' : 'text-muted'}`}>
+                  <button key={period} onClick={() => setReportPeriod(period)} className={`flex-1 py-2.5 text-[10px] sm:text-xs font-bold rounded-xl transition-all duration-300 truncate px-2 ${reportPeriod === period ? 'card-bg text-theme shadow-sm' : 'text-muted hover:text-main'}`}>
                     {period === 'week' ? t.weekly : period === 'month' ? t.monthly : period === 'year' ? t.yearly : t.custom}
                   </button>
                 ))}
               </div>
               {reportPeriod === 'custom' && (
-                <div className="flex gap-3 animate-fade-in">
+                <div className="flex gap-4 animate-fade-in">
                   <div className="flex-1 min-w-0">
-                    <label className="block text-[10px] font-semibold text-muted mb-1">{t.startDate}</label>
-                    <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="w-full card-bg rounded-xl px-2 py-2.5 text-xs text-main outline-none shadow-sm ring-theme border-soft"/>
+                    <label className="block text-[10px] font-bold text-muted mb-1.5 uppercase tracking-wide">{t.startDate}</label>
+                    <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="w-full card-bg rounded-xl px-3 py-3 text-xs text-main outline-none shadow-sm ring-theme border-soft font-medium"/>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <label className="block text-[10px] font-semibold text-muted mb-1">{t.endDate}</label>
-                    <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="w-full card-bg rounded-xl px-2 py-2.5 text-xs text-main outline-none shadow-sm ring-theme border-soft"/>
+                    <label className="block text-[10px] font-bold text-muted mb-1.5 uppercase tracking-wide">{t.endDate}</label>
+                    <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="w-full card-bg rounded-xl px-3 py-3 text-xs text-main outline-none shadow-sm ring-theme border-soft font-medium"/>
                   </div>
                 </div>
               )}
               <div className="grid grid-cols-2 gap-4">
-                <div className="card-bg p-4 md:p-6 rounded-3xl shadow-sm border-l-4" style={{ borderColor: customTheme.income }}>
-                  <p className="text-xs text-muted mb-1">{t.income}</p>
-                  <p className="font-bold text-income truncate md:text-lg">{formatCurrency(rIncome, displayCurrency)}</p>
+                <div className="card-bg p-5 md:p-6 rounded-3xl shadow-sm border-l-4 hover:shadow-md transition-shadow" style={{ borderColor: customTheme.income }}>
+                  <p className="text-xs font-bold text-muted mb-1">{t.income}</p>
+                  <p className="font-extrabold text-income truncate text-lg">{formatCurrency(rIncome, displayCurrency)}</p>
                 </div>
-                <div className="card-bg p-4 md:p-6 rounded-3xl shadow-sm border-l-4" style={{ borderColor: customTheme.expense }}>
-                  <p className="text-xs text-muted mb-1">{t.expense}</p>
-                  <p className="font-bold text-expense truncate md:text-lg">{formatCurrency(rExpense, displayCurrency)}</p>
+                <div className="card-bg p-5 md:p-6 rounded-3xl shadow-sm border-l-4 hover:shadow-md transition-shadow" style={{ borderColor: customTheme.expense }}>
+                  <p className="text-xs font-bold text-muted mb-1">{t.expense}</p>
+                  <p className="font-extrabold text-expense truncate text-lg">{formatCurrency(rExpense, displayCurrency)}</p>
                 </div>
               </div>
-              <div className="card-bg p-5 md:p-6 rounded-3xl shadow-sm border-soft">
-                <h3 className="font-semibold text-main mb-4">{t.chart}</h3>
+              <div className="card-bg p-6 md:p-8 rounded-3xl shadow-sm border-soft hover:shadow-md transition-shadow">
+                <h3 className="font-bold text-main mb-6 text-lg">{t.chart}</h3>
                 {chartTotal > 0 ? (
-                  <div className="flex items-center gap-6">
-                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-full flex-shrink-0 shadow-inner" style={{ background: `conic-gradient(${gradientString})` }}></div>
-                    <div className="flex-1 space-y-2">
+                  <div className="flex flex-col md:flex-row items-center gap-8">
+                    <div className="w-32 h-32 md:w-40 md:h-40 rounded-full flex-shrink-0 shadow-inner" style={{ background: `conic-gradient(${gradientString})` }}></div>
+                    <div className="flex-1 w-full space-y-3">
                       {chartSlices.slice(0, 5).map(s => (
-                        <div key={s.catId} className="flex items-center justify-between text-[10px] md:text-xs">
-                          <div className="flex items-center gap-1.5 overflow-hidden pr-2">
-                            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{backgroundColor: s.color}}></div>
-                            <span className="truncate font-medium text-main">{getCatName(categories.find(c=>c.id===s.catId))}</span>
+                        <div key={s.catId} className="flex items-center justify-between text-xs md:text-sm">
+                          <div className="flex items-center gap-2 overflow-hidden pr-2">
+                            <div className="w-3 h-3 rounded-full flex-shrink-0 shadow-sm" style={{backgroundColor: s.color}}></div>
+                            <span className="truncate font-bold text-main">{getCatName(categories.find(c=>c.id===s.catId))}</span>
                           </div>
-                          <span className="font-bold ml-2 text-muted">{Math.round(s.percent * 100)}%</span>
+                          <span className="font-extrabold ml-2 text-muted">{Math.round(s.percent * 100)}%</span>
                         </div>
                       ))}
                     </div>
                   </div>
-                ) : ( <p className="text-xs text-muted text-center py-4">{t.noTransactions}</p> )}
+                ) : ( <p className="text-sm font-medium text-muted text-center py-6">{t.noTransactions}</p> )}
               </div>
             </div>
 
             <div className="col-span-12 lg:col-span-6 mt-6 lg:mt-0 lg:pl-4">
-              <h3 className="font-semibold text-main mb-4">{t.transactionDetails}</h3>
+              <h3 className="font-bold text-main mb-4 text-lg">{t.transactionDetails}</h3>
               {filteredTx.length === 0 ? (
-                <div className="text-center py-8 card-bg rounded-3xl border-soft border-dashed shadow-sm">
-                  <EmptyCoinYen className="mx-auto text-expense mb-4" size={56} />
+                <div className="text-center py-10 card-bg rounded-3xl border-soft border-dashed shadow-sm">
+                  <EmptyCoinYen className="mx-auto text-expense mb-4 opacity-50" size={56} />
                   <p className="text-muted text-sm font-medium">{t.noTransactions}</p>
                 </div>
               ) : (
@@ -1750,14 +1761,14 @@
                     const cat = categories.find(c => c.id === tx.categoryId);
                     const isIncome = tx.type === 'income';
                     return (
-                      <div key={tx.id} onClick={() => setSelectedTx(tx)} className="card-bg p-4 rounded-3xl shadow-sm border-soft flex items-center justify-between cursor-pointer hover:opacity-80 transition-opacity active:scale-95">
+                      <div key={tx.id} onClick={() => setSelectedTx(tx)} className="card-bg p-4 rounded-3xl shadow-sm border-soft flex items-center justify-between cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all active:scale-95 group">
                         <div className="flex items-center gap-4 overflow-hidden">
-                          <div className={`p-3 rounded-2xl flex-shrink-0 ${isIncome ? 'bg-income-light text-income' : 'bg-expense-light text-expense'}`}>
+                          <div className={`p-3 rounded-2xl flex-shrink-0 shadow-sm ${isIncome ? 'bg-income-light text-income' : 'bg-expense-light text-expense'}`}>
                             {isIncome ? <Plus size={18} /> : <Minus size={18} />}
                           </div>
                           <div className="overflow-hidden">
-                            <p className="font-semibold text-main truncate">{getCatName(cat) || 'Unknown'}</p>
-                            <p className="text-[10px] text-muted mt-0.5 truncate">{new Date(tx.date).toLocaleDateString()} • {getWalletName(tx.walletId)}</p>
+                            <p className="font-bold text-main truncate group-hover:text-theme transition-colors">{getCatName(cat) || 'Unknown'}</p>
+                            <p className="text-[10px] text-muted mt-0.5 truncate font-medium">{new Date(tx.date).toLocaleDateString()} • {getWalletName(tx.walletId)}</p>
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-1 flex-shrink-0 pl-2">
@@ -1775,45 +1786,45 @@
       };
 
       const renderCategories = () => (
-        <div className="p-6 md:p-10 pb-24 md:pb-10 animate-fade-in relative z-10 md:grid md:grid-cols-12 md:gap-8 lg:gap-12 md:items-start">
+        <div className="p-6 md:p-10 pb-32 md:pb-10 animate-fade-in relative z-10 md:grid md:grid-cols-12 md:gap-8 lg:gap-12 md:items-start">
           <div className="col-span-12 mb-2 md:mb-4">
             <h1 className="text-2xl font-bold text-main tracking-tight">{lang === 'id' ? 'Kategori & Dompet' : 'カテゴリ & ウォレット'}</h1>
           </div>
           <div className="col-span-12 md:col-span-6 space-y-6">
-            <div className="card-bg p-5 rounded-3xl shadow-sm border-soft">
-              <h3 className="font-semibold text-main mb-4">{t.addCategory}</h3>
-              <div className="flex flex-col gap-3 w-full">
-                <input type="text" placeholder={t.categoryName} value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className="w-full input-bg border-none rounded-2xl p-4 text-main outline-none ring-theme border-soft"/>
-                <div className="flex gap-2 w-full">
-                  <select value={newCatType} onChange={(e) => setNewCatType(e.target.value)} className="flex-1 input-bg border-none rounded-2xl p-4 text-main outline-none appearance-none ring-theme border-soft">
+            <div className="card-bg p-6 rounded-3xl shadow-sm border-soft hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-main mb-5">{t.addCategory}</h3>
+              <div className="flex flex-col gap-4 w-full">
+                <input type="text" placeholder={t.categoryName} value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className="w-full input-bg border-none rounded-2xl p-4 text-main outline-none ring-theme border-soft font-bold"/>
+                <div className="flex gap-3 w-full">
+                  <select value={newCatType} onChange={(e) => setNewCatType(e.target.value)} className="flex-1 input-bg border-none rounded-2xl p-4 text-main outline-none appearance-none ring-theme border-soft font-bold">
                     <option value="expense">{t.expense}</option><option value="income">{t.income}</option>
                   </select>
-                  <button onClick={handleAddCategory} className="bg-theme text-white px-6 rounded-2xl font-semibold transition-colors hover:opacity-90"><Plus size={20} /></button>
+                  <button onClick={handleAddCategory} className="bg-theme text-white px-6 rounded-2xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all"><Plus size={20} /></button>
                 </div>
               </div>
             </div>
             <div className="space-y-3">
-              <h3 className="font-semibold text-main px-2">{t.categories}</h3>
+              <h3 className="font-bold text-main px-2 mb-4">{t.categories}</h3>
               {categories.map((c) => (
-                <div key={c.id} className="card-bg p-4 rounded-3xl shadow-sm border-soft flex items-center justify-between">
+                <div key={c.id} className="card-bg p-4 rounded-3xl shadow-sm border-soft flex items-center justify-between hover:shadow-md hover:-translate-y-0.5 transition-all group">
                   {editingCategory?.id === c.id ? (
                     <div className="flex gap-2 w-full">
-                      <input type="text" value={editingCategory.name} onChange={(e) => setEditingCategory({...editingCategory, name: e.target.value, nameJp: e.target.value})} className="flex-1 w-full min-w-0 input-bg text-main rounded-xl px-3 py-2 text-sm outline-none ring-theme border-soft" />
-                      <select value={editingCategory.type} onChange={(e) => setEditingCategory({...editingCategory, type: e.target.value})} className="input-bg text-main rounded-xl px-2 text-sm outline-none ring-theme border-soft">
+                      <input type="text" value={editingCategory.name} onChange={(e) => setEditingCategory({...editingCategory, name: e.target.value, nameJp: e.target.value})} className="flex-1 w-full min-w-0 input-bg text-main rounded-xl px-3 py-2 text-sm font-bold outline-none ring-theme border-soft" />
+                      <select value={editingCategory.type} onChange={(e) => setEditingCategory({...editingCategory, type: e.target.value})} className="input-bg text-main rounded-xl px-2 text-sm font-bold outline-none ring-theme border-soft">
                         <option value="expense">Out</option><option value="income">In</option>
                       </select>
-                      <button onClick={handleUpdateCategory} className="text-theme p-2 hover:bg-theme-light rounded-lg"><Check size={18}/></button>
-                      <button onClick={() => setEditingCategory(null)} className="text-muted p-2 hover:opacity-80 rounded-lg"><X size={18}/></button>
+                      <button onClick={handleUpdateCategory} className="text-theme p-2 hover:bg-theme-light rounded-xl transition-colors"><Check size={18}/></button>
+                      <button onClick={() => setEditingCategory(null)} className="text-muted p-2 hover:bg-black/5 rounded-xl transition-colors"><X size={18}/></button>
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center gap-3 overflow-hidden pr-2">
-                        <div className={`w-3 h-10 rounded-full flex-shrink-0 ${c.type === 'income' ? 'bg-income' : 'bg-expense'}`}></div>
-                        <span className="font-medium text-main truncate">{getCatName(c)}</span>
+                      <div className="flex items-center gap-4 overflow-hidden pr-2">
+                        <div className={`w-3 h-10 rounded-full flex-shrink-0 shadow-sm ${c.type === 'income' ? 'bg-income' : 'bg-expense'}`}></div>
+                        <span className="font-bold text-main truncate group-hover:text-theme transition-colors">{getCatName(c)}</span>
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
-                        <button onClick={() => setEditingCategory(c)} className="text-muted hover:text-theme p-2 transition-colors"><Edit2 size={18} /></button>
-                        <button onClick={() => handleDeleteCategory(c.id)} className="text-muted hover:text-red-400 p-2 transition-colors"><Trash2 size={18} /></button>
+                        <button onClick={() => setEditingCategory(c)} className="text-muted hover:text-theme p-2.5 rounded-xl hover:bg-theme-light transition-colors"><Edit2 size={16} /></button>
+                        <button onClick={() => handleDeleteCategory(c.id)} className="text-muted hover:text-red-500 p-2.5 rounded-xl hover:bg-red-50 transition-colors"><Trash2 size={16} /></button>
                       </div>
                     </>
                   )}
@@ -1822,32 +1833,32 @@
             </div>
           </div>
           <div className="col-span-12 md:col-span-6 space-y-6 mt-6 md:mt-0">
-            <div className="card-bg p-5 rounded-3xl shadow-sm border-soft">
-              <h3 className="font-semibold text-main mb-4">{t.addWallet}</h3>
-              <div className="flex gap-2 w-full">
-                <input type="text" placeholder={t.walletName} value={newWalletName} onChange={(e) => setNewWalletName(e.target.value)} className="flex-1 min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none ring-theme border-soft"/>
-                <button onClick={handleAddWallet} className="bg-theme text-white px-6 rounded-2xl font-semibold transition-colors flex-shrink-0 hover:opacity-90"><Plus size={20} /></button>
+            <div className="card-bg p-6 rounded-3xl shadow-sm border-soft hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-main mb-5">{t.addWallet}</h3>
+              <div className="flex gap-3 w-full">
+                <input type="text" placeholder={t.walletName} value={newWalletName} onChange={(e) => setNewWalletName(e.target.value)} className="flex-1 min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none ring-theme border-soft font-bold"/>
+                <button onClick={handleAddWallet} className="bg-theme text-white px-6 rounded-2xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all flex-shrink-0"><Plus size={20} /></button>
               </div>
             </div>
             <div className="space-y-3">
-              <h3 className="font-semibold text-main px-2">{t.walletsConfig}</h3>
+              <h3 className="font-bold text-main px-2 mb-4">{t.walletsConfig}</h3>
               {wallets.map((w) => (
-                <div key={w.id} className="card-bg p-4 rounded-3xl shadow-sm border-soft flex items-center justify-between">
+                <div key={w.id} className="card-bg p-4 rounded-3xl shadow-sm border-soft flex items-center justify-between hover:shadow-md hover:-translate-y-0.5 transition-all group">
                   {editingWallet?.id === w.id ? (
                     <div className="flex gap-2 w-full">
-                      <input type="text" value={editingWallet.name} onChange={(e) => setEditingWallet({...editingWallet, name: e.target.value, nameJp: e.target.value})} className="flex-1 w-full min-w-0 input-bg text-main rounded-xl px-3 py-2 text-sm outline-none ring-theme border-soft" />
-                      <button onClick={handleUpdateWallet} className="text-theme p-2 hover:bg-theme-light rounded-lg"><Check size={18}/></button>
-                      <button onClick={() => setEditingWallet(null)} className="text-muted p-2 hover:opacity-80 rounded-lg"><X size={18}/></button>
+                      <input type="text" value={editingWallet.name} onChange={(e) => setEditingWallet({...editingWallet, name: e.target.value, nameJp: e.target.value})} className="flex-1 w-full min-w-0 input-bg text-main rounded-xl px-3 py-2 text-sm font-bold outline-none ring-theme border-soft" />
+                      <button onClick={handleUpdateWallet} className="text-theme p-2 hover:bg-theme-light rounded-xl transition-colors"><Check size={18}/></button>
+                      <button onClick={() => setEditingWallet(null)} className="text-muted p-2 hover:bg-black/5 rounded-xl transition-colors"><X size={18}/></button>
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center gap-3 overflow-hidden pr-2">
-                        <div className="w-10 h-10 rounded-full input-bg text-muted flex items-center justify-center flex-shrink-0"><WalletIcon size={16}/></div>
-                        <span className="font-medium text-main truncate">{lang === 'id' ? w.name : w.nameJp}</span>
+                      <div className="flex items-center gap-4 overflow-hidden pr-2">
+                        <div className="w-10 h-10 rounded-full input-bg text-muted flex items-center justify-center flex-shrink-0 shadow-inner border-soft"><WalletIcon size={16}/></div>
+                        <span className="font-bold text-main truncate group-hover:text-theme transition-colors">{lang === 'id' ? w.name : w.nameJp}</span>
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
-                        <button onClick={() => setEditingWallet(w)} className="text-muted hover:text-theme p-2 transition-colors"><Edit2 size={18} /></button>
-                        <button onClick={() => handleDeleteWallet(w.id)} className="text-muted hover:text-red-400 p-2 transition-colors"><Trash2 size={18} /></button>
+                        <button onClick={() => setEditingWallet(w)} className="text-muted hover:text-theme p-2.5 rounded-xl hover:bg-theme-light transition-colors"><Edit2 size={16} /></button>
+                        <button onClick={() => handleDeleteWallet(w.id)} className="text-muted hover:text-red-500 p-2.5 rounded-xl hover:bg-red-50 transition-colors"><Trash2 size={16} /></button>
                       </div>
                     </>
                   )}
@@ -1859,112 +1870,113 @@
       );
 
       const renderSettings = () => (
-        <div className="p-6 md:p-10 pb-24 md:pb-10 animate-fade-in relative z-10 md:max-w-3xl space-y-4 md:space-y-6">
+        <div className="p-6 md:p-10 pb-32 md:pb-10 animate-fade-in relative z-10 md:max-w-3xl space-y-4 md:space-y-6 mx-auto">
           <h1 className="text-2xl font-bold text-main tracking-tight mb-6 md:mb-8">{t.settings}</h1>
-          <div className="card-bg p-5 rounded-3xl shadow-sm border-soft mb-6 flex items-center justify-between">
-             <div className="flex items-center gap-4 overflow-hidden pr-2">
-                 {photoURL ? ( <img src={photoURL} className="w-16 h-16 rounded-full object-cover shadow-sm flex-shrink-0" /> ) : ( <div className="w-16 h-16 rounded-full bg-theme-light text-theme flex items-center justify-center shadow-sm flex-shrink-0"><User size={32} /></div> )}
+          
+          <div className="card-bg p-6 rounded-3xl shadow-sm border-soft mb-8 flex items-center justify-between hover:shadow-md transition-shadow">
+             <div className="flex items-center gap-5 overflow-hidden pr-2">
+                 {photoURL ? ( <img src={photoURL} className="w-16 h-16 rounded-full object-cover shadow-md flex-shrink-0 border-2 border-soft" /> ) : ( <div className="w-16 h-16 rounded-full bg-theme-light text-theme flex items-center justify-center shadow-inner flex-shrink-0"><User size={32} /></div> )}
                  <div className="overflow-hidden">
-                     <p className="text-lg font-bold text-main truncate">{username || 'Pengguna'}</p>
-                     <p className="text-xs text-muted truncate">{connectedEmail}</p>
+                     <p className="text-xl font-bold text-main truncate mb-1">{username || 'Pengguna'}</p>
+                     <p className="text-xs text-muted truncate font-medium bg-input-bg inline-block px-2 py-0.5 rounded-full">{connectedEmail || 'Guest Mode'}</p>
                  </div>
              </div>
-             <button onClick={() => { setProfileFormData({username, photoURL}); setIsProfileModalOpen(true); }} className="input-bg p-3 rounded-2xl text-theme hover:opacity-80 active:scale-95 transition-all flex-shrink-0 border-soft"><Edit2 size={20} /></button>
+             <button onClick={() => { setProfileFormData({username, photoURL}); setIsProfileModalOpen(true); }} className="input-bg p-3.5 rounded-2xl text-theme hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all flex-shrink-0 border-soft"><Edit2 size={20} /></button>
           </div>
           
           {/* THEME PICKER (ACCORDION) */}
-          <div className="card-bg rounded-[32px] shadow-sm border-soft overflow-hidden">
-            <button onClick={() => setThemeExpanded(!themeExpanded)} className="w-full p-5 flex items-center justify-between input-bg hover:opacity-80 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-theme-light text-theme rounded-2xl"><ImageIcon size={20}/></div>
+          <div className="card-bg rounded-[32px] shadow-sm border-soft overflow-hidden transition-all hover:shadow-md">
+            <button onClick={() => setThemeExpanded(!themeExpanded)} className="w-full p-5 flex items-center justify-between input-bg hover:bg-black/5 transition-colors">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-theme-light text-theme rounded-2xl shadow-sm"><ImageIcon size={20}/></div>
                 <span className="text-sm font-bold text-main">{t.themeSettings}</span>
               </div>
               {themeExpanded ? <ChevronUp size={20} className="text-muted" /> : <ChevronDown size={20} className="text-muted" />}
             </button>
             {themeExpanded && (
-              <div className="p-5 pt-4 space-y-3 animate-fade-in border-t border-soft">
-                <p className="text-[10px] md:text-xs text-muted mb-4">{t.themeDesc}</p>
-                <div className="flex justify-between items-center input-bg p-3 rounded-2xl border-soft">
-                    <span className="text-xs font-semibold text-main">Warna Tombol / Aksen</span>
+              <div className="p-6 pt-5 space-y-4 animate-fade-in border-t border-soft">
+                <p className="text-[10px] md:text-xs text-muted mb-4 font-medium">{t.themeDesc}</p>
+                <div className="flex justify-between items-center input-bg p-3.5 rounded-2xl border-soft shadow-inner">
+                    <span className="text-xs font-bold text-main">Warna Tombol / Aksen</span>
                     <input type="color" value={customTheme.primary} onChange={(e) => { const newTheme = {...customTheme, primary: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
                 </div>
-                <div className="flex justify-between items-center input-bg p-3 rounded-2xl border-soft">
-                    <span className="text-xs font-semibold text-main">Warna Pemasukan</span>
+                <div className="flex justify-between items-center input-bg p-3.5 rounded-2xl border-soft shadow-inner">
+                    <span className="text-xs font-bold text-main">Warna Pemasukan</span>
                     <input type="color" value={customTheme.income} onChange={(e) => { const newTheme = {...customTheme, income: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
                 </div>
-                <div className="flex justify-between items-center input-bg p-3 rounded-2xl border-soft">
-                    <span className="text-xs font-semibold text-main">Warna Pengeluaran</span>
+                <div className="flex justify-between items-center input-bg p-3.5 rounded-2xl border-soft shadow-inner">
+                    <span className="text-xs font-bold text-main">Warna Pengeluaran</span>
                     <input type="color" value={customTheme.expense} onChange={(e) => { const newTheme = {...customTheme, expense: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
                 </div>
-                <div className="flex justify-between items-center input-bg p-3 rounded-2xl border-soft">
-                    <span className="text-xs font-semibold text-main">Warna Latar Belakang</span>
+                <div className="flex justify-between items-center input-bg p-3.5 rounded-2xl border-soft shadow-inner">
+                    <span className="text-xs font-bold text-main">Warna Latar Belakang</span>
                     <input type="color" value={customTheme.bg} onChange={(e) => { const newTheme = {...customTheme, bg: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
                 </div>
-                <div className="flex justify-between items-center input-bg p-3 rounded-2xl border-soft">
-                    <span className="text-xs font-semibold text-main">Warna Kartu (Card)</span>
+                <div className="flex justify-between items-center input-bg p-3.5 rounded-2xl border-soft shadow-inner">
+                    <span className="text-xs font-bold text-main">Warna Kartu (Card)</span>
                     <input type="color" value={customTheme.cardBg} onChange={(e) => { const newTheme = {...customTheme, cardBg: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
                 </div>
-                <div className="flex justify-between items-center input-bg p-3 rounded-2xl border-soft">
-                    <span className="text-xs font-semibold text-main">Warna Tulisan Utama</span>
+                <div className="flex justify-between items-center input-bg p-3.5 rounded-2xl border-soft shadow-inner">
+                    <span className="text-xs font-bold text-main">Warna Tulisan Utama</span>
                     <input type="color" value={customTheme.text} onChange={(e) => { const newTheme = {...customTheme, text: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
                 </div>
-                <button onClick={() => { setCustomTheme(DEFAULT_THEME); pushToCloud({ customTheme: DEFAULT_THEME }); }} className="text-[10px] text-muted hover:text-red-400 font-semibold underline pt-2">Reset Tema ke Bawaan</button>
+                <button onClick={() => { setCustomTheme(DEFAULT_THEME); pushToCloud({ customTheme: DEFAULT_THEME }); }} className="w-full text-xs text-muted hover:text-red-500 font-bold py-3 mt-2 bg-input-bg rounded-xl transition-colors">Reset Tema ke Bawaan</button>
               </div>
             )}
           </div>
 
-          <div className="card-bg p-5 rounded-3xl shadow-sm border-soft flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="input-bg p-2 rounded-xl text-muted border-soft"><Globe size={20}/></div><h3 className="font-semibold text-main">{t.language}</h3>
+          <div className="card-bg p-6 rounded-3xl shadow-sm border-soft flex justify-between items-center hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-4">
+              <div className="input-bg p-3 rounded-2xl text-muted border-soft shadow-sm"><Globe size={20}/></div><h3 className="font-bold text-main">{t.language}</h3>
             </div>
             <div className="w-16 h-8 input-bg rounded-full p-1 cursor-pointer relative shadow-inner border border-soft" onClick={() => { const newLang = lang === 'id' ? 'jp' : 'id'; setLang(newLang); pushToCloud({ lang: newLang }); }}>
-              <div className={`w-6 h-6 card-bg rounded-full shadow transform transition-transform duration-300 ease-out flex items-center justify-center ${lang === 'jp' ? 'translate-x-8' : 'translate-x-0'}`}>
-                <span className="text-[10px] font-bold text-theme">{lang === 'id' ? 'ID' : 'JP'}</span>
+              <div className={`w-6 h-6 card-bg rounded-full shadow-md transform transition-transform duration-300 ease-out flex items-center justify-center ${lang === 'jp' ? 'translate-x-8' : 'translate-x-0'}`}>
+                <span className="text-[10px] font-extrabold text-theme">{lang === 'id' ? 'ID' : 'JP'}</span>
               </div>
             </div>
           </div>
-          <div className="card-bg p-5 rounded-3xl shadow-sm border-soft">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-expense-light p-2 rounded-xl text-expense">{pin ? <Lock size={20}/> : <Unlock size={20}/>}</div><h3 className="font-semibold text-main">{t.pinSecurity}</h3>
+          <div className="card-bg p-6 rounded-3xl shadow-sm border-soft hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-center mb-5">
+              <div className="flex items-center gap-4">
+                <div className="bg-expense-light p-3 rounded-2xl text-expense shadow-sm">{pin ? <Lock size={20}/> : <Unlock size={20}/>}</div><h3 className="font-bold text-main">{t.pinSecurity}</h3>
               </div>
               <div className={`w-12 h-6 rounded-full p-1 cursor-pointer relative shadow-inner transition-colors duration-300 ${pin ? 'bg-theme' : 'input-bg border border-soft'}`} onClick={() => setPinSetup({ isOpen: true, step: pin ? 'remove' : 'create', input: '', error: '' })}>
                 <div className={`w-4 h-4 card-bg rounded-full shadow transform transition-transform duration-300 ease-out ${pin ? 'translate-x-6' : 'translate-x-0'}`}></div>
               </div>
             </div>
             {pin && (
-              <div className="flex justify-between items-center pl-12 border-t border-soft pt-4 mt-2">
-                <div className="flex items-center gap-2"><Lock size={16} className="text-muted"/><span className="text-xs font-semibold text-muted">{biometricId ? t.removeBiometric : t.setupBiometric}</span></div>
+              <div className="flex justify-between items-center pl-[3.25rem] md:pl-[4.25rem] border-t border-soft pt-5 mt-2">
+                <div className="flex items-center gap-2.5"><Lock size={16} className="text-muted"/><span className="text-xs font-bold text-muted">{biometricId ? t.removeBiometric : t.setupBiometric}</span></div>
                 <div className={`w-10 h-5 rounded-full p-1 cursor-pointer relative shadow-inner transition-colors duration-300 ${biometricId ? 'bg-expense' : 'input-bg border border-soft'}`} onClick={biometricId ? handleDisableBiometric : handleEnableBiometric}>
                   <div className={`w-3 h-3 card-bg rounded-full shadow transform transition-transform duration-300 ease-out ${biometricId ? 'translate-x-5' : 'translate-x-0'}`}></div>
                 </div>
               </div>
             )}
           </div>
-          <div className="card-bg p-5 rounded-3xl shadow-sm border-soft">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="input-bg p-2 rounded-xl text-muted border-soft"><Cloud size={20}/></div><h3 className="font-semibold text-main">{t.cloudBackup}</h3>
+          <div className="card-bg p-6 rounded-3xl shadow-sm border-soft hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-4 mb-3">
+              <div className="input-bg p-3 rounded-2xl text-muted border-soft shadow-sm"><Cloud size={20}/></div><h3 className="font-bold text-main">{t.cloudBackup}</h3>
             </div>
-            <p className="text-[10px] md:text-xs text-muted mb-4 ml-11 md:ml-12">{t.backupDesc}</p>
-            <div className="flex gap-2 ml-11 md:ml-12">
-              <button onClick={handleBackupJSON} className="flex-1 bg-theme text-white py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-transform hover:opacity-90"><UploadCloud size={14}/> {t.exportData}</button>
-              <label className="flex-1 input-bg text-main py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 transition-transform hover:opacity-80 border border-soft"><DownloadCloud size={14}/> {t.importData} <input type="file" accept=".json" className="hidden" onChange={handleRestoreJSON}/></label>
+            <p className="text-[10px] md:text-xs text-muted mb-5 pl-[3.25rem] md:pl-[4.25rem] font-medium">{t.backupDesc}</p>
+            <div className="flex gap-3 pl-[3.25rem] md:pl-[4.25rem]">
+              <button onClick={handleBackupJSON} className="flex-1 bg-theme text-white py-3 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all"><UploadCloud size={14}/> {t.exportData}</button>
+              <label className="flex-1 input-bg text-main py-3 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all border border-soft"><DownloadCloud size={14}/> {t.importData} <input type="file" accept=".json" className="hidden" onChange={handleRestoreJSON}/></label>
             </div>
           </div>
-          <div className="card-bg p-5 rounded-3xl shadow-sm border-soft">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="input-bg p-2 rounded-xl text-muted border-soft"><Download size={20}/></div><h3 className="font-semibold text-main">{t.exportExcel}</h3>
+          <div className="card-bg p-6 rounded-3xl shadow-sm border-soft hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-4 mb-5">
+              <div className="input-bg p-3 rounded-2xl text-muted border-soft shadow-sm"><Download size={20}/></div><h3 className="font-bold text-main">{t.exportExcel}</h3>
             </div>
-            <button onClick={() => { setExportFileName(`mawuang_report_${new Date().toISOString().slice(0, 10)}`); setIsExportModalOpen(true); }} className="w-full bg-[#4A4A4A] text-white p-4 rounded-2xl font-semibold hover:opacity-90 transition-colors flex justify-center items-center gap-2"><Download size={18} /> {t.exportExcel}</button>
+            <button onClick={() => { setExportFileName(`mawuang_report_${new Date().toISOString().slice(0, 10)}`); setIsExportModalOpen(true); }} className="w-full bg-[#4A4A4A] text-white p-4 rounded-2xl font-bold hover:bg-black hover:shadow-lg hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2 shadow-md"><Download size={18} /> {t.exportExcel}</button>
           </div>
-          <div className="card-bg p-5 rounded-3xl shadow-sm border-soft">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="bg-expense-light p-2 rounded-xl text-expense"><Info size={20}/></div><h3 className="font-semibold text-main">{t.aboutApp}</h3>
+          <div className="card-bg p-6 rounded-3xl shadow-sm border-soft hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-4 mb-3">
+              <div className="bg-expense-light p-3 rounded-2xl text-expense shadow-sm"><Info size={20}/></div><h3 className="font-bold text-main">{t.aboutApp}</h3>
             </div>
-            <p className="text-xs md:text-sm text-muted leading-relaxed pl-11 md:pl-12">{t.aboutAppDesc}</p>
+            <p className="text-xs md:text-sm text-muted leading-relaxed pl-[3.25rem] md:pl-[4.25rem] font-medium">{t.aboutAppDesc}</p>
           </div>
-          <div className="card-bg p-5 rounded-3xl shadow-sm border-soft">
-            <button onClick={handleLogout} className="w-full bg-red-50 text-red-500 hover:bg-red-100 p-4 rounded-2xl font-bold transition-colors flex justify-center items-center gap-2 border border-red-100"><LogOut size={18} /> {t.logout}</button>
+          <div className="card-bg p-6 rounded-3xl shadow-sm border-soft hover:shadow-md transition-shadow">
+            <button onClick={handleLogout} className="w-full bg-red-50 text-red-500 hover:bg-red-100 p-4 rounded-2xl font-bold transition-all flex justify-center items-center gap-2 border border-red-100 hover:shadow-md hover:-translate-y-0.5"><LogOut size={18} /> {t.logout}</button>
           </div>
         </div>
       );
@@ -1974,18 +1986,30 @@
           <GlobalStyles/>
           <div className="w-full max-w-md md:max-w-4xl lg:max-w-6xl app-bg min-h-screen md:min-h-[800px] relative md:rounded-[40px] md:shadow-2xl flex flex-col md:flex-row overflow-hidden md:my-0 mx-auto transition-colors duration-500 md:border-soft">
             
-            <nav className="fixed bottom-0 md:relative w-full md:w-24 lg:w-24 card-bg/90 md:card-bg/50 backdrop-blur-md border-t md:border-t-0 md:border-r border-soft p-2 pb-6 md:pb-8 flex md:flex-col justify-around md:justify-start items-center md:pt-8 z-40 rounded-t-3xl md:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.03)] md:shadow-none flex-shrink-0">
-              <div className="hidden md:flex flex-col w-full mb-8 items-center justify-center gap-2">
-                 {photoURL ? ( <img src={photoURL} className="w-10 h-10 rounded-full object-cover shadow-sm border-2 border-soft" /> ) : ( <div className="w-10 h-10 rounded-full bg-theme-light text-theme flex items-center justify-center shadow-sm"><User size={20} /></div> )}
-              </div>
-              <div className="flex w-full md:flex-col justify-around md:justify-start gap-2 md:gap-4 lg:px-2">
-                <NavButton tab="home" icon={Home} />
-                <NavButton tab="report" icon={BarChart2} />
-                <button onClick={() => setIsSmartInputOpen(true)} className="flex items-center justify-center p-3 transition-all text-muted hover:opacity-80 lg:w-full lg:rounded-2xl lg:hover:input-bg active:scale-95"><MessageCircle size={24} strokeWidth={2} /></button>
-                <NavButton tab="categories" icon={Tags} />
-                <NavButton tab="settings" icon={Settings} />
-              </div>
-            </nav>
+            {/* Navigasi Melayang (Floating Dock) untuk Mobile */}
+            <div className="md:relative md:w-24 lg:w-24 flex-shrink-0 z-40">
+                <div className="md:hidden fixed bottom-6 left-0 right-0 flex justify-center px-6 pointer-events-none z-40">
+                    <nav className="w-full max-w-md card-bg/85 backdrop-blur-xl border border-soft p-2.5 flex justify-around items-center rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.12)] pointer-events-auto">
+                        <NavButton tab="home" icon={Home} />
+                        <NavButton tab="report" icon={BarChart2} />
+                        <button onClick={() => setIsSmartInputOpen(true)} className="flex items-center justify-center p-4 transition-all text-white bg-theme rounded-2xl shadow-md hover:shadow-lg hover:-translate-y-1 active:scale-95 animate-pulse-glow"><MessageCircle size={24} strokeWidth={2.5} /></button>
+                        <NavButton tab="categories" icon={Tags} />
+                        <NavButton tab="settings" icon={Settings} />
+                    </nav>
+                </div>
+                
+                {/* Navigasi Sidebar untuk Desktop */}
+                <nav className="hidden md:flex flex-col w-full h-full card-bg/60 backdrop-blur-md border-r border-soft p-3 pt-10 items-center gap-4">
+                    <div className="mb-8">
+                         {photoURL ? ( <img src={photoURL} className="w-12 h-12 rounded-full object-cover shadow-sm border-2 border-soft" /> ) : ( <div className="w-12 h-12 rounded-full bg-theme-light text-theme flex items-center justify-center shadow-sm"><User size={24} /></div> )}
+                    </div>
+                    <NavButton tab="home" icon={Home} />
+                    <NavButton tab="report" icon={BarChart2} />
+                    <button onClick={() => setIsSmartInputOpen(true)} className="flex items-center justify-center p-4 mt-2 mb-2 transition-all text-white bg-theme w-full rounded-2xl shadow-md hover:shadow-lg hover:-translate-y-1 active:scale-95"><MessageCircle size={24} strokeWidth={2.5} /></button>
+                    <NavButton tab="categories" icon={Tags} />
+                    <NavButton tab="settings" icon={Settings} />
+                </nav>
+            </div>
 
             <div className="flex-1 w-full relative h-screen md:h-auto overflow-y-auto hide-scrollbar bg-transparent">
               {activeTab === 'home' && renderHome()}
@@ -1994,65 +2018,65 @@
               {activeTab === 'settings' && renderSettings()}
             </div>
 
-            {}
+            {/* MODALS */}
             {isSmartInputOpen && (
-              <div className="fixed inset-0 z-[90] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm p-0 md:p-4 animate-fade-in" onClick={() => setIsSmartInputOpen(false)}>
-                 <div className="card-bg w-full max-w-md rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 shadow-2xl relative mx-auto animate-slide-up border-soft" onClick={e => e.stopPropagation()}>
-                    <button onClick={() => setIsSmartInputOpen(false)} className="absolute top-6 right-6 p-2 input-bg rounded-full text-muted hover:opacity-80 transition-colors border-soft"><X size={20}/></button>
-                    <h2 className="text-xl font-bold mb-2 text-main tracking-tight">{t.smartInputTitle}</h2>
-                    <p className="text-xs text-muted mb-8 font-medium">{t.smartInputPlaceholder}</p>
-                    <div className="flex input-bg rounded-3xl p-2 items-center mb-6 transition-shadow border-soft shadow-inner ring-theme">
-                        <button onClick={toggleListen} className={`p-3.5 rounded-2xl transition-colors ${isListening ? 'bg-red-100 text-red-500 animate-pulse' : 'card-bg text-muted hover:text-theme shadow-sm border border-soft'}`}><Mic size={22} /></button>
-                        <input type="text" value={smartText} onChange={e => setSmartText(e.target.value)} placeholder={lang === 'id' ? "makan 25k, atau dapat 1 jt..." : "昼ごはん 500円..."} className="flex-1 bg-transparent border-none outline-none px-4 text-main font-medium" onKeyDown={e => e.key === 'Enter' && handleSmartSubmit()} autoFocus />
-                        <button onClick={handleSmartSubmit} className="p-3.5 bg-theme text-white rounded-2xl shadow-sm transition-colors active:scale-95 hover:opacity-90"><Send size={22} /></button>
+              <div className="fixed inset-0 z-[90] flex items-end md:items-center justify-center bg-black/50 backdrop-blur-md p-0 md:p-4 animate-fade-in" onClick={() => setIsSmartInputOpen(false)}>
+                 <div className="card-bg w-full max-w-md rounded-t-[40px] md:rounded-[40px] p-8 pb-12 md:pb-8 shadow-2xl relative mx-auto animate-slide-up border-soft" onClick={e => e.stopPropagation()}>
+                    <button onClick={() => setIsSmartInputOpen(false)} className="absolute top-6 right-6 p-2.5 input-bg rounded-full text-muted hover:bg-black/5 transition-colors border-soft"><X size={20}/></button>
+                    <h2 className="text-xl font-extrabold mb-2 text-main tracking-tight">{t.smartInputTitle}</h2>
+                    <p className="text-xs text-muted mb-8 font-semibold">{t.smartInputPlaceholder}</p>
+                    <div className="flex input-bg rounded-3xl p-2 items-center mb-6 transition-shadow border-soft shadow-inner focus-within:ring-2 ring-theme">
+                        <button onClick={toggleListen} className={`p-4 rounded-2xl transition-all shadow-sm ${isListening ? 'bg-red-100 text-red-500 animate-pulse' : 'card-bg text-muted hover:text-theme hover:shadow-md'}`}><Mic size={22} /></button>
+                        <input type="text" value={smartText} onChange={e => setSmartText(e.target.value)} placeholder={lang === 'id' ? "makan 25k, atau dapat 1 jt..." : "昼ごはん 500円..."} className="flex-1 bg-transparent border-none outline-none px-4 text-main font-bold placeholder:font-medium" onKeyDown={e => e.key === 'Enter' && handleSmartSubmit()} autoFocus />
+                        <button onClick={handleSmartSubmit} className="p-4 bg-theme text-white rounded-2xl shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5 active:scale-95"><Send size={22} /></button>
                     </div>
-                    {isListening && <p className="text-center text-xs text-red-400 animate-pulse font-semibold">Mendengarkan ucapan Anda...</p>}
+                    {isListening && <p className="text-center text-xs text-red-400 animate-pulse font-bold">Mendengarkan ucapan Anda...</p>}
                  </div>
               </div>
             )}
 
             {isProfileModalOpen && (
-              <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-0 md:p-4">
-                  <div className="card-bg w-full max-w-sm rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 animate-slide-up shadow-2xl relative mx-auto border-soft">
-                      <button onClick={() => setIsProfileModalOpen(false)} className="absolute top-6 right-6 p-2 input-bg rounded-full text-muted hover:opacity-80 border-soft"><X size={20} /></button>
-                      <h2 className="text-xl font-bold mb-6 text-main text-center">{t.editProfile}</h2>
+              <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 backdrop-blur-md animate-fade-in p-0 md:p-4">
+                  <div className="card-bg w-full max-w-sm rounded-t-[40px] md:rounded-[40px] p-8 pb-12 md:pb-8 animate-slide-up shadow-2xl relative mx-auto border-soft">
+                      <button onClick={() => setIsProfileModalOpen(false)} className="absolute top-6 right-6 p-2.5 input-bg rounded-full text-muted hover:bg-black/5 border-soft"><X size={20} /></button>
+                      <h2 className="text-xl font-extrabold mb-8 text-main text-center">{t.editProfile}</h2>
                       <div className="flex justify-center mb-8">
                           <div className="relative">
-                              {profileFormData.photoURL ? ( <img src={profileFormData.photoURL} className="w-24 h-24 rounded-full object-cover border-4 border-soft shadow-lg mx-auto" /> ) : ( <div className="w-24 h-24 bg-theme-light text-theme rounded-full border-4 border-soft shadow-lg flex items-center justify-center mx-auto"><User size={32} /></div> )}
-                              <label className="absolute bottom-0 right-0 bg-theme text-white p-2 rounded-full cursor-pointer shadow-md hover:scale-105 active:scale-95 transition-all"><Camera size={16} /><input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files[0]; if(file) compressImage(file, (data) => setProfileFormData({...profileFormData, photoURL: data})); }} /></label>
+                              {profileFormData.photoURL ? ( <img src={profileFormData.photoURL} className="w-28 h-28 rounded-full object-cover border-4 border-soft shadow-lg mx-auto" /> ) : ( <div className="w-28 h-28 bg-theme-light text-theme rounded-full border-4 border-soft shadow-lg flex items-center justify-center mx-auto"><User size={40} /></div> )}
+                              <label className="absolute bottom-0 right-0 bg-theme text-white p-3 rounded-full cursor-pointer shadow-lg hover:scale-110 active:scale-95 transition-all"><Camera size={18} /><input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files[0]; if(file) compressImage(file, (data) => setProfileFormData({...profileFormData, photoURL: data})); }} /></label>
                           </div>
                       </div>
                       <div className="w-full mb-8">
-                          <label className="block text-xs font-semibold text-muted mb-2">Nama Panggilan</label>
-                          <input type="text" value={profileFormData.username} onChange={e => setProfileFormData({...profileFormData, username: e.target.value})} className="w-full input-bg border-none rounded-2xl p-4 text-main outline-none font-bold text-center ring-theme border-soft" />
+                          <label className="block text-xs font-bold text-muted mb-2 uppercase tracking-wide">Nama Panggilan</label>
+                          <input type="text" value={profileFormData.username} onChange={e => setProfileFormData({...profileFormData, username: e.target.value})} className="w-full input-bg border-none rounded-2xl p-4 text-main outline-none font-bold text-center focus:ring-2 ring-theme border-soft shadow-inner" />
                       </div>
-                      <button onClick={() => { setUsername(profileFormData.username); setPhotoURL(profileFormData.photoURL); pushToCloud({ username: profileFormData.username, photoURL: profileFormData.photoURL }); setIsProfileModalOpen(false); }} className="w-full py-4 rounded-2xl font-bold text-white bg-theme shadow-lg transition-transform active:scale-95 hover:opacity-90">{t.saveProfile}</button>
+                      <button onClick={() => { setUsername(profileFormData.username); setPhotoURL(profileFormData.photoURL); pushToCloud({ username: profileFormData.username, photoURL: profileFormData.photoURL }); setIsProfileModalOpen(false); }} className="w-full py-4 rounded-2xl font-bold text-white bg-theme shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all">{t.saveProfile}</button>
                   </div>
               </div>
             )}
 
             {isDanaTalangModalOpen && (
-              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
-                <div className="card-bg w-full max-w-sm rounded-[32px] p-6 relative overflow-hidden animate-slide-up shadow-2xl mx-auto border-soft">
-                  <button onClick={() => setIsDanaTalangModalOpen(false)} className="absolute top-4 right-4 p-2 input-bg rounded-full text-muted hover:opacity-80 border-soft"><X size={20} /></button>
-                  <h3 className="font-bold text-lg mb-6 text-main text-center">{t.setupLoan}</h3>
-                  <div className="space-y-4 mb-6">
+              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-md animate-fade-in p-4">
+                <div className="card-bg w-full max-w-sm rounded-[32px] p-8 relative overflow-hidden animate-slide-up shadow-2xl mx-auto border-soft">
+                  <button onClick={() => setIsDanaTalangModalOpen(false)} className="absolute top-4 right-4 p-2.5 input-bg rounded-full text-muted hover:bg-black/5 border-soft"><X size={20} /></button>
+                  <h3 className="font-extrabold text-xl mb-6 text-main text-center">{t.setupLoan}</h3>
+                  <div className="space-y-5 mb-8">
                     <div>
-                      <label className="block text-xs font-semibold text-muted mb-2">Mata Uang</label>
-                      <select value={danaTalang.currency} onChange={(e) => setDanaTalang({...danaTalang, currency: e.target.value})} className="w-full input-bg border-none rounded-2xl p-4 text-main font-bold outline-none cursor-pointer ring-theme border-soft">
+                      <label className="block text-xs font-bold text-muted mb-2 uppercase tracking-wide">Mata Uang</label>
+                      <select value={danaTalang.currency} onChange={(e) => setDanaTalang({...danaTalang, currency: e.target.value})} className="w-full input-bg border-none rounded-2xl p-4 text-main font-bold outline-none cursor-pointer focus:ring-2 ring-theme border-soft shadow-inner">
                         <option value="IDR">IDR</option><option value="JPY">JPY</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-muted mb-2">{t.totalLoan}</label>
-                      <input type="number" value={danaTalang.total || ''} onChange={(e) => setDanaTalang({...danaTalang, total: parseFloat(e.target.value) || 0})} placeholder="0" className="w-full input-bg border-none rounded-2xl p-4 text-xl font-bold text-main outline-none transition-shadow ring-theme border-soft"/>
+                      <label className="block text-xs font-bold text-muted mb-2 uppercase tracking-wide">{t.totalLoan}</label>
+                      <input type="number" value={danaTalang.total || ''} onChange={(e) => setDanaTalang({...danaTalang, total: parseFloat(e.target.value) || 0})} placeholder="0" className="w-full input-bg border-none rounded-2xl p-4 text-xl font-bold text-main outline-none transition-shadow focus:ring-2 ring-theme border-soft shadow-inner"/>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-muted mb-2">{t.paidAmount}</label>
-                      <input type="number" value={danaTalang.paid || ''} onChange={(e) => setDanaTalang({...danaTalang, paid: parseFloat(e.target.value) || 0})} placeholder="0" className="w-full input-bg border-none rounded-2xl p-4 text-xl font-bold text-main outline-none transition-shadow ring-theme border-soft"/>
+                      <label className="block text-xs font-bold text-muted mb-2 uppercase tracking-wide">{t.paidAmount}</label>
+                      <input type="number" value={danaTalang.paid || ''} onChange={(e) => setDanaTalang({...danaTalang, paid: parseFloat(e.target.value) || 0})} placeholder="0" className="w-full input-bg border-none rounded-2xl p-4 text-xl font-bold text-main outline-none transition-shadow focus:ring-2 ring-theme border-soft shadow-inner"/>
                     </div>
                   </div>
-                  <button onClick={() => { setIsDanaTalangModalOpen(false); pushToCloud({ danaTalang }); setToastMsg(lang === 'id' ? 'Tersimpan!' : '保存されました！'); setTimeout(() => setToastMsg(''), 2500); }} className="w-full bg-theme text-white p-4 rounded-2xl font-bold transition-all active:scale-95 shadow-lg flex items-center justify-center gap-2 hover:opacity-90">
+                  <button onClick={() => { setIsDanaTalangModalOpen(false); pushToCloud({ danaTalang }); setToastMsg(lang === 'id' ? 'Tersimpan!' : '保存されました！'); setTimeout(() => setToastMsg(''), 2500); }} className="w-full bg-theme text-white p-4 rounded-2xl font-bold transition-all active:scale-95 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2">
                     <Check size={18} /> {t.saveLoan}
                   </button>
                 </div>
@@ -2060,59 +2084,59 @@
             )}
 
             {isWidgetModalOpen && (
-              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
-                <div className="card-bg w-full max-w-sm rounded-[32px] p-6 relative overflow-hidden animate-slide-up shadow-2xl mx-auto text-center max-h-[90vh] overflow-y-auto hide-scrollbar border-soft">
-                  <button onClick={() => setIsWidgetModalOpen(false)} className="absolute top-4 right-4 p-2 input-bg rounded-full text-muted hover:opacity-80 border-soft"><X size={20} /></button>
-                  <h3 className="font-bold text-lg mb-2 text-main">{t.editWidget}</h3>
-                  <p className="text-xs text-muted mb-6 px-2">{lang === 'id' ? 'Atur limit harian dan pilih gambar yang akan muncul saat budget aman vs budget menipis (Mode Was-Was).' : '1日の上限を設定し、安全時と警告時（Was-Wasモード）の画像を選択します。'}</p>
+              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-md animate-fade-in p-4">
+                <div className="card-bg w-full max-w-sm rounded-[32px] p-8 relative overflow-hidden animate-slide-up shadow-2xl mx-auto text-center max-h-[90vh] overflow-y-auto hide-scrollbar border-soft">
+                  <button onClick={() => setIsWidgetModalOpen(false)} className="absolute top-4 right-4 p-2.5 input-bg rounded-full text-muted hover:bg-black/5 border-soft"><X size={20} /></button>
+                  <h3 className="font-extrabold text-xl mb-2 text-main">{t.editWidget}</h3>
+                  <p className="text-xs text-muted mb-6 px-2 font-medium">{lang === 'id' ? 'Atur limit harian dan pilih gambar yang akan muncul saat budget aman vs budget menipis (Mode Was-Was).' : '1日の上限を設定し、安全時と警告時（Was-Wasモード）の画像を選択します。'}</p>
                   
                   <div className="text-left mb-6">
-                      <label className="block text-xs font-semibold text-muted mb-2">{t.dailyBudget}</label>
+                      <label className="block text-[10px] font-bold text-muted mb-2 uppercase tracking-wide">{t.dailyBudget}</label>
                       <div className="flex gap-2">
-                          <span className="input-bg px-4 py-4 rounded-2xl font-bold text-muted border border-soft">{displayCurrency}</span>
-                          <input type="number" value={widgetConfig.limit || ''} onChange={(e) => setWidgetConfig({...widgetConfig, limit: parseFloat(e.target.value) || 0, limitCurrency: displayCurrency})} placeholder="0" className="flex-1 min-w-0 input-bg border-none rounded-2xl p-4 text-lg font-bold text-main outline-none transition-shadow ring-theme border-soft"/>
+                          <span className="input-bg px-4 py-4 rounded-2xl font-bold text-muted border border-soft shadow-inner flex items-center justify-center">{displayCurrency}</span>
+                          <input type="number" value={widgetConfig.limit || ''} onChange={(e) => setWidgetConfig({...widgetConfig, limit: parseFloat(e.target.value) || 0, limitCurrency: displayCurrency})} placeholder="0" className="flex-1 min-w-0 input-bg border-none rounded-2xl p-4 text-xl font-bold text-main outline-none transition-shadow focus:ring-2 ring-theme border-soft shadow-inner"/>
                       </div>
                   </div>
 
-                  <div className="mb-6 pt-4 border-t border-soft">
-                     <button onClick={handleInstallWidget} className="w-full input-bg border-soft text-main hover:opacity-80 p-3 rounded-2xl font-bold transition-all text-sm flex justify-center items-center gap-2">
-                        <Download size={16} /> Tambahkan Widget ke Layar
+                  <div className="mb-6 pt-5 border-t border-soft">
+                     <button onClick={handleInstallWidget} className="w-full input-bg border-soft text-main hover:bg-black/5 hover:shadow-md hover:-translate-y-0.5 p-4 rounded-2xl font-bold transition-all text-sm flex justify-center items-center gap-2 shadow-sm">
+                        <Download size={18} /> Tambahkan ke Layar Utama
                      </button>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-2 gap-4 mb-8">
                       <div>
-                          <p className="text-[10px] font-bold text-green-500 mb-2 uppercase tracking-wide">{t.safeMode}</p>
+                          <p className="text-[10px] font-extrabold text-green-500 mb-2 uppercase tracking-wide">{t.safeMode}</p>
                           {widgetConfig.safeBg ? (
-                            <div className="relative mx-auto w-full">
-                              <img src={widgetConfig.safeBg} className="w-full h-24 object-cover rounded-2xl shadow-sm border border-soft" alt="Safe BG" />
-                              <button onClick={() => setWidgetConfig({...widgetConfig, safeBg: null})} className="absolute -top-2 -right-2 bg-red-400 text-white rounded-full p-1.5 shadow-lg hover:bg-red-500"><X size={12} /></button>
+                            <div className="relative mx-auto w-full group">
+                              <img src={widgetConfig.safeBg} className="w-full h-28 object-cover rounded-2xl shadow-sm border border-soft transition-all group-hover:brightness-90" alt="Safe BG" />
+                              <button onClick={() => setWidgetConfig({...widgetConfig, safeBg: null})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform"><X size={14} /></button>
                             </div>
                           ) : (
-                            <label className="w-full h-24 bg-green-50/50 rounded-2xl flex flex-col items-center justify-center text-green-400 border border-dashed border-green-200 cursor-pointer hover:bg-green-50 transition-colors">
-                               <ImageIcon size={20} className="mb-1" /> <span className="text-[10px] font-bold">Upload</span>
+                            <label className="w-full h-28 bg-green-50/50 rounded-2xl flex flex-col items-center justify-center text-green-500 border-2 border-dashed border-green-200 cursor-pointer hover:bg-green-50 transition-colors shadow-sm">
+                               <ImageIcon size={24} className="mb-2" /> <span className="text-[10px] font-bold uppercase tracking-wider">Upload</span>
                                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files[0]; if(file) compressImage(file, (data) => setWidgetConfig({...widgetConfig, safeBg: data})); }} />
                             </label>
                           )}
                       </div>
                       
                       <div>
-                          <p className="text-[10px] font-bold text-red-500 mb-2 uppercase tracking-wide">{t.dangerMode}</p>
+                          <p className="text-[10px] font-extrabold text-red-500 mb-2 uppercase tracking-wide">{t.dangerMode}</p>
                           {widgetConfig.dangerBg ? (
-                            <div className="relative mx-auto w-full">
-                              <img src={widgetConfig.dangerBg} className="w-full h-24 object-cover rounded-2xl shadow-sm border border-soft" alt="Danger BG" />
-                              <button onClick={() => setWidgetConfig({...widgetConfig, dangerBg: null})} className="absolute -top-2 -right-2 bg-red-400 text-white rounded-full p-1.5 shadow-lg hover:bg-red-500"><X size={12} /></button>
+                            <div className="relative mx-auto w-full group">
+                              <img src={widgetConfig.dangerBg} className="w-full h-28 object-cover rounded-2xl shadow-sm border border-soft transition-all group-hover:brightness-90" alt="Danger BG" />
+                              <button onClick={() => setWidgetConfig({...widgetConfig, dangerBg: null})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-lg hover:scale-110 transition-transform"><X size={14} /></button>
                             </div>
                           ) : (
-                            <label className="w-full h-24 bg-red-50/50 rounded-2xl flex flex-col items-center justify-center text-red-400 border border-dashed border-red-200 cursor-pointer hover:bg-red-50 transition-colors">
-                               <AlertTriangle size={20} className="mb-1" /> <span className="text-[10px] font-bold">Upload</span>
+                            <label className="w-full h-28 bg-red-50/50 rounded-2xl flex flex-col items-center justify-center text-red-500 border-2 border-dashed border-red-200 cursor-pointer hover:bg-red-50 transition-colors shadow-sm">
+                               <AlertTriangle size={24} className="mb-2" /> <span className="text-[10px] font-bold uppercase tracking-wider">Upload</span>
                                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files[0]; if(file) compressImage(file, (data) => setWidgetConfig({...widgetConfig, dangerBg: data})); }} />
                             </label>
                           )}
                       </div>
                   </div>
                   
-                  <button onClick={() => { setIsWidgetModalOpen(false); pushToCloud({ widgetConfig }); }} className="w-full bg-theme text-white p-4 rounded-2xl font-bold transition-all active:scale-95 shadow-lg flex justify-center items-center gap-2 hover:opacity-90">
+                  <button onClick={() => { setIsWidgetModalOpen(false); pushToCloud({ widgetConfig }); }} className="w-full bg-theme text-white p-4 rounded-2xl font-bold transition-all active:scale-95 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex justify-center items-center gap-2">
                     <Check size={18} /> {t.save}
                   </button>
                 </div>
@@ -2120,93 +2144,93 @@
             )}
 
             {isTxModalOpen && (
-              <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-0 md:p-4">
-                <div className="card-bg w-full max-w-md rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 animate-slide-up shadow-2xl relative max-h-[90vh] overflow-y-auto hide-scrollbar mx-auto border-soft">
-                  <button onClick={() => setIsTxModalOpen(false)} className="absolute top-6 right-6 p-2 input-bg rounded-full text-muted hover:opacity-80 border-soft"><X size={20} /></button>
-                  <h2 className="text-xl font-bold mb-6 text-main">{editingTxId ? t.editTransaction : `${t.newTransaction} - ${txFormType === 'income' ? t.addIncome : t.addExpense}`}</h2>
+              <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/50 backdrop-blur-md animate-fade-in p-0 md:p-4">
+                <div className="card-bg w-full max-w-md rounded-t-[40px] md:rounded-[40px] p-8 pb-12 md:pb-8 animate-slide-up shadow-2xl relative max-h-[90vh] overflow-y-auto hide-scrollbar mx-auto border-soft">
+                  <button onClick={() => setIsTxModalOpen(false)} className="absolute top-6 right-6 p-2.5 input-bg rounded-full text-muted hover:bg-black/5 border-soft"><X size={20} /></button>
+                  <h2 className="text-xl font-extrabold mb-8 text-main">{editingTxId ? t.editTransaction : `${t.newTransaction} - ${txFormType === 'income' ? t.addIncome : t.addExpense}`}</h2>
                   
                   {txFormType === 'expense' && parseFloat(txFormData.amount) > 0 && getConvertedAmount(parseFloat(txFormData.amount), txFormData.currency, displayCurrency) > balance && !editingTxId && (
-                    <div className="bg-orange-50 text-orange-500 p-3 rounded-2xl text-sm font-semibold flex items-center gap-2 mb-4 animate-fade-in"><AlertCircle size={18} /> {t.insufficientBalance}</div>
+                    <div className="bg-orange-50 text-orange-600 p-4 rounded-2xl text-sm font-bold flex items-center gap-3 mb-6 animate-fade-in shadow-sm border border-orange-100"><AlertCircle size={20} /> {t.insufficientBalance}</div>
                   )}
-                  {txError && <div className="bg-red-50 text-red-500 p-3 rounded-2xl text-sm font-semibold flex items-center gap-2 mb-4 animate-fade-in"><AlertCircle size={18} /> {txError}</div>}
+                  {txError && <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-sm font-bold flex items-center gap-3 mb-6 animate-fade-in shadow-sm border border-red-100"><AlertCircle size={20} /> {txError}</div>}
 
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     <div className="w-full">
-                      <label className="block text-xs font-semibold text-muted mb-2">{t.amount}</label>
+                      <label className="block text-[10px] font-bold text-muted mb-2 uppercase tracking-wide">{t.amount}</label>
                       <div className="flex gap-3 w-full">
-                        <select value={txFormData.currency} onChange={(e) => setTxFormData({...txFormData, currency: e.target.value})} className="input-bg border-none rounded-2xl px-3 font-bold text-theme outline-none cursor-pointer flex-shrink-0 appearance-none ring-theme border-soft">
+                        <select value={txFormData.currency} onChange={(e) => setTxFormData({...txFormData, currency: e.target.value})} className="input-bg border-none rounded-2xl px-4 font-extrabold text-theme outline-none cursor-pointer flex-shrink-0 appearance-none focus:ring-2 ring-theme border-soft shadow-inner">
                           <option value="IDR">IDR</option><option value="JPY">JPY</option>
                         </select>
-                        <input type="number" value={txFormData.amount} onChange={(e) => {setTxFormData({...txFormData, amount: e.target.value}); setTxError('');}} placeholder="0" className="flex-1 w-full min-w-0 input-bg border-none rounded-2xl p-4 text-2xl font-bold text-main outline-none transition-shadow ring-theme border-soft"/>
+                        <input type="number" value={txFormData.amount} onChange={(e) => {setTxFormData({...txFormData, amount: e.target.value}); setTxError('');}} placeholder="0" className="flex-1 w-full min-w-0 input-bg border-none rounded-2xl p-4 text-2xl font-extrabold text-main outline-none transition-shadow focus:ring-2 ring-theme border-soft shadow-inner"/>
                       </div>
                     </div>
                     <div className="w-full">
-                      <label className="block text-xs font-semibold text-muted mb-2">{t.categories}</label>
-                      <select value={txFormData.category} onChange={(e) => {setTxFormData({...txFormData, category: e.target.value}); setTxError('');}} className="w-full min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none appearance-none ring-theme border-soft">
+                      <label className="block text-[10px] font-bold text-muted mb-2 uppercase tracking-wide">{t.categories}</label>
+                      <select value={txFormData.category} onChange={(e) => {setTxFormData({...txFormData, category: e.target.value}); setTxError('');}} className="w-full min-w-0 input-bg border-none rounded-2xl p-4 text-main font-bold outline-none appearance-none focus:ring-2 ring-theme border-soft shadow-inner">
                         <option value="" disabled>{t.selectCategory}</option>
                         {categories.filter(c => c.type === txFormType).map(c => (<option key={c.id} value={c.id}>{getCatName(c)}</option>))}
                       </select>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex gap-4">
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <label className="block text-xs font-semibold text-muted mb-2">{t.dateTime}</label>
-                        <input type="datetime-local" value={txFormData.date} onChange={(e) => setTxFormData({...txFormData, date: e.target.value})} className="w-full max-w-full block box-border min-w-0 input-bg border-none rounded-2xl px-3 py-4 text-xs sm:text-sm text-main outline-none transition-shadow appearance-none ring-theme border-soft"/>
+                        <label className="block text-[10px] font-bold text-muted mb-2 uppercase tracking-wide">{t.dateTime}</label>
+                        <input type="datetime-local" value={txFormData.date} onChange={(e) => setTxFormData({...txFormData, date: e.target.value})} className="w-full max-w-full block box-border min-w-0 input-bg border-none rounded-2xl px-3 py-4 text-xs font-bold text-main outline-none transition-shadow appearance-none focus:ring-2 ring-theme border-soft shadow-inner"/>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <label className="block text-xs font-semibold text-muted mb-2">{t.wallets}</label>
-                        <select value={txFormData.walletId || 'cash'} onChange={(e) => setTxFormData({...txFormData, walletId: e.target.value})} className="w-full min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none appearance-none ring-theme border-soft">
+                        <label className="block text-[10px] font-bold text-muted mb-2 uppercase tracking-wide">{t.wallets}</label>
+                        <select value={txFormData.walletId || 'cash'} onChange={(e) => setTxFormData({...txFormData, walletId: e.target.value})} className="w-full min-w-0 input-bg border-none rounded-2xl p-4 text-main font-bold outline-none appearance-none focus:ring-2 ring-theme border-soft shadow-inner">
                           {wallets.map(w => <option key={w.id} value={w.id}>{lang === 'id' ? w.name : w.nameJp}</option>)}
                         </select>
                       </div>
                     </div>
                     <div className="w-full">
-                      <label className="block text-xs font-semibold text-muted mb-2">{t.note}</label>
-                      <input type="text" value={txFormData.note} onChange={(e) => setTxFormData({...txFormData, note: e.target.value})} placeholder="..." className="w-full box-border min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none transition-shadow ring-theme border-soft"/>
+                      <label className="block text-[10px] font-bold text-muted mb-2 uppercase tracking-wide">{t.note}</label>
+                      <input type="text" value={txFormData.note} onChange={(e) => setTxFormData({...txFormData, note: e.target.value})} placeholder="..." className="w-full box-border min-w-0 input-bg border-none rounded-2xl p-4 text-main font-medium outline-none transition-shadow focus:ring-2 ring-theme border-soft shadow-inner"/>
                     </div>
                     <div className="w-full pt-2">
-                      <label className="block text-xs font-semibold text-muted mb-2">{t.addPhoto}</label>
+                      <label className="block text-[10px] font-bold text-muted mb-2 uppercase tracking-wide">{t.addPhoto}</label>
                       {txFormData.photo ? (
-                        <div className="relative inline-block mt-1">
-                          <img src={txFormData.photo} onClick={() => setPreviewImage(txFormData.photo)} className="h-28 w-28 object-cover rounded-2xl border border-soft shadow-sm cursor-pointer hover:opacity-90 transition-opacity" alt="Preview"/>
-                          <button onClick={() => setTxFormData({...txFormData, photo: ''})} className="absolute -top-3 -right-3 bg-red-400 text-white rounded-full p-1.5 hover:bg-red-500 shadow-md transition-transform active:scale-95"><X size={14} /></button>
+                        <div className="relative inline-block mt-2">
+                          <img src={txFormData.photo} onClick={() => setPreviewImage(txFormData.photo)} className="h-32 w-32 object-cover rounded-2xl border border-soft shadow-md cursor-pointer hover:opacity-90 transition-opacity" alt="Preview"/>
+                          <button onClick={() => setTxFormData({...txFormData, photo: ''})} className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full p-2 hover:scale-110 shadow-lg transition-transform active:scale-95"><X size={14} /></button>
                         </div>
                       ) : (
-                        <label className="flex items-center justify-center gap-2 w-full input-bg border-2 border-dashed border-soft rounded-2xl p-4 text-muted cursor-pointer hover:opacity-80 transition-colors">
-                          <ImageIcon size={20} /> <span className="text-sm font-semibold">{t.addPhoto}</span>
+                        <label className="flex items-center justify-center gap-3 w-full input-bg border-2 border-dashed border-soft rounded-2xl p-6 text-muted cursor-pointer hover:bg-black/5 transition-colors shadow-sm">
+                          <ImageIcon size={24} /> <span className="text-sm font-bold uppercase tracking-wider">{t.addPhoto}</span>
                           <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                         </label>
                       )}
                     </div>
-                    <button onClick={handleSaveTx} className={`w-full py-4 rounded-2xl font-bold text-white mt-6 shadow-lg transition-transform active:scale-95 ${txFormType === 'income' ? 'bg-income hover:opacity-90' : 'bg-expense hover:opacity-90'}`}>{t.save}</button>
+                    <button onClick={handleSaveTx} className={`w-full py-4 rounded-2xl font-bold text-white mt-8 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 ${txFormType === 'income' ? 'bg-income' : 'bg-expense'}`}>{t.save}</button>
                   </div>
                 </div>
               </div>
             )}
 
             {isScannerOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
-                <div className="card-bg w-full max-w-sm rounded-[32px] p-6 text-center relative overflow-hidden mx-auto shadow-2xl border-soft">
-                  <button onClick={() => { if(!isScanning) { setIsScannerOpen(false); setScanError(false); setTempScanPhoto(null); } }} className="absolute top-4 right-4 p-2 input-bg rounded-full text-muted hover:opacity-80 border-soft"><X size={20} /></button>
-                  <div className="my-8">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4">
+                <div className="card-bg w-full max-w-sm rounded-[32px] p-8 text-center relative overflow-hidden mx-auto shadow-2xl border-soft">
+                  <button onClick={() => { if(!isScanning) { setIsScannerOpen(false); setScanError(false); setTempScanPhoto(null); } }} className="absolute top-4 right-4 p-2.5 input-bg rounded-full text-muted hover:bg-black/5 border-soft"><X size={20} /></button>
+                  <div className="my-6">
                     {isScanning ? (
                       <div className="flex flex-col items-center">
-                        <div className="w-16 h-16 border-4 border-theme border-t-transparent rounded-full animate-spin mb-4"></div>
-                        <p className="font-semibold text-theme">{t.scanning}</p>
+                        <div className="w-16 h-16 border-4 border-theme border-t-transparent rounded-full animate-spin mb-6 shadow-sm"></div>
+                        <p className="font-extrabold text-theme tracking-wide">{t.scanning}</p>
                       </div>
                     ) : scanError ? (
                       <div className="flex flex-col items-center animate-fade-in">
-                        <div className="bg-red-50 p-6 rounded-full mb-6"><AlertCircle size={40} className="text-red-400" /></div>
-                        <h3 className="font-bold text-lg mb-2 text-main text-center leading-snug">{t.scanFailed}</h3>
-                        <div className="flex gap-3 mt-4 w-full">
-                           <button onClick={() => { setIsScannerOpen(false); handleOpenTxModal('expense', '', 'IDR', lang === 'id' ? 'Ketik nominal manual' : '手動で入力', tempScanPhoto); setTempScanPhoto(null); }} className="flex-1 input-bg border-soft text-main px-4 py-4 rounded-2xl font-semibold shadow-sm transition-all active:scale-95 hover:opacity-80">Manual</button>
-                           <label className="flex-1 bg-[#4A4A4A] text-white px-4 py-4 rounded-2xl font-semibold cursor-pointer shadow-lg transition-all active:scale-95 hover:bg-black">Ulangi <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} /></label>
+                        <div className="bg-red-50 p-6 rounded-full mb-6 shadow-inner"><AlertCircle size={40} className="text-red-500" /></div>
+                        <h3 className="font-extrabold text-lg mb-2 text-main text-center leading-snug">{t.scanFailed}</h3>
+                        <div className="flex gap-3 mt-6 w-full">
+                           <button onClick={() => { setIsScannerOpen(false); handleOpenTxModal('expense', '', 'IDR', lang === 'id' ? 'Ketik nominal manual' : '手動で入力', tempScanPhoto); setTempScanPhoto(null); }} className="flex-1 input-bg border-soft text-main px-4 py-4 rounded-2xl font-bold shadow-sm transition-all active:scale-95 hover:bg-black/5 hover:-translate-y-0.5">Manual</button>
+                           <label className="flex-1 bg-main text-white px-4 py-4 rounded-2xl font-bold cursor-pointer shadow-md transition-all active:scale-95 hover:shadow-lg hover:-translate-y-0.5">Ulangi <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} /></label>
                         </div>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center">
-                        <div className="bg-theme-light p-6 rounded-full mb-6"><Camera size={40} className="text-theme" /></div>
-                        <h3 className="font-bold text-lg mb-2 text-main">{t.scanInstruction}</h3>
-                        <label className="mt-4 bg-theme text-white px-8 py-4 rounded-2xl font-semibold cursor-pointer shadow-lg transition-all active:scale-95 hover:opacity-90">{t.scan} <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} /></label>
+                        <div className="bg-theme-light p-6 rounded-full mb-6 shadow-inner"><Camera size={40} className="text-theme" /></div>
+                        <h3 className="font-extrabold text-lg mb-2 text-main">{t.scanInstruction}</h3>
+                        <label className="mt-6 bg-theme text-white px-8 py-4 rounded-2xl font-bold cursor-pointer shadow-lg transition-all active:scale-95 hover:shadow-xl hover:-translate-y-0.5">{t.scan} <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} /></label>
                       </div>
                     )}
                   </div>
@@ -2215,31 +2239,31 @@
             )}
 
             {isExportModalOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
-                <div className="card-bg w-full max-w-sm rounded-[32px] p-6 relative overflow-hidden animate-slide-up shadow-2xl mx-auto border-soft">
-                  <button onClick={() => setIsExportModalOpen(false)} className="absolute top-4 right-4 p-2 input-bg rounded-full text-muted hover:opacity-80 border-soft"><X size={20} /></button>
-                  <h3 className="font-bold text-lg mb-4 text-main text-center">{t.exportFileName}</h3>
-                  <input type="text" value={exportFileName} onChange={(e) => setExportFileName(e.target.value)} placeholder="mawuang_report..." className="w-full box-border min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none transition-shadow mb-6 text-center font-medium ring-theme border-soft"/>
-                  <button onClick={handleExportCSV} className="w-full bg-theme text-white p-4 rounded-2xl font-bold transition-all active:scale-95 shadow-lg flex justify-center items-center gap-2 hover:opacity-90"><Download size={18} /> {t.exportConfirm}</button>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4">
+                <div className="card-bg w-full max-w-sm rounded-[32px] p-8 relative overflow-hidden animate-slide-up shadow-2xl mx-auto border-soft">
+                  <button onClick={() => setIsExportModalOpen(false)} className="absolute top-4 right-4 p-2.5 input-bg rounded-full text-muted hover:bg-black/5 border-soft"><X size={20} /></button>
+                  <h3 className="font-extrabold text-lg mb-6 text-main text-center">{t.exportFileName}</h3>
+                  <input type="text" value={exportFileName} onChange={(e) => setExportFileName(e.target.value)} placeholder="mawuang_report..." className="w-full box-border min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none focus:ring-2 ring-theme mb-8 text-center font-bold shadow-inner border-soft"/>
+                  <button onClick={handleExportCSV} className="w-full bg-theme text-white p-4 rounded-2xl font-bold transition-all active:scale-95 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex justify-center items-center gap-2"><Download size={18} /> {t.exportConfirm}</button>
                 </div>
               </div>
             )}
 
             {pinSetup.isOpen && (
-              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
-                <div className="card-bg w-full max-w-sm rounded-[32px] p-6 relative shadow-2xl text-center mx-auto border-soft">
-                  <div className="mx-auto w-12 h-12 bg-expense-light text-expense rounded-full flex items-center justify-center mb-4">{pinSetup.step === 'create' ? <Lock size={24}/> : <Unlock size={24}/>}</div>
-                  <h3 className="text-lg font-bold text-main mb-2">{pinSetup.step === 'create' ? t.setupPin : t.removePin}</h3>
-                  <p className="text-xs text-muted mb-6">{pinSetup.step === 'create' ? (lang==='id'?'Masukkan 6 digit angka keamanan':'6桁のセキュリティ番号を入力してください') : (lang==='id'?'Apakah Anda yakin ingin menghapus keamanan PIN?':'PINセキュリティを削除してもよろしいですか？')}</p>
+              <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4">
+                <div className="card-bg w-full max-w-sm rounded-[32px] p-8 relative shadow-2xl text-center mx-auto border-soft">
+                  <div className="mx-auto w-16 h-16 bg-expense-light text-expense rounded-full flex items-center justify-center mb-6 shadow-inner">{pinSetup.step === 'create' ? <Lock size={32}/> : <Unlock size={32}/>}</div>
+                  <h3 className="text-xl font-extrabold text-main mb-2">{pinSetup.step === 'create' ? t.setupPin : t.removePin}</h3>
+                  <p className="text-xs text-muted mb-8 font-medium">{pinSetup.step === 'create' ? (lang==='id'?'Masukkan 6 digit angka keamanan':'6桁のセキュリティ番号を入力してください') : (lang==='id'?'Apakah Anda yakin ingin menghapus keamanan PIN?':'PINセキュリティを削除してもよろしいですか？')}</p>
                   
                   {pinSetup.step === 'create' && (
-                    <div className="mb-6">
-                       <input type="password" maxLength="6" placeholder="••••••" value={pinSetup.input} onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); setPinSetup({...pinSetup, input: val, error: ''}); }} className="w-full text-center tracking-[0.5em] text-2xl input-bg border-none rounded-2xl p-4 text-main outline-none ring-theme border-soft" />
-                       {pinSetup.error && <p className="text-red-400 text-xs font-semibold mt-2">{pinSetup.error}</p>}
+                    <div className="mb-8">
+                       <input type="password" maxLength="6" placeholder="••••••" value={pinSetup.input} onChange={(e) => { const val = e.target.value.replace(/\D/g, ''); setPinSetup({...pinSetup, input: val, error: ''}); }} className="w-full text-center tracking-[0.75em] text-3xl input-bg border-none rounded-2xl p-4 text-main font-bold outline-none focus:ring-2 ring-theme border-soft shadow-inner" />
+                       {pinSetup.error && <p className="text-red-500 text-xs font-bold mt-3 animate-pulse">{pinSetup.error}</p>}
                     </div>
                   )}
                   <div className="flex gap-3">
-                    <button onClick={() => setPinSetup({isOpen: false, step: 'create', input: '', error: ''})} className="flex-1 input-bg border-soft text-main p-3 rounded-2xl font-bold hover:opacity-80">{pinSetup.step === 'create' ? t.cancel : (lang === 'id' ? 'Tidak' : 'いいえ')}</button>
+                    <button onClick={() => setPinSetup({isOpen: false, step: 'create', input: '', error: ''})} className="flex-1 input-bg border-soft text-main p-4 rounded-2xl font-bold hover:bg-black/5 hover:-translate-y-0.5 transition-all shadow-sm">{pinSetup.step === 'create' ? t.cancel : (lang === 'id' ? 'Tidak' : 'いいえ')}</button>
                     <button onClick={async () => {
                        if (pinSetup.step === 'create') {
                          if (pinSetup.input.length === 6) { 
@@ -2249,60 +2273,60 @@
                        } else {
                          setPin(''); setBiometricId(null); setPinSetup({isOpen: false, step: 'create', input: '', error: ''}); setMessageDialog({ isOpen: true, title: lang === 'id' ? 'Berhasil' : '成功', message: lang==='id'?'PIN dan Keamanan berhasil dihapus!':'PINと生体認証が削除されました！' }); pushToCloud({ pin: '' }); 
                        }
-                    }} className={`flex-1 text-white p-3 rounded-2xl font-bold ${pinSetup.step === 'create' ? 'bg-theme hover-bg-theme' : 'bg-red-400 hover:bg-red-500'}`}>{pinSetup.step === 'create' ? t.save : (lang === 'id' ? 'Ya, Hapus' : 'はい、削除します')}</button>
+                    }} className={`flex-1 text-white p-4 rounded-2xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all ${pinSetup.step === 'create' ? 'bg-theme' : 'bg-red-500'}`}>{pinSetup.step === 'create' ? t.save : (lang === 'id' ? 'Ya, Hapus' : 'はい、削除します')}</button>
                   </div>
                 </div>
               </div>
             )}
 
             {messageDialog.isOpen && (
-              <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
+              <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-4">
                 <div className="card-bg w-full max-w-[280px] rounded-[32px] p-6 text-center shadow-2xl mx-auto border-soft">
-                  <h3 className="font-bold text-lg text-main mb-2">{messageDialog.title}</h3>
-                  <p className="text-sm text-muted mb-6">{messageDialog.message}</p>
-                  <button onClick={() => setMessageDialog({isOpen: false, title: '', message: ''})} className="w-full bg-theme text-white p-3 rounded-2xl font-bold hover:opacity-90">OK</button>
+                  <h3 className="font-extrabold text-lg text-main mb-2">{messageDialog.title}</h3>
+                  <p className="text-sm text-muted mb-6 font-medium">{messageDialog.message}</p>
+                  <button onClick={() => setMessageDialog({isOpen: false, title: '', message: ''})} className="w-full bg-theme text-white p-3.5 rounded-2xl font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-95 shadow-sm">OK</button>
                 </div>
               </div>
             )}
 
             {selectedTx && (
-              <div className="fixed inset-0 z-[80] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-0 md:p-4" onClick={() => setSelectedTx(null)}>
-                <div className="card-bg w-full max-w-md rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 animate-slide-up shadow-2xl relative max-h-[90vh] overflow-y-auto hide-scrollbar mx-auto border-soft" onClick={e => e.stopPropagation()}>
-                  <button onClick={() => setSelectedTx(null)} className="absolute top-6 right-6 p-2 input-bg rounded-full text-muted hover:opacity-80 border-soft"><X size={20} /></button>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className={`p-4 rounded-[20px] ${selectedTx.type === 'income' ? 'bg-income-light text-income' : 'bg-expense-light text-expense'}`}>{selectedTx.type === 'income' ? <Plus size={24} /> : <Minus size={24} />}</div>
+              <div className="fixed inset-0 z-[80] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-md animate-fade-in p-0 md:p-4" onClick={() => setSelectedTx(null)}>
+                <div className="card-bg w-full max-w-md rounded-t-[40px] md:rounded-[40px] p-8 pb-12 md:pb-8 animate-slide-up shadow-2xl relative max-h-[90vh] overflow-y-auto hide-scrollbar mx-auto border-soft" onClick={e => e.stopPropagation()}>
+                  <button onClick={() => setSelectedTx(null)} className="absolute top-6 right-6 p-2.5 input-bg rounded-full text-muted hover:bg-black/5 border-soft"><X size={20} /></button>
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className={`p-4 rounded-[20px] shadow-sm ${selectedTx.type === 'income' ? 'bg-income-light text-income' : 'bg-expense-light text-expense'}`}>{selectedTx.type === 'income' ? <Plus size={28} /> : <Minus size={28} />}</div>
                     <div>
-                      <h2 className="text-xl font-bold text-main">{t.transactionDetails}</h2>
-                      <p className="text-xs text-muted font-medium">{new Date(selectedTx.date).toLocaleDateString(lang === 'id' ? 'id-ID' : 'ja-JP', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                      <h2 className="text-2xl font-extrabold text-main tracking-tight">{t.transactionDetails}</h2>
+                      <p className="text-xs text-muted font-bold mt-1">{new Date(selectedTx.date).toLocaleDateString(lang === 'id' ? 'id-ID' : 'ja-JP', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
                     </div>
                   </div>
-                  <div className="input-bg p-5 rounded-[24px] space-y-4 mb-6 border border-soft">
-                     <div className="flex justify-between items-center border-b border-soft pb-3"><span className="text-xs text-muted font-semibold uppercase">{t.amount}</span><span className={`text-lg font-bold ${selectedTx.type === 'income' ? 'text-income' : 'text-main'}`}>{formatCurrency(selectedTx.amount, selectedTx.currency || 'IDR')}</span></div>
-                     <div className="flex justify-between items-center border-b border-soft pb-3"><span className="text-xs text-muted font-semibold uppercase">{t.categories}</span><span className="text-sm font-bold text-main">{getCatName(categories.find(c => c.id === selectedTx.categoryId)) || '-'}</span></div>
-                     <div className="flex justify-between items-center border-b border-soft pb-3"><span className="text-xs text-muted font-semibold uppercase">{t.wallets}</span><span className="text-sm font-bold text-main">{getWalletName(selectedTx.walletId)}</span></div>
-                     <div className="flex justify-between items-center border-b border-soft pb-3"><span className="text-xs text-muted font-semibold uppercase">{t.dateTime}</span><span className="text-sm font-bold text-main">{new Date(selectedTx.date).toLocaleTimeString(lang === 'id' ? 'id-ID' : 'ja-JP', { hour: '2-digit', minute: '2-digit' })}</span></div>
-                     <div className="flex flex-col gap-1"><span className="text-xs text-muted font-semibold uppercase">{t.note}</span><span className="text-sm font-medium text-main opacity-80 italic">"{selectedTx.note || '-'}"</span></div>
+                  <div className="input-bg p-6 rounded-[28px] space-y-5 mb-8 border border-soft shadow-inner">
+                     <div className="flex justify-between items-center border-b border-soft pb-4"><span className="text-[10px] text-muted font-bold uppercase tracking-wide">{t.amount}</span><span className={`text-xl font-extrabold ${selectedTx.type === 'income' ? 'text-income' : 'text-main'}`}>{formatCurrency(selectedTx.amount, selectedTx.currency || 'IDR')}</span></div>
+                     <div className="flex justify-between items-center border-b border-soft pb-4"><span className="text-[10px] text-muted font-bold uppercase tracking-wide">{t.categories}</span><span className="text-sm font-bold text-main bg-card-bg px-2.5 py-1 rounded-lg shadow-sm border-soft">{getCatName(categories.find(c => c.id === selectedTx.categoryId)) || '-'}</span></div>
+                     <div className="flex justify-between items-center border-b border-soft pb-4"><span className="text-[10px] text-muted font-bold uppercase tracking-wide">{t.wallets}</span><span className="text-sm font-bold text-main flex items-center gap-1.5"><WalletIcon size={14} className="text-muted" />{getWalletName(selectedTx.walletId)}</span></div>
+                     <div className="flex justify-between items-center border-b border-soft pb-4"><span className="text-[10px] text-muted font-bold uppercase tracking-wide">{t.dateTime}</span><span className="text-sm font-bold text-main">{new Date(selectedTx.date).toLocaleTimeString(lang === 'id' ? 'id-ID' : 'ja-JP', { hour: '2-digit', minute: '2-digit' })}</span></div>
+                     <div className="flex flex-col gap-1.5"><span className="text-[10px] text-muted font-bold uppercase tracking-wide">{t.note}</span><span className="text-sm font-medium text-main opacity-90 italic bg-card-bg p-3 rounded-xl border-soft shadow-sm">"{selectedTx.note || '-'}"</span></div>
                   </div>
                   {selectedTx.photo && (
-                    <div className="mb-6"><span className="text-xs text-muted font-semibold uppercase mb-2 block">Foto / Struk</span><img src={selectedTx.photo} onClick={() => setPreviewImage(selectedTx.photo)} className="w-full h-40 md:h-48 object-cover rounded-[24px] shadow-sm border border-soft cursor-pointer hover:opacity-90 transition-opacity" alt="Attachment" /></div>
+                    <div className="mb-8"><span className="text-[10px] text-muted font-bold uppercase tracking-wide mb-3 block">Foto / Struk</span><img src={selectedTx.photo} onClick={() => setPreviewImage(selectedTx.photo)} className="w-full h-48 object-cover rounded-[24px] shadow-md border border-soft cursor-pointer hover:opacity-90 transition-opacity" alt="Attachment" /></div>
                   )}
-                  <div className="flex gap-3">
-                    <button onClick={() => { const txToEdit = selectedTx; setSelectedTx(null); handleOpenTxModal(txToEdit.type, txToEdit.amount, txToEdit.currency || 'IDR', txToEdit.note || '', txToEdit.photo || '', txToEdit.walletId, txToEdit.id, txToEdit.categoryId); }} className="flex-1 bg-theme text-white py-3.5 rounded-2xl font-bold shadow-md active:scale-95 transition-transform flex items-center justify-center gap-2 hover:opacity-90"><Edit2 size={18} /> {t.edit}</button>
-                    <button onClick={() => { const id = selectedTx.id; setSelectedTx(null); handleDeleteTx(id); }} className="flex-1 bg-red-50 text-red-500 py-3.5 rounded-2xl font-bold shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-2 border border-red-100 hover:bg-red-100"><Trash2 size={18} /> {t.delete}</button>
+                  <div className="flex gap-4">
+                    <button onClick={() => { const txToEdit = selectedTx; setSelectedTx(null); handleOpenTxModal(txToEdit.type, txToEdit.amount, txToEdit.currency || 'IDR', txToEdit.note || '', txToEdit.photo || '', txToEdit.walletId, txToEdit.id, txToEdit.categoryId); }} className="flex-1 bg-theme text-white py-4 rounded-2xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-2"><Edit2 size={18} /> {t.edit}</button>
+                    <button onClick={() => { const id = selectedTx.id; setSelectedTx(null); handleDeleteTx(id); }} className="flex-1 bg-red-50 text-red-500 py-4 rounded-2xl font-bold shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-2 border border-red-100 hover:bg-red-100"><Trash2 size={18} /> {t.delete}</button>
                   </div>
                 </div>
               </div>
             )}
 
             {previewImage && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fade-in" onClick={() => setPreviewImage(null)}>
+              <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 animate-fade-in" onClick={() => setPreviewImage(null)}>
                 <button className="absolute top-6 right-6 p-3 bg-white/10 rounded-full text-white hover:bg-white/25 transition-colors backdrop-blur-lg"><X size={24} /></button>
-                <img src={previewImage} onClick={e => e.stopPropagation()} className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl animate-slide-up" alt="Preview" />
+                <img src={previewImage} onClick={e => e.stopPropagation()} className="max-w-full max-h-[85vh] object-contain rounded-3xl shadow-2xl animate-slide-up border border-white/10" alt="Preview" />
               </div>
             )}
             
             {toastMsg && (
-              <div className="fixed bottom-28 lg:bottom-12 left-1/2 transform -translate-x-1/2 z-[110] bg-theme text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-2 animate-slide-up"><Check size={18} /><span className="font-bold text-sm tracking-wide">{toastMsg}</span></div>
+              <div className="fixed bottom-32 md:bottom-12 left-1/2 transform -translate-x-1/2 z-[110] bg-theme text-white px-6 py-3.5 rounded-full shadow-2xl flex items-center gap-2.5 animate-slide-up border border-white/20 backdrop-blur-md"><Check size={18} /><span className="font-bold text-sm tracking-wide">{toastMsg}</span></div>
             )}
           </div>
         </div>
