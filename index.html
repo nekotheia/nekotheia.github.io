@@ -228,8 +228,8 @@
         smartInputTitle: 'Pencatatan Cerdas', smartInputPlaceholder: 'Ketik (contoh: makan 25k, atau dapat 1 jt)', smartInputNav: 'Ketik',
         edit: 'Ubah', newsTitle: 'Berita Ekonomi & Keuangan Jepang',
         danaTalang: 'Simulasi Dana Talang LPK', totalLoan: 'Total Pinjaman', paidAmount: 'Sudah Dibayar', remainingLoan: 'Sisa Hutang', setupLoan: 'Atur Dana Talang', saveLoan: 'Simpan',
-        editWidget: 'Pengaturan Widget Beranda', widgetSubtitle: 'Pengeluaran Hari Ini', themeSettings: 'Kustomisasi Tema (Bebas)', themeDesc: 'Ubah semua warna sesuai keinginan Anda.',
-        dailyBudget: 'Target Pengeluaran Harian (Limit)', safeMode: 'Gambar Mode Aman', dangerMode: 'Gambar Mode Was-Was', statusSafe: 'AMAN', statusDanger: 'WAS-WAS'
+        editWidget: 'Pengaturan Widget Beranda', widgetSubtitle: 'Pengeluaran Hari Ini', themeSettings: 'Kustomisasi Tema & Warna', themeDesc: 'Ubah semua warna sesuai keinginan Anda.',
+        dailyBudget: 'Target Pengeluaran Harian (Limit)', safeMode: 'Gambar Background Default', dangerMode: 'Gambar Background (Batas Budget)', statusSafe: 'AMAN'
       },
       jp: {
         appTitle: 'mawuang', totalBalance: '総残高', income: '収入', expense: '支出',
@@ -253,8 +253,8 @@
         smartInputTitle: 'スマート入力', smartInputPlaceholder: '入力例: 昼ごはん 500円、または 1000円 もらった', smartInputNav: '入力',
         edit: '編集', newsTitle: '日本経済・金融ニュース',
         danaTalang: '立替金シミュレーション', totalLoan: '借入総額', paidAmount: '支払済', remainingLoan: '残高', setupLoan: '設定', saveLoan: '保存',
-        editWidget: 'ホームウィジェット設定', widgetSubtitle: '今日の支出', themeSettings: 'テーマをカスタマイズ', themeDesc: 'すべての色を自由に変更できます。',
-        dailyBudget: '1日の支出目標 (上限)', safeMode: '安全モード画像', dangerMode: '警告モード画像', statusSafe: '安全', statusDanger: '警告'
+        editWidget: 'ホームウィジェット設定', widgetSubtitle: '今日の支出', themeSettings: 'テーマと色をカスタマイズ', themeDesc: 'すべての色を自由に変更できます。',
+        dailyBudget: '1日の支出目標 (上限)', safeMode: 'デフォルト背景画像', dangerMode: '警告背景画像 (上限時)', statusSafe: '安全'
       }
     };
 
@@ -317,15 +317,14 @@
       const [displayCurrency, setDisplayCurrency] = useState('IDR');
       const [activeTab, setActiveTab] = useState('home'); 
       
-      // TEMA KUSTOM TANPA BATAS
       const [customTheme, setCustomTheme] = useState(DEFAULT_THEME);
+      const [themeExpanded, setThemeExpanded] = useState(false); // Accordion state
       
       const [transactions, setTransactions] = useState([]);
       const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
       const [wallets, setWallets] = useState(DEFAULT_WALLETS);
       const [danaTalang, setDanaTalang] = useState({ total: 0, paid: 0, currency: 'IDR' });
       
-      // WIDGET CONFIG DENGAN LIMIT CURRENCY FIX
       const [widgetConfig, setWidgetConfig] = useState({ safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR' }); 
       
       const [exchangeRate, setExchangeRate] = useState(113.69); 
@@ -1170,6 +1169,66 @@
           setAppState('onboarding'); setOnboardingStep(1); setSyncStatus('idle');
       };
 
+      const GlobalStyles = () => (
+        <style>{`
+          :root {
+            --c-primary: ${customTheme.primary};
+            --c-primary-light: color-mix(in srgb, ${customTheme.primary} 15%, transparent);
+            --c-bg: ${customTheme.bg};
+            --c-card: ${customTheme.cardBg};
+            --c-text: ${customTheme.text};
+            --c-text-muted: color-mix(in srgb, ${customTheme.text} 50%, transparent);
+            --c-input: color-mix(in srgb, ${customTheme.text} 3%, ${customTheme.cardBg});
+            --c-border: color-mix(in srgb, ${customTheme.text} 5%, transparent);
+            --c-income: ${customTheme.income};
+            --c-income-light: color-mix(in srgb, ${customTheme.income} 15%, transparent);
+            --c-expense: ${customTheme.expense};
+            --c-expense-light: color-mix(in srgb, ${customTheme.expense} 15%, transparent);
+          }
+          body { background-color: var(--c-bg); color: var(--c-text); transition: background-color 0.5s, color 0.5s; }
+          .app-bg { background-color: var(--c-bg) !important; }
+          .card-bg { background-color: var(--c-card) !important; }
+          .text-main { color: var(--c-text) !important; }
+          .text-muted { color: var(--c-text-muted) !important; }
+          .bg-theme { background-color: var(--c-primary) !important; }
+          .text-theme { color: var(--c-primary) !important; }
+          .border-theme { border-color: var(--c-primary) !important; }
+          .ring-theme:focus { --tw-ring-color: var(--c-primary) !important; }
+          .bg-theme-light { background-color: var(--c-primary-light) !important; color: var(--c-primary) !important; }
+          .input-bg { background-color: var(--c-input) !important; }
+          .border-soft { border-color: var(--c-border) !important; border-width: 1px !important; border-style: solid !important; }
+          
+          .text-income { color: var(--c-income) !important; }
+          .bg-income { background-color: var(--c-income) !important; color: white !important; }
+          .bg-income-light { background-color: var(--c-income-light) !important; color: var(--c-income) !important; }
+          
+          .text-expense { color: var(--c-expense) !important; }
+          .bg-expense { background-color: var(--c-expense) !important; color: white !important; }
+          .bg-expense-light { background-color: var(--c-expense-light) !important; color: var(--c-expense) !important; }
+
+          ::selection { background-color: var(--c-primary); color: white; }
+          ::placeholder { color: var(--c-text-muted) !important; opacity: 1; }
+
+          input[type="color"] {
+              -webkit-appearance: none;
+              border: none;
+              width: 32px;
+              height: 32px;
+              border-radius: 50%;
+              padding: 0;
+              overflow: hidden;
+              background-color: transparent;
+              cursor: pointer;
+          }
+          input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+          input[type="color"]::-webkit-color-swatch {
+              border: none;
+              border-radius: 50%;
+              box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+          }
+        `}</style>
+      );
+
       const handleSetupPinPress = (num) => {
           const newPin = setupPinInput + num;
           setSetupPinInput(newPin);
@@ -1200,69 +1259,6 @@
         }
       };
 
-      // CSS Variabel Dinamis untuk Kustomisasi Warna
-      const GlobalStyles = () => (
-        <style>{`
-          :root {
-            --c-primary: ${customTheme.primary};
-            --c-primary-light: color-mix(in srgb, ${customTheme.primary} 15%, transparent);
-            --c-bg: ${customTheme.bg};
-            --c-card: ${customTheme.cardBg};
-            --c-text: ${customTheme.text};
-            --c-text-muted: color-mix(in srgb, ${customTheme.text} 50%, transparent);
-            --c-input: color-mix(in srgb, ${customTheme.text} 5%, ${customTheme.cardBg});
-            --c-border: color-mix(in srgb, ${customTheme.text} 10%, transparent);
-            --c-income: ${customTheme.income};
-            --c-income-light: color-mix(in srgb, ${customTheme.income} 15%, transparent);
-            --c-expense: ${customTheme.expense};
-            --c-expense-light: color-mix(in srgb, ${customTheme.expense} 15%, transparent);
-          }
-          body { background-color: var(--c-bg); color: var(--c-text); transition: background-color 0.5s, color 0.5s; }
-          .app-bg { background-color: var(--c-bg) !important; }
-          .card-bg { background-color: var(--c-card) !important; }
-          .text-main { color: var(--c-text) !important; }
-          .text-muted { color: var(--c-text-muted) !important; }
-          .bg-theme { background-color: var(--c-primary) !important; }
-          .text-theme { color: var(--c-primary) !important; }
-          .border-theme { border-color: var(--c-primary) !important; }
-          .ring-theme:focus { --tw-ring-color: var(--c-primary) !important; }
-          .bg-theme-light { background-color: var(--c-primary-light) !important; color: var(--c-primary) !important; }
-          .hover-bg-theme:hover { filter: brightness(0.9); }
-          .input-bg { background-color: var(--c-input) !important; }
-          .border-soft { border-color: var(--c-border) !important; border-width: 1px !important; border-style: solid !important; }
-          
-          .text-income { color: var(--c-income) !important; }
-          .bg-income { background-color: var(--c-income) !important; color: white !important; }
-          .bg-income-light { background-color: var(--c-income-light) !important; color: var(--c-income) !important; }
-          
-          .text-expense { color: var(--c-expense) !important; }
-          .bg-expense { background-color: var(--c-expense) !important; color: white !important; }
-          .bg-expense-light { background-color: var(--c-expense-light) !important; color: var(--c-expense) !important; }
-
-          ::selection { background-color: var(--c-primary); color: white; }
-          ::placeholder { color: var(--c-text-muted) !important; opacity: 1; }
-
-          /* Custom input color picker circle */
-          input[type="color"] {
-              -webkit-appearance: none;
-              border: none;
-              width: 32px;
-              height: 32px;
-              border-radius: 50%;
-              padding: 0;
-              overflow: hidden;
-              background-color: transparent;
-              cursor: pointer;
-          }
-          input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-          input[type="color"]::-webkit-color-swatch {
-              border: none;
-              border-radius: 50%;
-              box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
-          }
-        `}</style>
-      );
-
       if (appState === 'loading') {
           return <div className="min-h-screen app-bg flex items-center justify-center"><GlobalStyles/><div className="w-10 h-10 border-4 border-theme border-t-transparent rounded-full animate-spin"></div></div>;
       }
@@ -1290,7 +1286,7 @@
                                   <div className="mb-10 md:mb-0 w-full mt-auto md:mt-0">
                                       <h2 className="text-3xl font-bold text-main mb-3">Selamat Datang!</h2>
                                       <p className="text-muted text-sm mb-10 leading-relaxed px-4">Kelola pemasukan dan pengeluaran harian Anda dengan mudah, rapi, dan cerdas.</p>
-                                      <button onClick={() => setOnboardingStep(2)} className="w-full bg-theme hover-bg-theme text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all text-lg tracking-wide">Mulai Perjalanan</button>
+                                      <button onClick={() => setOnboardingStep(2)} className="w-full bg-theme text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all text-lg tracking-wide hover:opacity-90">Mulai Perjalanan</button>
                                   </div>
                               </div>
                           )}
@@ -1303,13 +1299,13 @@
                                   
                                   {syncStatus === 'idle' && (
                                       <div className="w-full flex flex-col items-center space-y-4 animate-fade-in">
-                                          <button onClick={handleGoogleLogin} className="w-full max-w-[280px] card-bg text-main font-bold py-3.5 px-4 rounded-full shadow-md flex items-center justify-center gap-3 border-soft hover:brightness-95 active:scale-95 transition-all">
+                                          <button onClick={handleGoogleLogin} className="w-full max-w-[280px] card-bg text-main font-bold py-3.5 px-4 rounded-full shadow-md flex items-center justify-center gap-3 border-soft hover:opacity-90 active:scale-95 transition-all">
                                               <GoogleLogo /> Lanjutkan dengan Google
                                           </button>
                                           <button onClick={() => {
                                               setUsername(''); setPhotoURL(''); setTransactions([]); setCategories(DEFAULT_CATEGORIES); setWallets(DEFAULT_WALLETS); setPin(''); setDanaTalang({ total: 0, paid: 0, currency: 'IDR' }); setWidgetConfig({ safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR' }); setCustomTheme(DEFAULT_THEME);
                                               setOnboardingStep(3);
-                                          }} className="text-muted text-xs font-semibold hover:brightness-75 transition-all pt-2">
+                                          }} className="text-muted text-xs font-semibold hover:opacity-80 transition-all pt-2">
                                               Gunakan Mode Offline (Lewati Login)
                                           </button>
                                       </div>
@@ -1343,7 +1339,7 @@
                                   
                                   <div className="w-full max-w-[280px] mx-auto">
                                       <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="Nama Panggilan" className="w-full box-border card-bg border-none rounded-2xl p-4 text-main outline-none shadow-sm text-center font-bold mb-8 transition-shadow ring-theme" />
-                                      <button onClick={() => setOnboardingStep(4)} className="w-full bg-theme hover-bg-theme text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform tracking-wide">Lanjutkan</button>
+                                      <button onClick={() => setOnboardingStep(4)} className="w-full bg-theme text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform tracking-wide hover:opacity-90">Lanjutkan</button>
                                   </div>
                               </div>
                           )}
@@ -1365,17 +1361,17 @@
                                   {pinSetupError && <p className="text-red-400 text-xs font-semibold mb-6 animate-pulse">{pinSetupError}</p>}
                                   <div className="grid grid-cols-3 gap-4 md:gap-6 max-w-[280px] w-full mx-auto">
                                     {[1,2,3,4,5,6,7,8,9].map(num => (
-                                      <button key={num} onClick={() => handleSetupPinPress(num.toString())} className="w-14 h-14 md:w-16 md:h-16 rounded-full text-xl font-bold input-bg text-main hover:brightness-95 active:scale-95 transition-all mx-auto">{num}</button>
+                                      <button key={num} onClick={() => handleSetupPinPress(num.toString())} className="w-14 h-14 md:w-16 md:h-16 rounded-full text-xl font-bold input-bg text-main hover:opacity-80 active:scale-95 transition-all mx-auto">{num}</button>
                                     ))}
                                     <div></div>
-                                    <button onClick={() => handleSetupPinPress('0')} className="w-14 h-14 md:w-16 md:h-16 rounded-full text-xl font-bold input-bg text-main hover:brightness-95 active:scale-95 transition-all mx-auto">0</button>
-                                    <button onClick={() => setSetupPinInput(setupPinInput.slice(0,-1))} className="w-14 h-14 md:w-16 md:h-16 rounded-full text-lg font-bold input-bg text-muted hover:brightness-95 active:scale-95 transition-all mx-auto"><X size={20}/></button>
+                                    <button onClick={() => handleSetupPinPress('0')} className="w-14 h-14 md:w-16 md:h-16 rounded-full text-xl font-bold input-bg text-main hover:opacity-80 active:scale-95 transition-all mx-auto">0</button>
+                                    <button onClick={() => setSetupPinInput(setupPinInput.slice(0,-1))} className="w-14 h-14 md:w-16 md:h-16 rounded-full text-lg font-bold input-bg text-muted hover:opacity-80 active:scale-95 transition-all mx-auto"><X size={20}/></button>
                                   </div>
                                   <button onClick={async () => {
                                       setPin(''); await idb.set('mawuang_pin', ''); setAppState('unlocked');
                                       const initialPayload = { transactions: [], categories: DEFAULT_CATEGORIES, wallets: DEFAULT_WALLETS, username, photoURL, lang, email: connectedEmail, pin: '', danaTalang: {total:0, paid:0, currency:'IDR'}, widgetConfig: {safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR'}, customTheme: DEFAULT_THEME };
                                       pushToCloud(initialPayload);
-                                  }} className="mt-8 text-muted text-xs font-semibold hover:brightness-75 transition-colors">Lewati PIN</button>
+                                  }} className="mt-8 text-muted text-xs font-semibold hover:opacity-80 transition-colors">Lewati PIN</button>
                               </div>
                           )}
                       </div>
@@ -1400,7 +1396,7 @@
                 <button key={num} onClick={() => handlePinPress(num.toString())} className="w-16 h-16 rounded-full text-2xl font-semibold bg-white/10 active:bg-white/30 hover:bg-white/20 active:scale-95 transition-all mx-auto">{num}</button>
               ))}
               {biometricId ? (
-                 <button onClick={handleBiometricUnlock} className="w-16 h-16 rounded-full bg-expense hover:brightness-90 shadow-lg animate-pulse active:scale-95 transition-all flex items-center justify-center mx-auto"><Unlock size={28} strokeWidth="2.5" color="white" /></button>
+                 <button onClick={handleBiometricUnlock} className="w-16 h-16 rounded-full bg-expense shadow-lg animate-pulse active:scale-95 transition-all flex items-center justify-center mx-auto hover:opacity-90"><Unlock size={28} strokeWidth="2.5" color="white" /></button>
               ) : <div></div>}
               <button onClick={() => handlePinPress('0')} className="w-16 h-16 rounded-full text-2xl font-semibold bg-white/10 active:bg-white/30 hover:bg-white/20 active:scale-95 transition-all mx-auto">0</button>
               <button onClick={() => setPinInput(pinInput.slice(0,-1))} className="w-16 h-16 rounded-full text-xl font-semibold bg-white/10 active:bg-white/30 hover:bg-white/20 active:scale-95 transition-all mx-auto"><X size={24}/></button>
@@ -1413,7 +1409,7 @@
       const NavButton = ({ tab, icon: IconComp }) => {
         const isActive = activeTab === tab;
         return (
-          <button onClick={() => setActiveTab(tab)} className={`flex items-center justify-center p-3 lg:w-full lg:rounded-2xl transition-all ${isActive ? 'text-theme bg-theme-light rounded-2xl' : 'text-muted hover:brightness-75 lg:hover:input-bg'}`}>
+          <button onClick={() => setActiveTab(tab)} className={`flex items-center justify-center p-3 lg:w-full lg:rounded-2xl transition-all ${isActive ? 'text-theme bg-theme-light rounded-2xl' : 'text-muted hover:opacity-80 lg:hover:input-bg'}`}>
             <IconComp size={24} strokeWidth={isActive ? 2.5 : 2} />
           </button>
         );
@@ -1430,24 +1426,26 @@
             currentLimitInDisplay = getConvertedAmount(widgetConfig.limit, widgetConfig.limitCurrency, displayCurrency);
         }
         const isDangerMode = currentLimitInDisplay > 0 && todayExpense >= currentLimitInDisplay;
+        const isWarningMode = currentLimitInDisplay > 0 && todayExpense >= (currentLimitInDisplay * 0.8) && todayExpense < currentLimitInDisplay;
+        
         const currentWidgetBg = isDangerMode ? widgetConfig.dangerBg : widgetConfig.safeBg;
-        const widgetOverlay = currentWidgetBg ? (isDangerMode ? 'bg-red-900/60' : 'bg-black/40') : '';
+        const widgetOverlay = currentWidgetBg ? (isDangerMode ? 'bg-red-900/70' : (isWarningMode ? 'bg-orange-900/60' : 'bg-black/40')) : '';
 
         return (
           <div className="p-6 md:p-10 pb-24 md:pb-10 relative z-10 animate-fade-in md:grid md:grid-cols-12 md:gap-8 lg:gap-12 md:items-start">
             <div className="col-span-12 flex justify-between items-center mb-6 md:mb-8">
               <div className="flex items-center gap-3 overflow-hidden">
-                 {photoURL ? ( <img src={photoURL} className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover shadow-sm border-2 border-soft flex-shrink-0" /> ) : ( <div className="w-10 h-10 md:w-12 md:h-12 rounded-full card-bg text-theme flex items-center justify-center shadow-sm flex-shrink-0"><User size={20} /></div> )}
+                 {photoURL ? ( <img src={photoURL} className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover shadow-sm border-2 border-soft flex-shrink-0" /> ) : ( <div className="w-10 h-10 md:w-12 md:h-12 rounded-full card-bg text-theme flex items-center justify-center shadow-sm flex-shrink-0 border-soft"><User size={20} /></div> )}
                  <h1 className="text-xl md:text-2xl font-bold text-main tracking-tight truncate max-w-[160px] md:max-w-full">Hai, {username || 'Pengguna'}!</h1>
               </div>
-              <div className="flex items-center input-bg p-1 rounded-full cursor-pointer shadow-inner flex-shrink-0 border border-soft" onClick={() => setDisplayCurrency(displayCurrency === 'IDR' ? 'JPY' : 'IDR')}>
+              <div className="flex items-center input-bg p-1 rounded-full cursor-pointer shadow-inner flex-shrink-0 border-soft" onClick={() => setDisplayCurrency(displayCurrency === 'IDR' ? 'JPY' : 'IDR')}>
                  <div className={`px-3 py-1.5 rounded-full text-[10px] font-bold transition-all duration-300 ${displayCurrency === 'IDR' ? 'card-bg text-theme shadow-sm' : 'text-muted'}`}>IDR</div>
                  <div className={`px-3 py-1.5 rounded-full text-[10px] font-bold transition-all duration-300 ${displayCurrency === 'JPY' ? 'card-bg text-theme shadow-sm' : 'text-muted'}`}>JPY</div>
               </div>
             </div>
 
-            {/* WIDGET KUSTOM BERANDA */}
-            <div className={`col-span-12 mb-6 relative rounded-[32px] overflow-hidden shadow-lg min-h-[160px] flex flex-col justify-between p-6 transition-all duration-500 group ${!currentWidgetBg && (isDangerMode ? 'bg-red-500' : 'bg-theme')}`} 
+            {/* WIDGET KUSTOM BERANDA DENGAN MODE WAS-WAS */}
+            <div className={`col-span-12 mb-6 relative rounded-[32px] overflow-hidden shadow-sm min-h-[160px] flex flex-col justify-between p-6 transition-all duration-500 group ${!currentWidgetBg && (isDangerMode ? 'bg-red-500' : (isWarningMode ? 'bg-orange-400' : 'bg-theme'))}`} 
                  style={currentWidgetBg ? { backgroundImage: `url(${currentWidgetBg})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
                {currentWidgetBg && <div className={`absolute inset-0 backdrop-blur-[2px] transition-all group-hover:backdrop-blur-sm ${widgetOverlay}`}></div>}
                <div className="relative z-10 flex justify-between items-start">
@@ -1455,8 +1453,8 @@
                      <div className="flex items-center gap-2 mb-1">
                         <p className="text-white/80 text-[10px] md:text-xs font-bold uppercase tracking-widest">{t.widgetSubtitle}</p>
                         {currentLimitInDisplay > 0 && (
-                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase shadow-sm ${isDangerMode ? 'bg-red-500 text-white animate-pulse' : 'bg-green-400 text-white'}`}>
-                                {isDangerMode ? t.statusDanger : t.statusSafe}
+                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase shadow-sm ${isDangerMode ? 'bg-red-500 text-white animate-pulse' : (isWarningMode ? 'bg-orange-500 text-white' : 'bg-green-400 text-white')}`}>
+                                {isDangerMode ? (lang==='id'?'HABIS':'枯渇') : (isWarningMode ? (lang==='id'?'MENIPIS':'減少') : t.statusSafe)}
                             </span>
                         )}
                      </div>
@@ -1478,11 +1476,11 @@
 
             <div className="col-span-12 lg:col-span-7 space-y-6">
               <div className="grid grid-cols-2 gap-3">
-                <button onClick={() => handleOpenTxModal('income')} className="card-bg hover:brightness-95 text-income p-4 md:py-6 rounded-3xl shadow-sm border-soft flex flex-col items-center justify-center transition-transform active:scale-95">
+                <button onClick={() => handleOpenTxModal('income')} className="card-bg hover:opacity-80 text-income p-4 md:py-6 rounded-3xl shadow-sm border-soft flex flex-col items-center justify-center transition-transform active:scale-95">
                   <div className="bg-income-light p-3 md:p-4 rounded-full mb-3"><Plus size={20} /></div>
                   <span className="text-xs font-semibold text-main">{t.addIncome}</span>
                 </button>
-                <button onClick={() => handleOpenTxModal('expense')} className="card-bg hover:brightness-95 text-expense p-4 md:py-6 rounded-3xl shadow-sm border-soft flex flex-col items-center justify-center transition-transform active:scale-95">
+                <button onClick={() => handleOpenTxModal('expense')} className="card-bg hover:opacity-80 text-expense p-4 md:py-6 rounded-3xl shadow-sm border-soft flex flex-col items-center justify-center transition-transform active:scale-95">
                   <div className="bg-expense-light p-3 md:p-4 rounded-full mb-3"><Minus size={20} /></div>
                   <span className="text-xs font-semibold text-main">{t.addExpense}</span>
                 </button>
@@ -1490,7 +1488,7 @@
 
               {/* FINANCIAL NEWS ACCORDION */}
               <div className="card-bg rounded-[32px] shadow-sm border-soft overflow-hidden">
-                <button onClick={() => setNewsExpanded(!newsExpanded)} className="w-full p-5 flex items-center justify-between input-bg hover:brightness-95 transition-colors">
+                <button onClick={() => setNewsExpanded(!newsExpanded)} className="w-full p-5 flex items-center justify-between input-bg hover:opacity-80 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="p-2.5 bg-theme-light text-theme rounded-2xl"><Newspaper size={20} /></div>
                     <span className="text-sm font-bold text-main">{t.newsTitle}</span>
@@ -1505,7 +1503,7 @@
                       <p className="text-xs text-muted text-center py-4">Tidak ada berita saat ini.</p>
                     ) : (
                       newsList.map((item, idx) => (
-                        <a key={idx} href={item.link} target="_blank" rel="noopener noreferrer" className="block p-3.5 rounded-2xl input-bg hover:bg-theme-light transition-colors group border-soft">
+                        <a key={idx} href={item.link} target="_blank" rel="noopener noreferrer" className="block p-3.5 rounded-2xl input-bg hover:opacity-80 transition-opacity group border-soft">
                           <div className="flex justify-between items-start gap-2 mb-1">
                             <h4 className="text-xs font-bold text-main group-hover:text-theme transition-colors line-clamp-2">{item.title}</h4>
                             <ExternalLink size={14} className="text-muted group-hover:text-theme flex-shrink-0 mt-0.5" />
@@ -1535,7 +1533,7 @@
                     const cat = categories.find(c => c.id === tx.categoryId);
                     const isIncome = tx.type === 'income';
                     return (
-                      <div key={tx.id} onClick={() => setSelectedTx(tx)} className="card-bg p-4 rounded-3xl shadow-sm border-soft flex items-center justify-between cursor-pointer hover:brightness-95 transition-colors active:scale-95">
+                      <div key={tx.id} onClick={() => setSelectedTx(tx)} className="card-bg p-4 rounded-3xl shadow-sm border-soft flex items-center justify-between cursor-pointer hover:opacity-80 transition-opacity active:scale-95">
                         <div className="flex items-center gap-4 overflow-hidden">
                           <div className={`p-3 rounded-2xl flex-shrink-0 ${isIncome ? 'bg-income-light text-income' : 'bg-expense-light text-expense'}`}>
                             {isIncome ? <Plus size={18} /> : <Minus size={18} />}
@@ -1585,8 +1583,12 @@
         });
         const rIncome = filteredTx.filter(t => t.type === 'income').reduce((acc, curr) => acc + getConvertedAmount(curr.amount, curr.currency || 'IDR', displayCurrency), 0);
         const rExpense = filteredTx.filter(t => t.type === 'expense').reduce((acc, curr) => acc + getConvertedAmount(curr.amount, curr.currency || 'IDR', displayCurrency), 0);
-        const balance = totalIncome - totalExpense; // dari parent scope (overall balance)
+        const balance = totalIncome - totalExpense; 
         
+        const balanceRatio = totalIncome > 0 ? (balance / totalIncome) : 0;
+        const isBalanceDepleted = balance <= 0 && transactions.length > 0;
+        const isBalanceLow = balance > 0 && balanceRatio <= 0.15;
+
         const groupedChart = {};
         filteredTx.filter(t => t.type === 'expense').forEach(tx => { groupedChart[tx.categoryId] = (groupedChart[tx.categoryId] || 0) + getConvertedAmount(tx.amount, tx.currency || 'IDR', displayCurrency); });
         const chartTotal = Object.values(groupedChart).reduce((a,b)=>a+b, 0);
@@ -1608,16 +1610,23 @@
           <div className="p-6 md:p-10 pb-24 md:pb-10 animate-fade-in relative z-10 md:grid md:grid-cols-12 md:gap-8 lg:gap-12 md:items-start">
             <div className="col-span-12 mb-2 md:mb-4 flex justify-between items-center">
               <h1 className="text-2xl font-bold text-main tracking-tight">{t.report}</h1>
-              <button onClick={fetchExchangeRate} disabled={isLoadingRate} className="text-muted text-[10px] font-medium input-bg hover:brightness-95 active:scale-95 transition-all px-2.5 py-1.5 rounded-full flex items-center gap-1.5 whitespace-nowrap cursor-pointer border-soft">
+              <button onClick={fetchExchangeRate} disabled={isLoadingRate} className="text-muted text-[10px] font-medium input-bg hover:opacity-80 active:scale-95 transition-all px-2.5 py-1.5 rounded-full flex items-center gap-1.5 whitespace-nowrap cursor-pointer border-soft">
                  <RefreshCw size={12} className={isLoadingRate ? 'animate-spin' : ''} />
                  <span>{isLoadingRate ? (lang === 'id' ? 'Memuat...' : '読み込み中...') : `1 JPY = Rp ${exchangeRate.toFixed(2)}`}</span>
               </button>
             </div>
 
             <div className="col-span-12 mb-6">
-               <div className="bg-theme text-white rounded-[32px] p-7 shadow-lg relative overflow-hidden transition-colors duration-500">
+               <div className="bg-theme text-white rounded-[32px] p-7 shadow-sm relative overflow-hidden transition-colors duration-500">
                 <div className="relative z-10">
-                  <p className="text-white/80 text-sm font-medium mt-1">{t.totalBalance}</p>
+                  <div className="flex justify-between items-start">
+                      <p className="text-white/80 text-sm font-medium mt-1">{t.totalBalance}</p>
+                      {isBalanceDepleted ? (
+                          <span className="bg-red-500/80 text-white text-[10px] font-bold px-2.5 py-1 rounded-full animate-pulse border border-red-400">⚠️ {lang==='id'?'Saldo Habis':'残高枯渇'}</span>
+                      ) : isBalanceLow ? (
+                          <span className="bg-orange-500/80 text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-orange-400">⚠️ {lang==='id'?'Saldo Menipis':'残高減少'}</span>
+                      ) : null}
+                  </div>
                   <h2 className="text-4xl md:text-5xl font-bold mb-6 md:mb-10 tracking-tight break-words">{formatCurrency(balance, displayCurrency)}</h2>
                   <div className="flex bg-black/10 p-5 rounded-[24px] items-center text-left backdrop-blur-sm border border-white/10">
                     <div className="flex-1 overflow-hidden pr-2">
@@ -1632,20 +1641,6 @@
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="col-span-12 mb-6 flex gap-3 overflow-x-auto hide-scrollbar pb-2">
-                {wallets.map(w => {
-                   const wBal = transactions.filter(tx => tx.walletId === w.id).reduce((acc, curr) => acc + (curr.type === 'income' ? 1 : -1) * getConvertedAmount(curr.amount, curr.currency || 'IDR', displayCurrency), 0);
-                   return (
-                     <div key={w.id} className="card-bg p-4 rounded-3xl min-w-[140px] shadow-sm border-soft flex-shrink-0 flex flex-col justify-between">
-                        <div className="flex items-center gap-2 mb-3 text-muted">
-                          <WalletIcon size={14} /><p className="text-[11px] font-semibold truncate">{lang === 'id' ? w.name : w.nameJp}</p>
-                        </div>
-                        <p className="font-bold text-main text-[13px]">{formatCurrency(wBal, displayCurrency)}</p>
-                     </div>
-                   );
-                })}
             </div>
 
             <div className="col-span-12 mb-6 lg:col-span-12">
@@ -1675,6 +1670,20 @@
                     <p className="text-xs text-muted leading-relaxed">{lang === 'id' ? 'Catat dan pantau sisa hutang dana talang LPK Anda di sini.' : 'ここで立替金の残高を記録・追跡します。'}</p>
                  )}
               </div>
+            </div>
+
+            <div className="col-span-12 mb-6 flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+                {wallets.map(w => {
+                   const wBal = transactions.filter(tx => tx.walletId === w.id).reduce((acc, curr) => acc + (curr.type === 'income' ? 1 : -1) * getConvertedAmount(curr.amount, curr.currency || 'IDR', displayCurrency), 0);
+                   return (
+                     <div key={w.id} className="card-bg p-4 rounded-3xl min-w-[140px] shadow-sm border-soft flex-shrink-0 flex flex-col justify-between">
+                        <div className="flex items-center gap-2 mb-3 text-muted">
+                          <WalletIcon size={14} /><p className="text-[11px] font-semibold truncate">{lang === 'id' ? w.name : w.nameJp}</p>
+                        </div>
+                        <p className="font-bold text-main text-[13px]">{formatCurrency(wBal, displayCurrency)}</p>
+                     </div>
+                   );
+                })}
             </div>
 
             <div className="col-span-12 lg:col-span-6 space-y-6">
@@ -1741,7 +1750,7 @@
                     const cat = categories.find(c => c.id === tx.categoryId);
                     const isIncome = tx.type === 'income';
                     return (
-                      <div key={tx.id} onClick={() => setSelectedTx(tx)} className="card-bg p-4 rounded-3xl shadow-sm border-soft flex items-center justify-between cursor-pointer hover:brightness-95 transition-colors active:scale-95">
+                      <div key={tx.id} onClick={() => setSelectedTx(tx)} className="card-bg p-4 rounded-3xl shadow-sm border-soft flex items-center justify-between cursor-pointer hover:opacity-80 transition-opacity active:scale-95">
                         <div className="flex items-center gap-4 overflow-hidden">
                           <div className={`p-3 rounded-2xl flex-shrink-0 ${isIncome ? 'bg-income-light text-income' : 'bg-expense-light text-expense'}`}>
                             {isIncome ? <Plus size={18} /> : <Minus size={18} />}
@@ -1774,12 +1783,12 @@
             <div className="card-bg p-5 rounded-3xl shadow-sm border-soft">
               <h3 className="font-semibold text-main mb-4">{t.addCategory}</h3>
               <div className="flex flex-col gap-3 w-full">
-                <input type="text" placeholder={t.categoryName} value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className="w-full input-bg border-none rounded-2xl p-4 text-main outline-none ring-theme"/>
+                <input type="text" placeholder={t.categoryName} value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className="w-full input-bg border-none rounded-2xl p-4 text-main outline-none ring-theme border-soft"/>
                 <div className="flex gap-2 w-full">
-                  <select value={newCatType} onChange={(e) => setNewCatType(e.target.value)} className="flex-1 input-bg border-none rounded-2xl p-4 text-main outline-none appearance-none ring-theme">
+                  <select value={newCatType} onChange={(e) => setNewCatType(e.target.value)} className="flex-1 input-bg border-none rounded-2xl p-4 text-main outline-none appearance-none ring-theme border-soft">
                     <option value="expense">{t.expense}</option><option value="income">{t.income}</option>
                   </select>
-                  <button onClick={handleAddCategory} className="bg-theme hover-bg-theme text-white px-6 rounded-2xl font-semibold transition-colors"><Plus size={20} /></button>
+                  <button onClick={handleAddCategory} className="bg-theme text-white px-6 rounded-2xl font-semibold transition-colors hover:opacity-90"><Plus size={20} /></button>
                 </div>
               </div>
             </div>
@@ -1789,12 +1798,12 @@
                 <div key={c.id} className="card-bg p-4 rounded-3xl shadow-sm border-soft flex items-center justify-between">
                   {editingCategory?.id === c.id ? (
                     <div className="flex gap-2 w-full">
-                      <input type="text" value={editingCategory.name} onChange={(e) => setEditingCategory({...editingCategory, name: e.target.value, nameJp: e.target.value})} className="flex-1 w-full min-w-0 input-bg text-main rounded-xl px-3 py-2 text-sm outline-none ring-theme" />
-                      <select value={editingCategory.type} onChange={(e) => setEditingCategory({...editingCategory, type: e.target.value})} className="input-bg text-main rounded-xl px-2 text-sm outline-none ring-theme">
+                      <input type="text" value={editingCategory.name} onChange={(e) => setEditingCategory({...editingCategory, name: e.target.value, nameJp: e.target.value})} className="flex-1 w-full min-w-0 input-bg text-main rounded-xl px-3 py-2 text-sm outline-none ring-theme border-soft" />
+                      <select value={editingCategory.type} onChange={(e) => setEditingCategory({...editingCategory, type: e.target.value})} className="input-bg text-main rounded-xl px-2 text-sm outline-none ring-theme border-soft">
                         <option value="expense">Out</option><option value="income">In</option>
                       </select>
                       <button onClick={handleUpdateCategory} className="text-theme p-2 hover:bg-theme-light rounded-lg"><Check size={18}/></button>
-                      <button onClick={() => setEditingCategory(null)} className="text-muted p-2 hover:brightness-95 rounded-lg"><X size={18}/></button>
+                      <button onClick={() => setEditingCategory(null)} className="text-muted p-2 hover:opacity-80 rounded-lg"><X size={18}/></button>
                     </div>
                   ) : (
                     <>
@@ -1816,8 +1825,8 @@
             <div className="card-bg p-5 rounded-3xl shadow-sm border-soft">
               <h3 className="font-semibold text-main mb-4">{t.addWallet}</h3>
               <div className="flex gap-2 w-full">
-                <input type="text" placeholder={t.walletName} value={newWalletName} onChange={(e) => setNewWalletName(e.target.value)} className="flex-1 min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none ring-theme"/>
-                <button onClick={handleAddWallet} className="bg-theme hover-bg-theme text-white px-6 rounded-2xl font-semibold transition-colors flex-shrink-0"><Plus size={20} /></button>
+                <input type="text" placeholder={t.walletName} value={newWalletName} onChange={(e) => setNewWalletName(e.target.value)} className="flex-1 min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none ring-theme border-soft"/>
+                <button onClick={handleAddWallet} className="bg-theme text-white px-6 rounded-2xl font-semibold transition-colors flex-shrink-0 hover:opacity-90"><Plus size={20} /></button>
               </div>
             </div>
             <div className="space-y-3">
@@ -1826,9 +1835,9 @@
                 <div key={w.id} className="card-bg p-4 rounded-3xl shadow-sm border-soft flex items-center justify-between">
                   {editingWallet?.id === w.id ? (
                     <div className="flex gap-2 w-full">
-                      <input type="text" value={editingWallet.name} onChange={(e) => setEditingWallet({...editingWallet, name: e.target.value, nameJp: e.target.value})} className="flex-1 w-full min-w-0 input-bg text-main rounded-xl px-3 py-2 text-sm outline-none ring-theme" />
+                      <input type="text" value={editingWallet.name} onChange={(e) => setEditingWallet({...editingWallet, name: e.target.value, nameJp: e.target.value})} className="flex-1 w-full min-w-0 input-bg text-main rounded-xl px-3 py-2 text-sm outline-none ring-theme border-soft" />
                       <button onClick={handleUpdateWallet} className="text-theme p-2 hover:bg-theme-light rounded-lg"><Check size={18}/></button>
-                      <button onClick={() => setEditingWallet(null)} className="text-muted p-2 hover:brightness-95 rounded-lg"><X size={18}/></button>
+                      <button onClick={() => setEditingWallet(null)} className="text-muted p-2 hover:opacity-80 rounded-lg"><X size={18}/></button>
                     </div>
                   ) : (
                     <>
@@ -1860,48 +1869,53 @@
                      <p className="text-xs text-muted truncate">{connectedEmail}</p>
                  </div>
              </div>
-             <button onClick={() => { setProfileFormData({username, photoURL}); setIsProfileModalOpen(true); }} className="input-bg p-3 rounded-2xl text-theme hover:brightness-95 active:scale-95 transition-all flex-shrink-0"><Edit2 size={20} /></button>
+             <button onClick={() => { setProfileFormData({username, photoURL}); setIsProfileModalOpen(true); }} className="input-bg p-3 rounded-2xl text-theme hover:opacity-80 active:scale-95 transition-all flex-shrink-0 border-soft"><Edit2 size={20} /></button>
           </div>
           
-          {/* THEME PICKER (COLOR WHEEL POPUP) */}
-          <div className="card-bg p-5 rounded-3xl shadow-sm border-soft">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="input-bg p-2 rounded-xl text-muted"><ImageIcon size={20}/></div>
-              <h3 className="font-semibold text-main">{t.themeSettings}</h3>
-            </div>
-            <p className="text-[10px] md:text-xs text-muted mb-4 ml-11 md:ml-12">{t.themeDesc}</p>
-            <div className="space-y-3 ml-11 md:ml-12">
-               <div className="flex justify-between items-center input-bg p-3 rounded-2xl">
-                  <span className="text-xs font-semibold text-main">Warna Tombol / Aksen</span>
-                  <input type="color" value={customTheme.primary} onChange={(e) => { const newTheme = {...customTheme, primary: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
-               </div>
-               <div className="flex justify-between items-center input-bg p-3 rounded-2xl">
-                  <span className="text-xs font-semibold text-main">Warna Pemasukan</span>
-                  <input type="color" value={customTheme.income} onChange={(e) => { const newTheme = {...customTheme, income: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
-               </div>
-               <div className="flex justify-between items-center input-bg p-3 rounded-2xl">
-                  <span className="text-xs font-semibold text-main">Warna Pengeluaran</span>
-                  <input type="color" value={customTheme.expense} onChange={(e) => { const newTheme = {...customTheme, expense: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
-               </div>
-               <div className="flex justify-between items-center input-bg p-3 rounded-2xl">
-                  <span className="text-xs font-semibold text-main">Warna Latar Belakang</span>
-                  <input type="color" value={customTheme.bg} onChange={(e) => { const newTheme = {...customTheme, bg: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
-               </div>
-               <div className="flex justify-between items-center input-bg p-3 rounded-2xl">
-                  <span className="text-xs font-semibold text-main">Warna Kartu (Card)</span>
-                  <input type="color" value={customTheme.cardBg} onChange={(e) => { const newTheme = {...customTheme, cardBg: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
-               </div>
-               <div className="flex justify-between items-center input-bg p-3 rounded-2xl">
-                  <span className="text-xs font-semibold text-main">Warna Tulisan Utama</span>
-                  <input type="color" value={customTheme.text} onChange={(e) => { const newTheme = {...customTheme, text: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
-               </div>
-               <button onClick={() => { setCustomTheme(DEFAULT_THEME); pushToCloud({ customTheme: DEFAULT_THEME }); }} className="text-[10px] text-muted hover:text-red-400 font-semibold underline pt-2">Reset Tema ke Bawaan</button>
-            </div>
+          {/* THEME PICKER (ACCORDION) */}
+          <div className="card-bg rounded-[32px] shadow-sm border-soft overflow-hidden">
+            <button onClick={() => setThemeExpanded(!themeExpanded)} className="w-full p-5 flex items-center justify-between input-bg hover:opacity-80 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-theme-light text-theme rounded-2xl"><ImageIcon size={20}/></div>
+                <span className="text-sm font-bold text-main">{t.themeSettings}</span>
+              </div>
+              {themeExpanded ? <ChevronUp size={20} className="text-muted" /> : <ChevronDown size={20} className="text-muted" />}
+            </button>
+            {themeExpanded && (
+              <div className="p-5 pt-4 space-y-3 animate-fade-in border-t border-soft">
+                <p className="text-[10px] md:text-xs text-muted mb-4">{t.themeDesc}</p>
+                <div className="flex justify-between items-center input-bg p-3 rounded-2xl border-soft">
+                    <span className="text-xs font-semibold text-main">Warna Tombol / Aksen</span>
+                    <input type="color" value={customTheme.primary} onChange={(e) => { const newTheme = {...customTheme, primary: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
+                </div>
+                <div className="flex justify-between items-center input-bg p-3 rounded-2xl border-soft">
+                    <span className="text-xs font-semibold text-main">Warna Pemasukan</span>
+                    <input type="color" value={customTheme.income} onChange={(e) => { const newTheme = {...customTheme, income: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
+                </div>
+                <div className="flex justify-between items-center input-bg p-3 rounded-2xl border-soft">
+                    <span className="text-xs font-semibold text-main">Warna Pengeluaran</span>
+                    <input type="color" value={customTheme.expense} onChange={(e) => { const newTheme = {...customTheme, expense: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
+                </div>
+                <div className="flex justify-between items-center input-bg p-3 rounded-2xl border-soft">
+                    <span className="text-xs font-semibold text-main">Warna Latar Belakang</span>
+                    <input type="color" value={customTheme.bg} onChange={(e) => { const newTheme = {...customTheme, bg: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
+                </div>
+                <div className="flex justify-between items-center input-bg p-3 rounded-2xl border-soft">
+                    <span className="text-xs font-semibold text-main">Warna Kartu (Card)</span>
+                    <input type="color" value={customTheme.cardBg} onChange={(e) => { const newTheme = {...customTheme, cardBg: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
+                </div>
+                <div className="flex justify-between items-center input-bg p-3 rounded-2xl border-soft">
+                    <span className="text-xs font-semibold text-main">Warna Tulisan Utama</span>
+                    <input type="color" value={customTheme.text} onChange={(e) => { const newTheme = {...customTheme, text: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
+                </div>
+                <button onClick={() => { setCustomTheme(DEFAULT_THEME); pushToCloud({ customTheme: DEFAULT_THEME }); }} className="text-[10px] text-muted hover:text-red-400 font-semibold underline pt-2">Reset Tema ke Bawaan</button>
+              </div>
+            )}
           </div>
 
           <div className="card-bg p-5 rounded-3xl shadow-sm border-soft flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <div className="input-bg p-2 rounded-xl text-muted"><Globe size={20}/></div><h3 className="font-semibold text-main">{t.language}</h3>
+              <div className="input-bg p-2 rounded-xl text-muted border-soft"><Globe size={20}/></div><h3 className="font-semibold text-main">{t.language}</h3>
             </div>
             <div className="w-16 h-8 input-bg rounded-full p-1 cursor-pointer relative shadow-inner border border-soft" onClick={() => { const newLang = lang === 'id' ? 'jp' : 'id'; setLang(newLang); pushToCloud({ lang: newLang }); }}>
               <div className={`w-6 h-6 card-bg rounded-full shadow transform transition-transform duration-300 ease-out flex items-center justify-center ${lang === 'jp' ? 'translate-x-8' : 'translate-x-0'}`}>
@@ -1929,19 +1943,19 @@
           </div>
           <div className="card-bg p-5 rounded-3xl shadow-sm border-soft">
             <div className="flex items-center gap-3 mb-2">
-              <div className="input-bg p-2 rounded-xl text-muted"><Cloud size={20}/></div><h3 className="font-semibold text-main">{t.cloudBackup}</h3>
+              <div className="input-bg p-2 rounded-xl text-muted border-soft"><Cloud size={20}/></div><h3 className="font-semibold text-main">{t.cloudBackup}</h3>
             </div>
             <p className="text-[10px] md:text-xs text-muted mb-4 ml-11 md:ml-12">{t.backupDesc}</p>
             <div className="flex gap-2 ml-11 md:ml-12">
-              <button onClick={handleBackupJSON} className="flex-1 bg-theme hover-bg-theme text-white py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-transform"><UploadCloud size={14}/> {t.exportData}</button>
-              <label className="flex-1 input-bg text-main py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 transition-transform hover:brightness-95 border border-soft"><DownloadCloud size={14}/> {t.importData} <input type="file" accept=".json" className="hidden" onChange={handleRestoreJSON}/></label>
+              <button onClick={handleBackupJSON} className="flex-1 bg-theme text-white py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-transform hover:opacity-90"><UploadCloud size={14}/> {t.exportData}</button>
+              <label className="flex-1 input-bg text-main py-2.5 rounded-xl text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm active:scale-95 transition-transform hover:opacity-80 border border-soft"><DownloadCloud size={14}/> {t.importData} <input type="file" accept=".json" className="hidden" onChange={handleRestoreJSON}/></label>
             </div>
           </div>
           <div className="card-bg p-5 rounded-3xl shadow-sm border-soft">
             <div className="flex items-center gap-3 mb-4">
-              <div className="input-bg p-2 rounded-xl text-muted"><Download size={20}/></div><h3 className="font-semibold text-main">{t.exportExcel}</h3>
+              <div className="input-bg p-2 rounded-xl text-muted border-soft"><Download size={20}/></div><h3 className="font-semibold text-main">{t.exportExcel}</h3>
             </div>
-            <button onClick={() => { setExportFileName(`mawuang_report_${new Date().toISOString().slice(0, 10)}`); setIsExportModalOpen(true); }} className="w-full bg-[#4A4A4A] text-white p-4 rounded-2xl font-semibold hover:bg-black transition-colors flex justify-center items-center gap-2"><Download size={18} /> {t.exportExcel}</button>
+            <button onClick={() => { setExportFileName(`mawuang_report_${new Date().toISOString().slice(0, 10)}`); setIsExportModalOpen(true); }} className="w-full bg-[#4A4A4A] text-white p-4 rounded-2xl font-semibold hover:opacity-90 transition-colors flex justify-center items-center gap-2"><Download size={18} /> {t.exportExcel}</button>
           </div>
           <div className="card-bg p-5 rounded-3xl shadow-sm border-soft">
             <div className="flex items-center gap-3 mb-2">
@@ -1967,7 +1981,7 @@
               <div className="flex w-full md:flex-col justify-around md:justify-start gap-2 md:gap-4 lg:px-2">
                 <NavButton tab="home" icon={Home} />
                 <NavButton tab="report" icon={BarChart2} />
-                <button onClick={() => setIsSmartInputOpen(true)} className="flex items-center justify-center p-3 transition-all text-muted hover:brightness-75 lg:w-full lg:rounded-2xl lg:hover:input-bg active:scale-95"><MessageCircle size={24} strokeWidth={2} /></button>
+                <button onClick={() => setIsSmartInputOpen(true)} className="flex items-center justify-center p-3 transition-all text-muted hover:opacity-80 lg:w-full lg:rounded-2xl lg:hover:input-bg active:scale-95"><MessageCircle size={24} strokeWidth={2} /></button>
                 <NavButton tab="categories" icon={Tags} />
                 <NavButton tab="settings" icon={Settings} />
               </div>
@@ -1980,16 +1994,17 @@
               {activeTab === 'settings' && renderSettings()}
             </div>
 
+            {}
             {isSmartInputOpen && (
               <div className="fixed inset-0 z-[90] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm p-0 md:p-4 animate-fade-in" onClick={() => setIsSmartInputOpen(false)}>
-                 <div className="card-bg w-full max-w-md rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 shadow-2xl relative mx-auto animate-slide-up" onClick={e => e.stopPropagation()}>
-                    <button onClick={() => setIsSmartInputOpen(false)} className="absolute top-6 right-6 p-2 input-bg rounded-full text-muted hover:brightness-95 transition-colors"><X size={20}/></button>
+                 <div className="card-bg w-full max-w-md rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 shadow-2xl relative mx-auto animate-slide-up border-soft" onClick={e => e.stopPropagation()}>
+                    <button onClick={() => setIsSmartInputOpen(false)} className="absolute top-6 right-6 p-2 input-bg rounded-full text-muted hover:opacity-80 transition-colors border-soft"><X size={20}/></button>
                     <h2 className="text-xl font-bold mb-2 text-main tracking-tight">{t.smartInputTitle}</h2>
                     <p className="text-xs text-muted mb-8 font-medium">{t.smartInputPlaceholder}</p>
                     <div className="flex input-bg rounded-3xl p-2 items-center mb-6 transition-shadow border-soft shadow-inner ring-theme">
                         <button onClick={toggleListen} className={`p-3.5 rounded-2xl transition-colors ${isListening ? 'bg-red-100 text-red-500 animate-pulse' : 'card-bg text-muted hover:text-theme shadow-sm border border-soft'}`}><Mic size={22} /></button>
                         <input type="text" value={smartText} onChange={e => setSmartText(e.target.value)} placeholder={lang === 'id' ? "makan 25k, atau dapat 1 jt..." : "昼ごはん 500円..."} className="flex-1 bg-transparent border-none outline-none px-4 text-main font-medium" onKeyDown={e => e.key === 'Enter' && handleSmartSubmit()} autoFocus />
-                        <button onClick={handleSmartSubmit} className="p-3.5 bg-theme hover-bg-theme text-white rounded-2xl shadow-sm transition-colors active:scale-95"><Send size={22} /></button>
+                        <button onClick={handleSmartSubmit} className="p-3.5 bg-theme text-white rounded-2xl shadow-sm transition-colors active:scale-95 hover:opacity-90"><Send size={22} /></button>
                     </div>
                     {isListening && <p className="text-center text-xs text-red-400 animate-pulse font-semibold">Mendengarkan ucapan Anda...</p>}
                  </div>
@@ -1998,8 +2013,8 @@
 
             {isProfileModalOpen && (
               <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-0 md:p-4">
-                  <div className="card-bg w-full max-w-sm rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 animate-slide-up shadow-2xl relative mx-auto">
-                      <button onClick={() => setIsProfileModalOpen(false)} className="absolute top-6 right-6 p-2 input-bg rounded-full text-muted hover:brightness-95"><X size={20} /></button>
+                  <div className="card-bg w-full max-w-sm rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 animate-slide-up shadow-2xl relative mx-auto border-soft">
+                      <button onClick={() => setIsProfileModalOpen(false)} className="absolute top-6 right-6 p-2 input-bg rounded-full text-muted hover:opacity-80 border-soft"><X size={20} /></button>
                       <h2 className="text-xl font-bold mb-6 text-main text-center">{t.editProfile}</h2>
                       <div className="flex justify-center mb-8">
                           <div className="relative">
@@ -2011,7 +2026,7 @@
                           <label className="block text-xs font-semibold text-muted mb-2">Nama Panggilan</label>
                           <input type="text" value={profileFormData.username} onChange={e => setProfileFormData({...profileFormData, username: e.target.value})} className="w-full input-bg border-none rounded-2xl p-4 text-main outline-none font-bold text-center ring-theme border-soft" />
                       </div>
-                      <button onClick={() => { setUsername(profileFormData.username); setPhotoURL(profileFormData.photoURL); pushToCloud({ username: profileFormData.username, photoURL: profileFormData.photoURL }); setIsProfileModalOpen(false); }} className="w-full py-4 rounded-2xl font-bold text-white bg-theme hover-bg-theme shadow-lg transition-transform active:scale-95">{t.saveProfile}</button>
+                      <button onClick={() => { setUsername(profileFormData.username); setPhotoURL(profileFormData.photoURL); pushToCloud({ username: profileFormData.username, photoURL: profileFormData.photoURL }); setIsProfileModalOpen(false); }} className="w-full py-4 rounded-2xl font-bold text-white bg-theme shadow-lg transition-transform active:scale-95 hover:opacity-90">{t.saveProfile}</button>
                   </div>
               </div>
             )}
@@ -2019,7 +2034,7 @@
             {isDanaTalangModalOpen && (
               <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
                 <div className="card-bg w-full max-w-sm rounded-[32px] p-6 relative overflow-hidden animate-slide-up shadow-2xl mx-auto border-soft">
-                  <button onClick={() => setIsDanaTalangModalOpen(false)} className="absolute top-4 right-4 p-2 input-bg rounded-full text-muted hover:brightness-95"><X size={20} /></button>
+                  <button onClick={() => setIsDanaTalangModalOpen(false)} className="absolute top-4 right-4 p-2 input-bg rounded-full text-muted hover:opacity-80 border-soft"><X size={20} /></button>
                   <h3 className="font-bold text-lg mb-6 text-main text-center">{t.setupLoan}</h3>
                   <div className="space-y-4 mb-6">
                     <div>
@@ -2037,18 +2052,17 @@
                       <input type="number" value={danaTalang.paid || ''} onChange={(e) => setDanaTalang({...danaTalang, paid: parseFloat(e.target.value) || 0})} placeholder="0" className="w-full input-bg border-none rounded-2xl p-4 text-xl font-bold text-main outline-none transition-shadow ring-theme border-soft"/>
                     </div>
                   </div>
-                  <button onClick={() => { setIsDanaTalangModalOpen(false); pushToCloud({ danaTalang }); setToastMsg(lang === 'id' ? 'Tersimpan!' : '保存されました！'); setTimeout(() => setToastMsg(''), 2500); }} className="w-full bg-theme hover-bg-theme text-white p-4 rounded-2xl font-bold transition-all active:scale-95 shadow-lg flex items-center justify-center gap-2">
+                  <button onClick={() => { setIsDanaTalangModalOpen(false); pushToCloud({ danaTalang }); setToastMsg(lang === 'id' ? 'Tersimpan!' : '保存されました！'); setTimeout(() => setToastMsg(''), 2500); }} className="w-full bg-theme text-white p-4 rounded-2xl font-bold transition-all active:scale-95 shadow-lg flex items-center justify-center gap-2 hover:opacity-90">
                     <Check size={18} /> {t.saveLoan}
                   </button>
                 </div>
               </div>
             )}
 
-            {/* WIDGET EDIT MODAL DENGAN MODE WAS-WAS */}
             {isWidgetModalOpen && (
               <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
                 <div className="card-bg w-full max-w-sm rounded-[32px] p-6 relative overflow-hidden animate-slide-up shadow-2xl mx-auto text-center max-h-[90vh] overflow-y-auto hide-scrollbar border-soft">
-                  <button onClick={() => setIsWidgetModalOpen(false)} className="absolute top-4 right-4 p-2 input-bg rounded-full text-muted hover:brightness-95"><X size={20} /></button>
+                  <button onClick={() => setIsWidgetModalOpen(false)} className="absolute top-4 right-4 p-2 input-bg rounded-full text-muted hover:opacity-80 border-soft"><X size={20} /></button>
                   <h3 className="font-bold text-lg mb-2 text-main">{t.editWidget}</h3>
                   <p className="text-xs text-muted mb-6 px-2">{lang === 'id' ? 'Atur limit harian dan pilih gambar yang akan muncul saat budget aman vs budget menipis (Mode Was-Was).' : '1日の上限を設定し、安全時と警告時（Was-Wasモード）の画像を選択します。'}</p>
                   
@@ -2061,13 +2075,12 @@
                   </div>
 
                   <div className="mb-6 pt-4 border-t border-soft">
-                     <button onClick={handleInstallWidget} className="w-full input-bg border-soft text-main hover:brightness-95 p-3 rounded-2xl font-bold transition-all text-sm flex justify-center items-center gap-2">
+                     <button onClick={handleInstallWidget} className="w-full input-bg border-soft text-main hover:opacity-80 p-3 rounded-2xl font-bold transition-all text-sm flex justify-center items-center gap-2">
                         <Download size={16} /> Tambahkan Widget ke Layar
                      </button>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 mb-6">
-                      {/* AMAN MODE */}
                       <div>
                           <p className="text-[10px] font-bold text-green-500 mb-2 uppercase tracking-wide">{t.safeMode}</p>
                           {widgetConfig.safeBg ? (
@@ -2083,7 +2096,6 @@
                           )}
                       </div>
                       
-                      {/* WAS-WAS MODE */}
                       <div>
                           <p className="text-[10px] font-bold text-red-500 mb-2 uppercase tracking-wide">{t.dangerMode}</p>
                           {widgetConfig.dangerBg ? (
@@ -2100,7 +2112,7 @@
                       </div>
                   </div>
                   
-                  <button onClick={() => { setIsWidgetModalOpen(false); pushToCloud({ widgetConfig }); }} className="w-full bg-theme hover-bg-theme text-white p-4 rounded-2xl font-bold transition-all active:scale-95 shadow-lg flex justify-center items-center gap-2">
+                  <button onClick={() => { setIsWidgetModalOpen(false); pushToCloud({ widgetConfig }); }} className="w-full bg-theme text-white p-4 rounded-2xl font-bold transition-all active:scale-95 shadow-lg flex justify-center items-center gap-2 hover:opacity-90">
                     <Check size={18} /> {t.save}
                   </button>
                 </div>
@@ -2110,7 +2122,7 @@
             {isTxModalOpen && (
               <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-0 md:p-4">
                 <div className="card-bg w-full max-w-md rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 animate-slide-up shadow-2xl relative max-h-[90vh] overflow-y-auto hide-scrollbar mx-auto border-soft">
-                  <button onClick={() => setIsTxModalOpen(false)} className="absolute top-6 right-6 p-2 input-bg rounded-full text-muted hover:brightness-95"><X size={20} /></button>
+                  <button onClick={() => setIsTxModalOpen(false)} className="absolute top-6 right-6 p-2 input-bg rounded-full text-muted hover:opacity-80 border-soft"><X size={20} /></button>
                   <h2 className="text-xl font-bold mb-6 text-main">{editingTxId ? t.editTransaction : `${t.newTransaction} - ${txFormType === 'income' ? t.addIncome : t.addExpense}`}</h2>
                   
                   {txFormType === 'expense' && parseFloat(txFormData.amount) > 0 && getConvertedAmount(parseFloat(txFormData.amount), txFormData.currency, displayCurrency) > balance && !editingTxId && (
@@ -2122,15 +2134,15 @@
                     <div className="w-full">
                       <label className="block text-xs font-semibold text-muted mb-2">{t.amount}</label>
                       <div className="flex gap-3 w-full">
-                        <select value={txFormData.currency} onChange={(e) => setTxFormData({...txFormData, currency: e.target.value})} className="input-bg border-none rounded-2xl px-3 font-bold text-theme outline-none cursor-pointer flex-shrink-0 appearance-none ring-theme border border-soft">
+                        <select value={txFormData.currency} onChange={(e) => setTxFormData({...txFormData, currency: e.target.value})} className="input-bg border-none rounded-2xl px-3 font-bold text-theme outline-none cursor-pointer flex-shrink-0 appearance-none ring-theme border-soft">
                           <option value="IDR">IDR</option><option value="JPY">JPY</option>
                         </select>
-                        <input type="number" value={txFormData.amount} onChange={(e) => {setTxFormData({...txFormData, amount: e.target.value}); setTxError('');}} placeholder="0" className="flex-1 w-full min-w-0 input-bg border-none rounded-2xl p-4 text-2xl font-bold text-main outline-none transition-shadow ring-theme border border-soft"/>
+                        <input type="number" value={txFormData.amount} onChange={(e) => {setTxFormData({...txFormData, amount: e.target.value}); setTxError('');}} placeholder="0" className="flex-1 w-full min-w-0 input-bg border-none rounded-2xl p-4 text-2xl font-bold text-main outline-none transition-shadow ring-theme border-soft"/>
                       </div>
                     </div>
                     <div className="w-full">
                       <label className="block text-xs font-semibold text-muted mb-2">{t.categories}</label>
-                      <select value={txFormData.category} onChange={(e) => {setTxFormData({...txFormData, category: e.target.value}); setTxError('');}} className="w-full min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none appearance-none ring-theme border border-soft">
+                      <select value={txFormData.category} onChange={(e) => {setTxFormData({...txFormData, category: e.target.value}); setTxError('');}} className="w-full min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none appearance-none ring-theme border-soft">
                         <option value="" disabled>{t.selectCategory}</option>
                         {categories.filter(c => c.type === txFormType).map(c => (<option key={c.id} value={c.id}>{getCatName(c)}</option>))}
                       </select>
@@ -2138,18 +2150,18 @@
                     <div className="flex gap-3">
                       <div className="flex-1 min-w-0 overflow-hidden">
                         <label className="block text-xs font-semibold text-muted mb-2">{t.dateTime}</label>
-                        <input type="datetime-local" value={txFormData.date} onChange={(e) => setTxFormData({...txFormData, date: e.target.value})} className="w-full max-w-full block box-border min-w-0 input-bg border-none rounded-2xl px-3 py-4 text-xs sm:text-sm text-main outline-none transition-shadow appearance-none ring-theme border border-soft"/>
+                        <input type="datetime-local" value={txFormData.date} onChange={(e) => setTxFormData({...txFormData, date: e.target.value})} className="w-full max-w-full block box-border min-w-0 input-bg border-none rounded-2xl px-3 py-4 text-xs sm:text-sm text-main outline-none transition-shadow appearance-none ring-theme border-soft"/>
                       </div>
                       <div className="flex-1 min-w-0">
                         <label className="block text-xs font-semibold text-muted mb-2">{t.wallets}</label>
-                        <select value={txFormData.walletId || 'cash'} onChange={(e) => setTxFormData({...txFormData, walletId: e.target.value})} className="w-full min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none appearance-none ring-theme border border-soft">
+                        <select value={txFormData.walletId || 'cash'} onChange={(e) => setTxFormData({...txFormData, walletId: e.target.value})} className="w-full min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none appearance-none ring-theme border-soft">
                           {wallets.map(w => <option key={w.id} value={w.id}>{lang === 'id' ? w.name : w.nameJp}</option>)}
                         </select>
                       </div>
                     </div>
                     <div className="w-full">
                       <label className="block text-xs font-semibold text-muted mb-2">{t.note}</label>
-                      <input type="text" value={txFormData.note} onChange={(e) => setTxFormData({...txFormData, note: e.target.value})} placeholder="..." className="w-full box-border min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none transition-shadow ring-theme border border-soft"/>
+                      <input type="text" value={txFormData.note} onChange={(e) => setTxFormData({...txFormData, note: e.target.value})} placeholder="..." className="w-full box-border min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none transition-shadow ring-theme border-soft"/>
                     </div>
                     <div className="w-full pt-2">
                       <label className="block text-xs font-semibold text-muted mb-2">{t.addPhoto}</label>
@@ -2159,13 +2171,13 @@
                           <button onClick={() => setTxFormData({...txFormData, photo: ''})} className="absolute -top-3 -right-3 bg-red-400 text-white rounded-full p-1.5 hover:bg-red-500 shadow-md transition-transform active:scale-95"><X size={14} /></button>
                         </div>
                       ) : (
-                        <label className="flex items-center justify-center gap-2 w-full input-bg border-2 border-dashed border-soft rounded-2xl p-4 text-muted cursor-pointer hover:brightness-95 transition-colors">
+                        <label className="flex items-center justify-center gap-2 w-full input-bg border-2 border-dashed border-soft rounded-2xl p-4 text-muted cursor-pointer hover:opacity-80 transition-colors">
                           <ImageIcon size={20} /> <span className="text-sm font-semibold">{t.addPhoto}</span>
                           <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                         </label>
                       )}
                     </div>
-                    <button onClick={handleSaveTx} className={`w-full py-4 rounded-2xl font-bold text-white mt-6 shadow-lg transition-transform active:scale-95 ${txFormType === 'income' ? 'bg-income hover:brightness-90' : 'bg-expense hover:brightness-90'}`}>{t.save}</button>
+                    <button onClick={handleSaveTx} className={`w-full py-4 rounded-2xl font-bold text-white mt-6 shadow-lg transition-transform active:scale-95 ${txFormType === 'income' ? 'bg-income hover:opacity-90' : 'bg-expense hover:opacity-90'}`}>{t.save}</button>
                   </div>
                 </div>
               </div>
@@ -2174,7 +2186,7 @@
             {isScannerOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
                 <div className="card-bg w-full max-w-sm rounded-[32px] p-6 text-center relative overflow-hidden mx-auto shadow-2xl border-soft">
-                  <button onClick={() => { if(!isScanning) { setIsScannerOpen(false); setScanError(false); setTempScanPhoto(null); } }} className="absolute top-4 right-4 p-2 input-bg rounded-full text-muted hover:brightness-95"><X size={20} /></button>
+                  <button onClick={() => { if(!isScanning) { setIsScannerOpen(false); setScanError(false); setTempScanPhoto(null); } }} className="absolute top-4 right-4 p-2 input-bg rounded-full text-muted hover:opacity-80 border-soft"><X size={20} /></button>
                   <div className="my-8">
                     {isScanning ? (
                       <div className="flex flex-col items-center">
@@ -2186,15 +2198,15 @@
                         <div className="bg-red-50 p-6 rounded-full mb-6"><AlertCircle size={40} className="text-red-400" /></div>
                         <h3 className="font-bold text-lg mb-2 text-main text-center leading-snug">{t.scanFailed}</h3>
                         <div className="flex gap-3 mt-4 w-full">
-                           <button onClick={() => { setIsScannerOpen(false); handleOpenTxModal('expense', '', 'IDR', lang === 'id' ? 'Ketik nominal manual' : '手動で入力', tempScanPhoto); setTempScanPhoto(null); }} className="flex-1 input-bg border-soft text-main px-4 py-4 rounded-2xl font-semibold shadow-sm transition-all active:scale-95">Manual</button>
-                           <label className="flex-1 bg-[#4A4A4A] text-white px-4 py-4 rounded-2xl font-semibold cursor-pointer shadow-lg transition-all active:scale-95">Ulangi <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} /></label>
+                           <button onClick={() => { setIsScannerOpen(false); handleOpenTxModal('expense', '', 'IDR', lang === 'id' ? 'Ketik nominal manual' : '手動で入力', tempScanPhoto); setTempScanPhoto(null); }} className="flex-1 input-bg border-soft text-main px-4 py-4 rounded-2xl font-semibold shadow-sm transition-all active:scale-95 hover:opacity-80">Manual</button>
+                           <label className="flex-1 bg-[#4A4A4A] text-white px-4 py-4 rounded-2xl font-semibold cursor-pointer shadow-lg transition-all active:scale-95 hover:bg-black">Ulangi <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} /></label>
                         </div>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center">
                         <div className="bg-theme-light p-6 rounded-full mb-6"><Camera size={40} className="text-theme" /></div>
                         <h3 className="font-bold text-lg mb-2 text-main">{t.scanInstruction}</h3>
-                        <label className="mt-4 bg-theme hover-bg-theme text-white px-8 py-4 rounded-2xl font-semibold cursor-pointer shadow-lg transition-all active:scale-95">{t.scan} <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} /></label>
+                        <label className="mt-4 bg-theme text-white px-8 py-4 rounded-2xl font-semibold cursor-pointer shadow-lg transition-all active:scale-95 hover:opacity-90">{t.scan} <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} /></label>
                       </div>
                     )}
                   </div>
@@ -2205,10 +2217,10 @@
             {isExportModalOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-4">
                 <div className="card-bg w-full max-w-sm rounded-[32px] p-6 relative overflow-hidden animate-slide-up shadow-2xl mx-auto border-soft">
-                  <button onClick={() => setIsExportModalOpen(false)} className="absolute top-4 right-4 p-2 input-bg rounded-full text-muted hover:brightness-95"><X size={20} /></button>
+                  <button onClick={() => setIsExportModalOpen(false)} className="absolute top-4 right-4 p-2 input-bg rounded-full text-muted hover:opacity-80 border-soft"><X size={20} /></button>
                   <h3 className="font-bold text-lg mb-4 text-main text-center">{t.exportFileName}</h3>
                   <input type="text" value={exportFileName} onChange={(e) => setExportFileName(e.target.value)} placeholder="mawuang_report..." className="w-full box-border min-w-0 input-bg border-none rounded-2xl p-4 text-main outline-none transition-shadow mb-6 text-center font-medium ring-theme border-soft"/>
-                  <button onClick={handleExportCSV} className="w-full bg-theme hover-bg-theme text-white p-4 rounded-2xl font-bold transition-all active:scale-95 shadow-lg flex justify-center items-center gap-2"><Download size={18} /> {t.exportConfirm}</button>
+                  <button onClick={handleExportCSV} className="w-full bg-theme text-white p-4 rounded-2xl font-bold transition-all active:scale-95 shadow-lg flex justify-center items-center gap-2 hover:opacity-90"><Download size={18} /> {t.exportConfirm}</button>
                 </div>
               </div>
             )}
@@ -2227,7 +2239,7 @@
                     </div>
                   )}
                   <div className="flex gap-3">
-                    <button onClick={() => setPinSetup({isOpen: false, step: 'create', input: '', error: ''})} className="flex-1 input-bg border-soft text-main p-3 rounded-2xl font-bold hover:brightness-95">{pinSetup.step === 'create' ? t.cancel : (lang === 'id' ? 'Tidak' : 'いいえ')}</button>
+                    <button onClick={() => setPinSetup({isOpen: false, step: 'create', input: '', error: ''})} className="flex-1 input-bg border-soft text-main p-3 rounded-2xl font-bold hover:opacity-80">{pinSetup.step === 'create' ? t.cancel : (lang === 'id' ? 'Tidak' : 'いいえ')}</button>
                     <button onClick={async () => {
                        if (pinSetup.step === 'create') {
                          if (pinSetup.input.length === 6) { 
@@ -2248,7 +2260,7 @@
                 <div className="card-bg w-full max-w-[280px] rounded-[32px] p-6 text-center shadow-2xl mx-auto border-soft">
                   <h3 className="font-bold text-lg text-main mb-2">{messageDialog.title}</h3>
                   <p className="text-sm text-muted mb-6">{messageDialog.message}</p>
-                  <button onClick={() => setMessageDialog({isOpen: false, title: '', message: ''})} className="w-full bg-theme hover-bg-theme text-white p-3 rounded-2xl font-bold">OK</button>
+                  <button onClick={() => setMessageDialog({isOpen: false, title: '', message: ''})} className="w-full bg-theme text-white p-3 rounded-2xl font-bold hover:opacity-90">OK</button>
                 </div>
               </div>
             )}
@@ -2256,7 +2268,7 @@
             {selectedTx && (
               <div className="fixed inset-0 z-[80] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in p-0 md:p-4" onClick={() => setSelectedTx(null)}>
                 <div className="card-bg w-full max-w-md rounded-t-[40px] md:rounded-[40px] p-6 pb-12 md:pb-8 animate-slide-up shadow-2xl relative max-h-[90vh] overflow-y-auto hide-scrollbar mx-auto border-soft" onClick={e => e.stopPropagation()}>
-                  <button onClick={() => setSelectedTx(null)} className="absolute top-6 right-6 p-2 input-bg rounded-full text-muted hover:brightness-95"><X size={20} /></button>
+                  <button onClick={() => setSelectedTx(null)} className="absolute top-6 right-6 p-2 input-bg rounded-full text-muted hover:opacity-80 border-soft"><X size={20} /></button>
                   <div className="flex items-center gap-3 mb-6">
                     <div className={`p-4 rounded-[20px] ${selectedTx.type === 'income' ? 'bg-income-light text-income' : 'bg-expense-light text-expense'}`}>{selectedTx.type === 'income' ? <Plus size={24} /> : <Minus size={24} />}</div>
                     <div>
@@ -2275,8 +2287,8 @@
                     <div className="mb-6"><span className="text-xs text-muted font-semibold uppercase mb-2 block">Foto / Struk</span><img src={selectedTx.photo} onClick={() => setPreviewImage(selectedTx.photo)} className="w-full h-40 md:h-48 object-cover rounded-[24px] shadow-sm border border-soft cursor-pointer hover:opacity-90 transition-opacity" alt="Attachment" /></div>
                   )}
                   <div className="flex gap-3">
-                    <button onClick={() => { const txToEdit = selectedTx; setSelectedTx(null); handleOpenTxModal(txToEdit.type, txToEdit.amount, txToEdit.currency || 'IDR', txToEdit.note || '', txToEdit.photo || '', txToEdit.walletId, txToEdit.id, txToEdit.categoryId); }} className="flex-1 bg-theme hover-bg-theme text-white py-3.5 rounded-2xl font-bold shadow-md active:scale-95 transition-transform flex items-center justify-center gap-2"><Edit2 size={18} /> {t.edit}</button>
-                    <button onClick={() => { const id = selectedTx.id; setSelectedTx(null); handleDeleteTx(id); }} className="flex-1 bg-red-50 text-red-500 py-3.5 rounded-2xl font-bold shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-2 border border-red-100"><Trash2 size={18} /> {t.delete}</button>
+                    <button onClick={() => { const txToEdit = selectedTx; setSelectedTx(null); handleOpenTxModal(txToEdit.type, txToEdit.amount, txToEdit.currency || 'IDR', txToEdit.note || '', txToEdit.photo || '', txToEdit.walletId, txToEdit.id, txToEdit.categoryId); }} className="flex-1 bg-theme text-white py-3.5 rounded-2xl font-bold shadow-md active:scale-95 transition-transform flex items-center justify-center gap-2 hover:opacity-90"><Edit2 size={18} /> {t.edit}</button>
+                    <button onClick={() => { const id = selectedTx.id; setSelectedTx(null); handleDeleteTx(id); }} className="flex-1 bg-red-50 text-red-500 py-3.5 rounded-2xl font-bold shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-2 border border-red-100 hover:bg-red-100"><Trash2 size={18} /> {t.delete}</button>
                   </div>
                 </div>
               </div>
