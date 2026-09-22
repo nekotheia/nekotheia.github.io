@@ -1413,7 +1413,7 @@
           <div className="p-4 md:p-8 pb-32 animate-fade-in relative z-10 max-w-2xl mx-auto">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold text-main tracking-tight">Beranda</h1>
+              <h1 className="text-3xl font-bold text-main tracking-tight truncate pr-4">{lang === 'id' ? 'Hi' : 'こんにちは'}, {username || (lang === 'id' ? 'Pengguna' : 'ゲスト')}!</h1>
               <div className="flex items-center gap-2">
                  <div className="flex bg-gray-200/60 p-1 rounded-full cursor-pointer" onClick={() => setDisplayCurrency(displayCurrency === 'IDR' ? 'JPY' : 'IDR')}>
                     <div className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 ${displayCurrency === 'IDR' ? 'bg-white text-main shadow-sm' : 'text-muted'}`}>IDR</div>
@@ -1439,7 +1439,7 @@
                      </div>
                      <h2 className="text-3xl font-bold text-white tracking-tight">{formatCurrency(todayExpense, displayCurrency)}</h2>
                      {currentLimitInDisplay > 0 && (
-                         <p className="text-white/80 text-xs mt-1 font-medium">Limit: {formatCurrency(currentLimitInDisplay, displayCurrency)}</p>
+                         <p className="text-white/80 text-xs mt-1 font-medium">{lang === 'id' ? 'Batas' : '上限'}: {formatCurrency(currentLimitInDisplay, displayCurrency)}</p>
                      )}
                   </div>
                   <button onClick={() => setIsWidgetModalOpen(true)} className="p-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full text-white transition-all active:scale-95">
