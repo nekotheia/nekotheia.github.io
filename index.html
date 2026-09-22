@@ -263,7 +263,13 @@
         proUser: 'Pro User', freeTrial: 'Free Trial', daysLeft: 'Hari Lagi', catWalletTitle: 'Kategori & Dompet', txSaved: 'Pencatatan berhasil disimpan!', pinMismatch: 'PIN tidak cocok! Silakan ulangi.',
         setupPinSuccess: 'PIN berhasil dipasang!', removePinSuccess: 'PIN dan Keamanan dihapus!', req6digit: 'Harus 6 digit angka!', ok: 'OK', bioSupportError: 'Perangkat/Browser ini tidak mendukung biometrik.',
         bioSuccess: 'Face ID / Touch ID berhasil diaktifkan!', bioFailed: 'Gagal mengaktifkan keamanan biometrik.', bioDisable: 'Keamanan tambahan dinonaktifkan!', smartInputFailed: 'Nominal angka tidak terdeteksi. Silakan ketik angka (misal: 25rb atau 25k)',
-        micError: 'Browser Anda tidak mendukung fitur Suara (Gunakan Chrome/Safari versi terbaru).'
+        micError: 'Browser Anda tidak mendukung fitur Suara (Gunakan Chrome/Safari versi terbaru).',
+        swipeHint: 'Swipe untuk geser kartu',
+        availableBalance: 'Saldo Tersedia',
+        currencyLabel: 'Mata Uang',
+        installInstructions: 'Untuk menambahkan aplikasi ini ke layar utama:\n\nDi Android (Chrome): Buka menu titik tiga lalu pilih "Tambahkan ke Layar Utama" / "Install App".\n\nDi iPhone (Safari): Ketuk tombol Bagikan lalu pilih "Tambahkan ke Layar Utama".',
+        shareText: 'Aplikasi pencatat keuangan pintar untuk perantau dengan fitur kurs dan AI. Coba sekarang!',
+        emailSubject: 'Bantuan Aplikasi mawuang'
       },
       jp: {
         appTitle: 'mawuang', totalBalance: '総残高', income: '収入', expense: '支出',
@@ -307,7 +313,7 @@
         syncing: 'クラウドからデータを取得中...', loginSuccess: 'ログイン成功！', profileDesc: 'ニックネームとプロフィール写真を設定してください。', nicknamePlaceholder: 'ニックネーム', continueBtn: '続行',
         createPinTitle: 'セキュリティPINを作成', confirmPinTitle: 'PINを確認', pinDescCreate: 'セキュリティのために6桁の数字を入力してください。', pinDescConfirm: '確認のため同じPINを再入力してください。', skipPin: 'PINをスキップ',
         trialExpiredTitle: 'トライアル期間終了', trialExpiredDesc: 'mawuangを7日以上利用しました。記録やクラウド同期機能を引き続き使用するには、Pro版（Rp 50,000）にアップグレードするか、プロモーションコードを入力してください。',
-        hi: 'こんにちは、', guest: 'ゲスト', user: 'ユーザー', limit: '上限', scanBtn: 'レシート/銀行をスキャン', loadingNews: 'ニュースを読み込み中...', noNews: '現在ニュースはありません。',
+        hi: 'Hi, ', guest: 'ゲスト', user: 'ユーザー', limit: '上限', scanBtn: 'レシート/銀行をスキャン', loadingNews: 'ニュースを読み込み中...', noNews: '現在ニュースはありません。',
         categoryExist: 'カテゴリはすでに存在します！', minCategory: 'カテゴリは最低1つ必要です！', minWallet: 'ウォレットは最低1つ必要です！', noTxDate: '指定された日に取引はありません。',
         success: '成功', restoreSuccess: 'データが復元されました！', invalidBackup: '無効なバックアップファイルです！', connFailed: 'クラウドへの接続に失敗しました。', linkCopied: 'アプリのリンクをコピーしました！',
         cloudOffline: 'クラウドシステムがオフラインまたはブラウザによってブロックされています。再読み込みするか、オフラインモードを使用してください。', no: 'いいえ', yesDelete: 'はい、削除します', saved: '保存されました！',
@@ -315,7 +321,13 @@
         proUser: 'プロユーザー', freeTrial: '無料トライアル', daysLeft: '日残り', catWalletTitle: 'カテゴリ & ウォレット', txSaved: '記録が保存されました！', pinMismatch: 'PINが一致しません！やり直してください。',
         setupPinSuccess: 'PINが正常に設定されました！', removePinSuccess: 'PINと生体認証が削除されました！', req6digit: '6桁の数字である必要があります！', ok: 'OK', bioSupportError: '生体認証はサポートされていません。',
         bioSuccess: '生体認証が有効になりました！', bioFailed: '有効化に失敗しました。', bioDisable: '生体認証が無効になりました！', smartInputFailed: '金額が検出されませんでした。数字を入力してください。',
-        micError: 'ブラウザが音声機能をサポートしていません。'
+        micError: 'ブラウザが音声機能をサポートしていません。',
+        swipeHint: 'スワイプしてカードをスライド',
+        availableBalance: '利用可能残高',
+        currencyLabel: '通貨',
+        installInstructions: 'ホーム画面にアプリを追加するには：\n\nAndroid (Chrome)：メニューから「ホーム画面に追加」を選択してください。\n\niPhone (Safari)：共有ボタンをタップし、「ホーム画面に追加」を選択してください。',
+        shareText: '為替・AI機能付きの海外生活者向けスマート家計簿アプリ。今すぐ試そう！',
+        emailSubject: 'mawuangアプリのサポート'
       }
     };
 
@@ -514,7 +526,7 @@
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then(() => setDeferredPrompt(null));
         } else {
-            setMessageDialog({ isOpen: true, title: 'Info', message: 'Untuk menambahkan aplikasi ini ke layar utama:\n\nDi Android (Chrome): Buka menu titik tiga lalu pilih "Tambahkan ke Layar Utama" / "Install App".\n\nDi iPhone (Safari): Ketuk tombol Bagikan lalu pilih "Tambahkan ke Layar Utama".' });
+            setMessageDialog({ isOpen: true, title: 'Info', message: t.installInstructions });
         }
       };
 
@@ -862,7 +874,6 @@
           if (processText.includes('yen') || processText.includes('¥') || processText.includes('円')) currency = 'JPY';
           if (processText.includes('rp') || processText.includes('rupiah')) currency = 'IDR';
 
-          // Detect Wallet from statement (e.g., "pakai mandiri", "gopay", "bca")
           for (let w of currentWallets) {
               const wName = w.name.toLowerCase();
               const wId = w.id.toLowerCase();
@@ -1437,7 +1448,7 @@
               if (navigator.share) {
                   await navigator.share({
                       title: 'mawuang - Catatan Keuangan',
-                      text: 'Aplikasi pencatat keuangan pintar untuk perantau dengan fitur kurs dan AI. Coba sekarang!',
+                      text: t.shareText,
                       url: window.location.href,
                   });
               } else {
@@ -1996,7 +2007,7 @@
 
             <div className="mb-6">
                <div className="flex justify-between items-center mb-3">
-                  <h3 className="font-bold text-main ml-2 text-sm">{t.wallets} <span className="text-xs font-normal text-gray-400">(Swipe untuk geser kartu)</span></h3>
+                  <h3 className="font-bold text-main ml-2 text-sm">{t.wallets} <span className="text-xs font-normal text-gray-400">({t.swipeHint})</span></h3>
                </div>
 
                <div 
@@ -2063,7 +2074,7 @@
                           <div className="relative z-10">
                              <div className="flex justify-between items-end mb-1">
                                 <div>
-                                   <p className="text-[10px] text-white/70 uppercase font-medium">Saldo Tersedia</p>
+                                   <p className="text-[10px] text-white/70 uppercase font-medium">{t.availableBalance}</p>
                                    <p className="font-extrabold text-xl tracking-tight">{formatCurrency(wBal, displayCurrency)}</p>
                                 </div>
                                 <div className="flex items-center space-x-1 opacity-75">
@@ -2473,7 +2484,7 @@
               {activeTab === 'settings' && renderSettings()}
             </div>
 
-            <div className="fixed bottom-0 w-full max-w-2xl backdrop-blur-2xl border-t border-gray-200/60 pb-safe pt-2 px-6 flex justify-between items-center z-40 pb-6 md:pb-4" style={{ backgroundColor: isDarkMode ? '#FFFFFF' : 'rgba(255, 255, 255, 0.7)' }}>
+            <div className={`fixed bottom-0 w-full max-w-2xl backdrop-blur-2xl border-t border-gray-200/60 pb-safe pt-2 px-6 flex justify-between items-center z-40 pb-6 md:pb-4 ${isDarkMode ? 'bg-white' : 'bg-white/75'}`}>
                 <NavButton tab="home" icon={Home} label={t.home} />
                 <NavButton tab="report" icon={BarChart2} label={t.report} />
                 <button onClick={() => setIsSmartInputOpen(true)} className={`flex items-center justify-center p-3.5 -mt-6 bg-theme text-white rounded-full shadow-lg active:scale-95 transition-transform border-4 border-transparent ring-4 ${isDarkMode ? 'ring-white' : 'ring-[#F2F2F7]'}`}>
@@ -2528,7 +2539,7 @@
                   <h3 className="font-bold text-xl mb-6 text-main text-center">{t.setupLoan}</h3>
                   <div className="space-y-4 mb-8">
                     <div className="bg-gray-100 rounded-xl p-2">
-                      <label className="block text-[10px] font-semibold text-gray-500 px-2 pt-1 uppercase">Mata Uang</label>
+                      <label className="block text-[10px] font-semibold text-gray-500 px-2 pt-1 uppercase">{t.currencyLabel}</label>
                       <select value={danaTalang.currency} onChange={(e) => setDanaTalang({...danaTalang, currency: e.target.value})} className="w-full bg-transparent border-none px-2 py-1 text-main font-semibold outline-none appearance-none">
                         <option value="IDR">IDR</option><option value="JPY">JPY</option>
                       </select>
@@ -2878,7 +2889,7 @@
                        
                        {supportChat.some(c => c.isUser) && !isAiTyping && (
                          <div className="flex justify-center mt-6 mb-2 animate-fade-in">
-                            <a href="mailto:ricky30chandra@gmail.com?subject=Bantuan Aplikasi mawuang" className="bg-white border border-gray-200 shadow-sm text-main px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 active:scale-95 transition-transform"><MessageCircle size={16} className="text-teal-600"/> {t.sendEmail}</a>
+                            <a href={`mailto:ricky30chandra@gmail.com?subject=${encodeURIComponent(t.emailSubject)}`} className="bg-white border border-gray-200 shadow-sm text-main px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 active:scale-95 transition-transform"><MessageCircle size={16} className="text-teal-600"/> {t.sendEmail}</a>
                          </div>
                        )}
                     </div>
