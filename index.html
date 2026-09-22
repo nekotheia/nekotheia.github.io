@@ -111,7 +111,7 @@
       init: async () => {
         if (idb.db) return idb.db;
         return new Promise((resolve, reject) => {
-          const req = indexedDB.open('mawuang_db', 14);
+          const req = indexedDB.open('mawuang_db', 15);
           req.onupgradeneeded = (e) => { 
               if(!e.target.result.objectStoreNames.contains('store')) {
                  e.target.result.createObjectStore('store'); 
@@ -175,11 +175,15 @@
     const RefreshCw = (p) => <Icon {...p} path='<polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>' />;
     const LogOut = (p) => <Icon {...p} path='<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>' />;
     const Check = (p) => <Icon {...p} path='<polyline points="20 6 9 17 4 12"></polyline>' />;
-    const User = (p) => <Icon {...p} path='<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' />;
+    const UserIcon = (p) => <Icon {...p} path='<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' />;
+    const UsersIcon = (p) => <Icon {...p} path='<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' />;
     const MessageCircle = (p) => <Icon {...p} path='<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>' />;
     const Mic = (p) => <Icon {...p} path='<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>' />;
     const Send = (p) => <Icon {...p} path='<line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>' />;
     const Newspaper = (p) => <Icon {...p} path='<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 10h-5"/><path d="M10 18h8"/>' />;
+    const Share2 = (p) => <Icon {...p} path='<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>' />;
+    const Bot = (p) => <Icon {...p} path='<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>' />;
+    const Sun = (p) => <Icon {...p} path='<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>' />;
     const ChevronUp = (p) => <Icon {...p} path='<path d="m18 15-6-6-6 6"/>' />;
     const ChevronDown = (p) => <Icon {...p} path='<path d="m6 9 6 6 6-6"/>' />;
     const ExternalLink = (p) => <Icon {...p} path='<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>' />;
@@ -205,7 +209,6 @@
       </svg>
     );
 
-    // A modern iOS blueish theme as default
     const DEFAULT_THEME = { primary: '#007AFF', bg: '#F2F2F7', cardBg: '#FFFFFF', text: '#000000', income: '#34C759', expense: '#FF3B30' };
 
     const dict = {
@@ -234,7 +237,14 @@
         editWidget: 'Pengaturan Widget', widgetSubtitle: 'Pengeluaran Hari Ini', themeSettings: 'Tampilan & Tema', themeDesc: 'Ubah semua warna sesuai selera Anda.',
         dailyBudget: 'Batas Pengeluaran Harian', safeMode: 'Background Aman', dangerMode: 'Background Peringatan', statusSafe: 'AMAN',
         themePrimary: 'Warna Tombol (Primary)', themeIncome: 'Warna Pemasukan', themeExpense: 'Warna Pengeluaran', themeBg: 'Warna Latar (Background)', themeCard: 'Warna Kartu (Card)', themeText: 'Warna Teks', themeReset: 'Reset Tema',
-        widgetDesc: 'Atur batas harian dan ubah gambar background saat budget aman atau habis.', addToHome: 'Tambahkan ke Layar Utama', exportDateRange: 'Rentang Waktu (Opsional)'
+        widgetDesc: 'Atur batas harian dan ubah gambar background saat budget aman atau habis.', addToHome: 'Tambahkan ke Layar Utama', exportDateRange: 'Rentang Waktu (Opsional)',
+        themeMode: 'Mode Tampilan', themeLight: 'Terang', themeDark: 'Gelap', themeAuto: 'Auto',
+        support: 'Bantuan & Customer Support', shareApp: 'Bagikan Aplikasi',
+        supportWelcome: 'Halo! Saya AI asisten mawuang. Ada yang bisa saya bantu hari ini?',
+        supportReply: 'Terima kasih atas pesan Anda! Karena saya masih dalam tahap belajar, mohon kirimkan pertanyaan atau keluhan Anda langsung ke email pengembang agar bisa segera ditangani dengan baik ya.',
+        sendEmail: 'Kirim Pesan via Email',
+        familyMode: 'Family & Couple Mode', invitePartner: 'Undang Pasangan (WhatsApp)', leaveGroup: 'Keluar dari Ruang Bersama', sharedWith: 'Terhubung dengan',
+        joinPrompt: 'mengundang Anda untuk mencatat pengeluaran bersama di aplikasi mawuang.', accept: 'Terima Undangan', decline: 'Tolak', createdBy: 'Dicatat oleh'
       },
       jp: {
         appTitle: 'mawuang', totalBalance: '総残高', income: '収入', expense: '支出',
@@ -261,7 +271,14 @@
         editWidget: 'ウィジェット設定', widgetSubtitle: '今日の支出', themeSettings: 'テーマと外観', themeDesc: 'すべての色を自由に変更できます。',
         dailyBudget: '1日の支出上限', safeMode: '安全時の背景', dangerMode: '警告時の背景', statusSafe: '安全',
         themePrimary: 'メインボタンの色', themeIncome: '収入の色', themeExpense: '支出の色', themeBg: '背景色', themeCard: 'カードの色', themeText: 'テキストの色', themeReset: 'テーマをリセット',
-        widgetDesc: '1日の予算上限を設定し、予算の状態に応じて背景画像を変更します。', addToHome: 'ホーム画面に追加', exportDateRange: '期間を選択 (任意)'
+        widgetDesc: '1日の予算上限を設定し、予算の状態に応じて背景画像を変更します。', addToHome: 'ホーム画面に追加', exportDateRange: '期間を選択 (任意)',
+        themeMode: '表示モード', themeLight: 'ライト', themeDark: 'ダーク', themeAuto: '自動',
+        support: 'サポートとヘルプ', shareApp: 'アプリを共有',
+        supportWelcome: 'こんにちは！mawuangのAIアシスタントです。何かお手伝いしましょうか？',
+        supportReply: 'ありがとうございます！現在学習中のため、詳細については開発者に直接メールでお問い合わせください。',
+        sendEmail: 'メールを送信',
+        familyMode: 'ファミリー＆カップルモード', invitePartner: 'パートナーを招待', leaveGroup: '共有を解除', sharedWith: '共有中:',
+        joinPrompt: 'さんが家計簿の共有に招待しています。', accept: '承認する', decline: '拒否', createdBy: '記録者'
       }
     };
 
@@ -319,6 +336,10 @@
       const [photoURL, setPhotoURL] = useState('');
       const [connectedEmail, setConnectedEmail] = useState('');
       const [firebaseUid, setFirebaseUid] = useState(null);
+      
+      // State for Shared Workspace (Family / Couple Mode)
+      const [activeWorkspace, setActiveWorkspace] = useState(null);
+      const [joinRequest, setJoinRequest] = useState(null);
 
       const [lang, setLang] = useState('id');
       const [displayCurrency, setDisplayCurrency] = useState('IDR');
@@ -326,7 +347,14 @@
       
       const [customTheme, setCustomTheme] = useState(DEFAULT_THEME);
       const [themeExpanded, setThemeExpanded] = useState(false);
+      const [themeMode, setThemeMode] = useState('auto');
+      const [systemPrefersDark, setSystemPrefersDark] = useState(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
       
+      const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+      const [supportChat, setSupportChat] = useState([]);
+      const [supportInput, setSupportInput] = useState('');
+      const [isAiTyping, setIsAiTyping] = useState(false);
+
       const [transactions, setTransactions] = useState([]);
       const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
       const [wallets, setWallets] = useState(DEFAULT_WALLETS);
@@ -394,10 +422,29 @@
 
       const t = dict[lang];
 
+      // Handle URL Invitation Request
+      useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const join = urlParams.get('join');
+        const name = urlParams.get('name') || (lang === 'id' ? 'Seseorang' : '誰か');
+        if (join) {
+            setJoinRequest({ id: join, name: name });
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }, []);
+
       useEffect(() => {
         const handler = (e) => { e.preventDefault(); setDeferredPrompt(e); };
         window.addEventListener('beforeinstallprompt', handler);
         return () => window.removeEventListener('beforeinstallprompt', handler);
+      }, []);
+
+      useEffect(() => {
+        if (!window.matchMedia) return;
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handler = (e) => setSystemPrefersDark(e.matches);
+        mediaQuery.addEventListener('change', handler);
+        return () => mediaQuery.removeEventListener('change', handler);
       }, []);
 
       const handleInstallWidget = () => {
@@ -421,6 +468,7 @@
             if (isExportModalOpen) { setIsExportModalOpen(false); return; }
             if (isDanaTalangModalOpen) { setIsDanaTalangModalOpen(false); return; }
             if (isWidgetModalOpen) { setIsWidgetModalOpen(false); return; }
+            if (isSupportModalOpen) { setIsSupportModalOpen(false); return; }
             if (activeTab !== 'home') { setActiveTab('home'); return; }
             window.Capacitor.Plugins.App.exitApp();
           });
@@ -436,13 +484,14 @@
           if (isExportModalOpen) { setIsExportModalOpen(false); window.history.pushState(null, '', window.location.href); return; }
           if (isDanaTalangModalOpen) { setIsDanaTalangModalOpen(false); window.history.pushState(null, '', window.location.href); return; }
           if (isWidgetModalOpen) { setIsWidgetModalOpen(false); window.history.pushState(null, '', window.location.href); return; }
+          if (isSupportModalOpen) { setIsSupportModalOpen(false); window.history.pushState(null, '', window.location.href); return; }
           if (activeTab !== 'home') { setActiveTab('home'); window.history.pushState(null, '', window.location.href); return; }
         };
 
         window.history.pushState(null, '', window.location.href);
         window.addEventListener('popstate', handlePopState);
         return () => window.removeEventListener('popstate', handlePopState);
-      }, [previewImage, selectedTx, isTxModalOpen, isScannerOpen, isSmartInputOpen, isProfileModalOpen, isExportModalOpen, isDanaTalangModalOpen, isWidgetModalOpen, activeTab]);
+      }, [previewImage, selectedTx, isTxModalOpen, isScannerOpen, isSmartInputOpen, isProfileModalOpen, isExportModalOpen, isDanaTalangModalOpen, isWidgetModalOpen, isSupportModalOpen, activeTab]);
 
       const fetchFinancialNews = async () => {
         try {
@@ -467,7 +516,13 @@
           try {
               if (window.firebaseDb && window.firebaseSetDoc && window.firebaseDoc) {
                   const appId = typeof __app_id !== 'undefined' ? __app_id : 'mawuang';
-                  const ref = window.firebaseDoc(window.firebaseDb, 'artifacts', appId, 'users', firebaseUid);
+                  
+                  // If we are in a workspace, we write the shared data to the workspace owner's doc
+                  // and personal data (like theme, pin, username) to our own doc.
+                  // For simplicity in this logic, we will write to the active workspace.
+                  const targetUid = activeWorkspace || firebaseUid;
+                  const ref = window.firebaseDoc(window.firebaseDb, 'artifacts', appId, 'users', targetUid);
+                  
                   await window.firebaseSetDoc(ref, {
                       ...payload,
                       updatedAt: new Date().toISOString()
@@ -485,53 +540,64 @@
           }
       };
 
+      // Listener Firestore: Dengarkan perubahan pada Workspace aktif (jika ada) atau milik sendiri
       useEffect(() => {
           if (!firebaseUid || !window.firebaseOnSnapshot || !window.firebaseDb) return;
+          
           const appId = typeof __app_id !== 'undefined' ? __app_id : 'mawuang';
-          const ref = window.firebaseDoc(window.firebaseDb, 'artifacts', appId, 'users', firebaseUid);
+          const targetUid = activeWorkspace || firebaseUid;
+          const ref = window.firebaseDoc(window.firebaseDb, 'artifacts', appId, 'users', targetUid);
           
           const unsubscribe = window.firebaseOnSnapshot(ref, (docSnap) => {
               if (docSnap.exists()) {
                   const data = docSnap.data();
+                  
+                  // Hanya memperbarui state bersama (Shared State) jika dari workspace orang lain
                   setTransactions(data.transactions || []);
                   setCategories(data.categories || DEFAULT_CATEGORIES);
                   setWallets(data.wallets || DEFAULT_WALLETS);
-                  if (data.username) setUsername(data.username);
-                  if (data.photoURL) setPhotoURL(data.photoURL);
-                  if (data.pin !== undefined) setPin(data.pin);
-                  
-                  if (data.customTheme) {
-                     setCustomTheme(data.customTheme);
-                  }
-                  
-                  let wc = data.widgetConfig;
-                  if (!wc && data.widgetBg) wc = { safeBg: data.widgetBg, dangerBg: null, limit: 0, limitCurrency: 'IDR' }; 
-                  if (wc) {
-                      if(!wc.limitCurrency) wc.limitCurrency = 'IDR';
-                      setWidgetConfig(wc);
-                  }
                   
                   const dt = data.danaTalang ? { total: data.danaTalang.total || 0, paid: data.danaTalang.paid || 0, currency: data.danaTalang.currency || 'IDR' } : { total: 0, paid: 0, currency: 'IDR' };
                   setDanaTalang(dt);
-                  
+
+                  // Update Local IndexedDB
                   idb.set('mawuang_tx', data.transactions || []);
                   idb.set('mawuang_cat', data.categories || DEFAULT_CATEGORIES);
                   idb.set('mawuang_wallets', data.wallets || DEFAULT_WALLETS);
                   idb.set('mawuang_danatalang', dt);
-                  if (data.username) idb.set('mawuang_username', data.username);
-                  if (data.photoURL) idb.set('mawuang_photo', data.photoURL);
-                  if (data.pin !== undefined) idb.set('mawuang_pin', data.pin);
-                  if (wc) idb.set('mawuang_widget_config', wc);
-                  if (data.customTheme) idb.set('mawuang_custom_theme', data.customTheme);
+
+                  // Update Personal State (Hanya diproses jika ini UID kita sendiri, agar tidak menimpa profile dengan data partner)
+                  if (!activeWorkspace || activeWorkspace === firebaseUid) {
+                      if (data.username) setUsername(data.username);
+                      if (data.photoURL) setPhotoURL(data.photoURL);
+                      if (data.pin !== undefined) setPin(data.pin);
+                      if (data.themeMode) setThemeMode(data.themeMode);
+                      if (data.customTheme) setCustomTheme(data.customTheme);
+                      
+                      let wc = data.widgetConfig;
+                      if (!wc && data.widgetBg) wc = { safeBg: data.widgetBg, dangerBg: null, limit: 0, limitCurrency: 'IDR' }; 
+                      if (wc) {
+                          if(!wc.limitCurrency) wc.limitCurrency = 'IDR';
+                          setWidgetConfig(wc);
+                      }
+
+                      if (data.username) idb.set('mawuang_username', data.username);
+                      if (data.photoURL) idb.set('mawuang_photo', data.photoURL);
+                      if (data.pin !== undefined) idb.set('mawuang_pin', data.pin);
+                      if (data.themeMode) idb.set('mawuang_theme_mode', data.themeMode);
+                      if (wc) idb.set('mawuang_widget_config', wc);
+                      if (data.customTheme) idb.set('mawuang_custom_theme', data.customTheme);
+                  }
               }
           });
           return () => unsubscribe();
-      }, [firebaseUid]);
+      }, [firebaseUid, activeWorkspace]);
 
       useEffect(() => {
         const loadApp = async () => {
           try {
             const savedFbUid = await idb.get('mawuang_firebase_uid');
+            const savedWorkspace = await idb.get('mawuang_workspace');
             const savedEmail = await idb.get('mawuang_email');
             const savedUser = await idb.get('mawuang_username');
             const savedPhoto = await idb.get('mawuang_photo');
@@ -539,6 +605,7 @@
             const savedBiometric = await idb.get('mawuang_biometric_id');
             const savedLang = await idb.get('mawuang_lang');
             const savedCurr = await idb.get('mawuang_currency');
+            const savedThemeMode = await idb.get('mawuang_theme_mode');
             const savedDanaTalang = await idb.get('mawuang_danatalang');
             const savedCustomTheme = await idb.get('mawuang_custom_theme');
             
@@ -561,6 +628,8 @@
             if (savedPhoto) setPhotoURL(savedPhoto);
             if (savedEmail) setConnectedEmail(savedEmail);
             if (savedFbUid) setFirebaseUid(savedFbUid);
+            if (savedWorkspace) setActiveWorkspace(savedWorkspace);
+            if (savedThemeMode) setThemeMode(savedThemeMode);
             if (savedCustomTheme) setCustomTheme(savedCustomTheme);
             if (savedWidgetConfig) setWidgetConfig(savedWidgetConfig);
             if (savedDanaTalang) setDanaTalang({ total: savedDanaTalang.total || 0, paid: savedDanaTalang.paid || 0, currency: savedDanaTalang.currency || 'IDR' });
@@ -590,6 +659,7 @@
       useEffect(() => { if(appState !== 'loading') idb.set('mawuang_danatalang', danaTalang); }, [danaTalang, appState]);
       useEffect(() => { if(appState !== 'loading') idb.set('mawuang_widget_config', widgetConfig); }, [widgetConfig, appState]);
       useEffect(() => { if(appState !== 'loading') idb.set('mawuang_custom_theme', customTheme); }, [customTheme, appState]);
+      useEffect(() => { if(appState !== 'loading') idb.set('mawuang_theme_mode', themeMode); }, [themeMode, appState]);
 
       useEffect(() => {
         const handleVisibilityChange = () => {
@@ -849,7 +919,8 @@
           
           const newTx = {
             id: Date.now().toString(), type: parsed.type, amount: parseFloat(parsed.amount), currency: parsed.currency, categoryId: finalCategoryId,
-            note: parsed.note, date: new Date().toISOString(), photo: null, walletId: wallets[0]?.id || 'cash'
+            note: parsed.note, date: new Date().toISOString(), photo: null, walletId: wallets[0]?.id || 'cash',
+            createdBy: username || (lang === 'id' ? 'Pengguna' : 'Guest')
           };
           
           const newTransactions = [newTx, ...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -966,7 +1037,8 @@
         } else {
           const newTx = {
             id: Date.now().toString(), type: txFormType, amount: parseFloat(txFormData.amount), currency: txFormData.currency,
-            categoryId: txFormData.category, note: txFormData.note, date: new Date(txFormData.date).toISOString(), photo: txFormData.photo || null, walletId: txFormData.walletId || (wallets[0]?.id || 'cash')
+            categoryId: txFormData.category, note: txFormData.note, date: new Date(txFormData.date).toISOString(), photo: txFormData.photo || null, walletId: txFormData.walletId || (wallets[0]?.id || 'cash'),
+            createdBy: username || (lang === 'id' ? 'Pengguna' : 'Guest')
           };
           newTransactions = [newTx, ...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
         }
@@ -1036,7 +1108,7 @@
             return;
         }
 
-        const headers = ['Transaction ID', 'Date', 'Time', 'Type', 'Category', 'Wallet', 'Note', 'Currency', 'Amount', `Converted Amount (${displayCurrency})`];
+        const headers = ['Transaction ID', 'Date', 'Time', 'Type', 'Category', 'Wallet', 'Note', 'Currency', 'Amount', `Converted Amount (${displayCurrency})`, 'Created By'];
         const rows = txToExport.map(tx => {
           const cat = categories.find(c => c.id === tx.categoryId);
           const txDate = new Date(tx.date);
@@ -1044,7 +1116,7 @@
           const safeNote = `"${(tx.note || '').replace(/"/g, '""')}"`;
           const safeCat = `"${(getCatName(cat) || 'Unknown').replace(/"/g, '""')}"`;
           const safeWallet = `"${String(getWalletName(tx.walletId) || 'Cash').replace(/"/g, '""')}"`;
-          return [ tx.id, txDate.toLocaleDateString(), txDate.toLocaleTimeString(), tx.type === 'income' ? 'Income' : 'Expense', safeCat, safeWallet, safeNote, tx.currency || 'IDR', tx.amount, convertedAmount.toFixed(2) ].join(';');
+          return [ tx.id, txDate.toLocaleDateString(), txDate.toLocaleTimeString(), tx.type === 'income' ? 'Income' : 'Expense', safeCat, safeWallet, safeNote, tx.currency || 'IDR', tx.amount, convertedAmount.toFixed(2), tx.createdBy || '-' ].join(';');
         });
         const csvContent = "\uFEFF" + [headers.join(';'), ...rows].join('\n');
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1076,6 +1148,7 @@
             if (data.lang) setLang(data.lang);
             if (data.username) setUsername(data.username);
             if (data.photoURL) setPhotoURL(data.photoURL);
+            if (data.themeMode) setThemeMode(data.themeMode);
             if (data.customTheme) setCustomTheme(data.customTheme);
             
             const dt = data.danaTalang ? { total: data.danaTalang.total || 0, paid: data.danaTalang.paid || 0, currency: data.danaTalang.currency || 'IDR' } : { total: 0, paid: 0, currency: 'IDR' };
@@ -1096,6 +1169,7 @@
                 lang: data.lang || lang,
                 username: data.username || username,
                 photoURL: data.photoURL || photoURL,
+                themeMode: data.themeMode || themeMode,
                 danaTalang: dt,
                 widgetConfig: wc || widgetConfig,
                 customTheme: data.customTheme || customTheme
@@ -1127,6 +1201,7 @@
               await idb.set('mawuang_firebase_uid', uid); await idb.set('mawuang_email', email);
 
               const appId = typeof __app_id !== 'undefined' ? __app_id : 'mawuang';
+              // Check user's own profile to see if they have data
               const docRef = window.firebaseDoc(window.firebaseDb, 'artifacts', appId, 'users', uid);
               
               const docSnap = await Promise.race([
@@ -1136,6 +1211,8 @@
 
               if (docSnap && docSnap.exists()) {
                   const data = docSnap.data();
+                  // We only load personal settings from here if we have an active workspace.
+                  // But at initial login, we assume their own DB as the workspace unless joinRequest exists
                   setTransactions(data.transactions || []); 
                   setCategories(data.categories || DEFAULT_CATEGORIES);
                   setWallets(data.wallets || DEFAULT_WALLETS);
@@ -1143,6 +1220,7 @@
                   setLang(data.lang || 'id');
                   setPin(data.pin !== undefined ? data.pin : ''); 
                   setPhotoURL(data.photoURL || googlePhoto);
+                  if (data.themeMode) setThemeMode(data.themeMode);
                   if (data.customTheme) setCustomTheme(data.customTheme);
                   
                   const dt = data.danaTalang ? { total: data.danaTalang.total || 0, paid: data.danaTalang.paid || 0, currency: data.danaTalang.currency || 'IDR' } : { total: 0, paid: 0, currency: 'IDR' };
@@ -1163,15 +1241,16 @@
                   await idb.set('mawuang_pin', data.pin !== undefined ? data.pin : ''); 
                   await idb.set('mawuang_photo', data.photoURL || googlePhoto);
                   await idb.set('mawuang_danatalang', dt);
+                  if (data.themeMode) await idb.set('mawuang_theme_mode', data.themeMode);
                   if (wc) await idb.set('mawuang_widget_config', wc);
                   if (data.customTheme) await idb.set('mawuang_custom_theme', data.customTheme);
 
                   setSyncStatus('success');
                   setTimeout(() => { setAppState((data.pin !== undefined && data.pin !== '') ? 'locked' : 'unlocked'); }, 500);
               } else {
-                  setUsername(googleName); setPhotoURL(googlePhoto); setTransactions([]); setCategories(DEFAULT_CATEGORIES); setWallets(DEFAULT_WALLETS); setPin(''); setDanaTalang({ total: 0, paid: 0, currency: 'IDR' }); setWidgetConfig({ safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR' }); setCustomTheme(DEFAULT_THEME);
+                  setUsername(googleName); setPhotoURL(googlePhoto); setTransactions([]); setCategories(DEFAULT_CATEGORIES); setWallets(DEFAULT_WALLETS); setPin(''); setDanaTalang({ total: 0, paid: 0, currency: 'IDR' }); setWidgetConfig({ safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR' }); setCustomTheme(DEFAULT_THEME); setThemeMode('auto');
                   
-                  await idb.set('mawuang_username', googleName); await idb.set('mawuang_photo', googlePhoto); await idb.set('mawuang_tx', []); await idb.set('mawuang_cat', DEFAULT_CATEGORIES); await idb.set('mawuang_wallets', DEFAULT_WALLETS); await idb.set('mawuang_pin', ''); await idb.set('mawuang_danatalang', { total: 0, paid: 0, currency: 'IDR' }); await idb.set('mawuang_widget_config', { safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR' }); await idb.set('mawuang_custom_theme', DEFAULT_THEME);
+                  await idb.set('mawuang_username', googleName); await idb.set('mawuang_photo', googlePhoto); await idb.set('mawuang_tx', []); await idb.set('mawuang_cat', DEFAULT_CATEGORIES); await idb.set('mawuang_wallets', DEFAULT_WALLETS); await idb.set('mawuang_pin', ''); await idb.set('mawuang_danatalang', { total: 0, paid: 0, currency: 'IDR' }); await idb.set('mawuang_widget_config', { safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR' }); await idb.set('mawuang_custom_theme', DEFAULT_THEME); await idb.set('mawuang_theme_mode', 'auto');
                   
                   setSyncStatus('success');
                   setTimeout(() => { setOnboardingStep(3); }, 500);
@@ -1189,26 +1268,62 @@
 
       const handleLogout = async () => {
           try { if (window.firebaseAuth && window.firebaseSignOut) await window.firebaseSignOut(window.firebaseAuth); } catch (e) { console.warn("Sign out error", e); }
-          await idb.remove('mawuang_firebase_uid'); await idb.remove('mawuang_email'); await idb.remove('mawuang_username'); await idb.remove('mawuang_photo'); await idb.remove('mawuang_pin'); await idb.remove('mawuang_biometric_id'); await idb.remove('mawuang_tx'); await idb.remove('mawuang_cat'); await idb.remove('mawuang_wallets'); await idb.remove('mawuang_danatalang'); await idb.remove('mawuang_widget_config'); await idb.remove('mawuang_custom_theme');
+          await idb.remove('mawuang_firebase_uid'); await idb.remove('mawuang_email'); await idb.remove('mawuang_username'); await idb.remove('mawuang_photo'); await idb.remove('mawuang_pin'); await idb.remove('mawuang_biometric_id'); await idb.remove('mawuang_tx'); await idb.remove('mawuang_cat'); await idb.remove('mawuang_wallets'); await idb.remove('mawuang_danatalang'); await idb.remove('mawuang_widget_config'); await idb.remove('mawuang_custom_theme'); await idb.remove('mawuang_theme_mode'); await idb.remove('mawuang_workspace');
           
-          setFirebaseUid(null); setConnectedEmail(''); setUsername(''); setPhotoURL(''); setTransactions([]); setCategories(DEFAULT_CATEGORIES); setWallets(DEFAULT_WALLETS); setPin(''); setBiometricId(null); setPinInput(''); setSetupPinInput(''); setTempPinStore(''); setPinStepPhase('create'); setPinSetupError(''); setDanaTalang({ total: 0, paid: 0, currency: 'IDR' }); setWidgetConfig({ safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR' }); setCustomTheme(DEFAULT_THEME);
+          setFirebaseUid(null); setActiveWorkspace(null); setConnectedEmail(''); setUsername(''); setPhotoURL(''); setTransactions([]); setCategories(DEFAULT_CATEGORIES); setWallets(DEFAULT_WALLETS); setPin(''); setBiometricId(null); setPinInput(''); setSetupPinInput(''); setTempPinStore(''); setPinStepPhase('create'); setPinSetupError(''); setDanaTalang({ total: 0, paid: 0, currency: 'IDR' }); setWidgetConfig({ safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR' }); setCustomTheme(DEFAULT_THEME); setThemeMode('auto');
           setAppState('onboarding'); setOnboardingStep(1); setSyncStatus('idle');
       };
+
+      const handleShare = async () => {
+          try {
+              if (navigator.share) {
+                  await navigator.share({
+                      title: 'mawuang - Catatan Keuangan',
+                      text: 'Aplikasi pencatat keuangan pintar untuk perantau dengan fitur kurs dan AI. Coba sekarang!',
+                      url: window.location.href,
+                  });
+              } else {
+                  await navigator.clipboard.writeText(window.location.href);
+                  setToastMsg(lang === 'id' ? 'Tautan aplikasi disalin!' : 'リンクをコピーしました！');
+                  setTimeout(() => setToastMsg(''), 2500);
+              }
+          } catch (error) {
+              console.log('Share canceled or failed', error);
+          }
+      };
+
+      const handleSendSupport = () => {
+          if (!supportInput.trim() || isAiTyping) return;
+          const newChat = [...supportChat, { isUser: true, text: supportInput }];
+          setSupportChat(newChat);
+          setSupportInput('');
+          setIsAiTyping(true);
+          
+          setTimeout(() => {
+              setSupportChat([...newChat, { isUser: false, text: t.supportReply }]);
+              setIsAiTyping(false);
+          }, 1500);
+      };
+
+      const isDarkMode = themeMode === 'dark' || (themeMode === 'auto' && systemPrefersDark);
+      const activeTheme = isDarkMode 
+          ? { ...customTheme, bg: '#000000', cardBg: '#1C1C1E', text: '#FFFFFF', border: '#38383A' }
+          : customTheme;
 
       const GlobalStyles = () => (
         <style>{`
           :root {
-            --c-primary: ${customTheme.primary};
-            --c-primary-rgb: ${parseInt(customTheme.primary.slice(1,3),16)}, ${parseInt(customTheme.primary.slice(3,5),16)}, ${parseInt(customTheme.primary.slice(5,7),16)};
-            --c-bg: ${customTheme.bg};
-            --c-card: ${customTheme.cardBg};
-            --c-text: ${customTheme.text};
-            --c-text-muted: color-mix(in srgb, ${customTheme.text} 55%, transparent);
-            --c-border: color-mix(in srgb, ${customTheme.text} 10%, transparent);
-            --c-income: ${customTheme.income};
-            --c-expense: ${customTheme.expense};
+            --c-primary: ${activeTheme.primary};
+            --c-primary-rgb: ${parseInt(activeTheme.primary.slice(1,3),16)}, ${parseInt(activeTheme.primary.slice(3,5),16)}, ${parseInt(activeTheme.primary.slice(5,7),16)};
+            --c-bg: ${activeTheme.bg};
+            --c-card: ${activeTheme.cardBg};
+            --c-text: ${activeTheme.text};
+            --c-text-muted: color-mix(in srgb, ${activeTheme.text} 55%, transparent);
+            --c-border: color-mix(in srgb, ${activeTheme.text} 15%, transparent);
+            --c-income: ${activeTheme.income};
+            --c-expense: ${activeTheme.expense};
           }
-          body { background-color: var(--c-bg); color: var(--c-text); }
+          body { background-color: var(--c-bg); color: var(--c-text); color-scheme: ${isDarkMode ? 'dark' : 'light'}; }
           .app-bg { background-color: var(--c-bg) !important; }
           .card-bg { background-color: var(--c-card) !important; }
           .text-main { color: var(--c-text) !important; }
@@ -1222,6 +1337,27 @@
           .text-expense { color: var(--c-expense) !important; }
           .bg-expense { background-color: var(--c-expense) !important; color: white !important; }
           
+          ${isDarkMode ? `
+          /* Auto Dark Mode Overrides for standard Utility Classes with Better Contrast */
+          .bg-white { background-color: #1C1C1E !important; }
+          .bg-gray-50 { background-color: #242426 !important; }
+          .bg-gray-100 { background-color: #2C2C2E !important; }
+          .bg-gray-200 { background-color: #3A3A3C !important; }
+          
+          .text-gray-400 { color: #A1A1AA !important; }
+          .text-gray-500 { color: #A1A1AA !important; }
+          .text-gray-600 { color: #D4D4D8 !important; }
+          .text-gray-700, .text-gray-800, .text-[#4A4A4A] { color: #F4F4F5 !important; }
+          
+          .border-gray-50, .border-gray-100, .border-gray-200 { border-color: #38383A !important; }
+          
+          .bg-black\\/40 { background-color: rgba(0,0,0,0.7) !important; }
+          .card-bg, .ios-list-group { border: 1px solid #2C2C2E; }
+          
+          input, select, textarea { color: #FFFFFF !important; }
+          input::placeholder { color: #A1A1AA !important; }
+          ` : ''}
+
           /* iOS specific resets */
           button, input, select, textarea { font-family: inherit; }
           input[type="color"] { -webkit-appearance: none; border: none; width: 36px; height: 36px; border-radius: 50%; padding: 0; background-color: transparent; cursor: pointer; }
@@ -1329,7 +1465,7 @@
                           {onboardingStep === 3 && (
                               <div className="flex flex-col h-full items-center justify-center w-full animate-slide-up">
                                   <div className="mb-8 relative">
-                                      {photoURL ? ( <img src={photoURL} className="w-24 h-24 rounded-full object-cover border border-gray-200 mx-auto" /> ) : ( <div className="w-24 h-24 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center mx-auto"><User size={40} /></div> )}
+                                      {photoURL ? ( <img src={photoURL} className="w-24 h-24 rounded-full object-cover border border-gray-200 mx-auto" /> ) : ( <div className="w-24 h-24 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center mx-auto"><UserIcon size={40} /></div> )}
                                       <label className="absolute bottom-0 right-0 bg-[#007AFF] text-white p-2 rounded-full cursor-pointer shadow-sm active:scale-95 transition-all">
                                           <Camera size={16} />
                                           <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files[0]; if(file) compressImage(file, setPhotoURL); }} />
@@ -1442,7 +1578,7 @@
                     <div className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 ${displayCurrency === 'IDR' ? 'bg-white text-main shadow-sm' : 'text-muted'}`}>IDR</div>
                     <div className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 ${displayCurrency === 'JPY' ? 'bg-white text-main shadow-sm' : 'text-muted'}`}>JPY</div>
                  </div>
-                 {photoURL ? ( <img src={photoURL} className="w-9 h-9 rounded-full object-cover shadow-sm border border-gray-200" /> ) : ( <div className="w-9 h-9 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center"><User size={18} /></div> )}
+                 {photoURL ? ( <img src={photoURL} className="w-9 h-9 rounded-full object-cover shadow-sm border border-gray-200" /> ) : ( <div className="w-9 h-9 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center"><UserIcon size={18} /></div> )}
               </div>
             </div>
 
@@ -1490,7 +1626,7 @@
 
             {/* FINANCIAL NEWS ACCORDION */}
             <div className="ios-list-group shadow-sm border border-gray-100 mb-6">
-              <button onClick={() => setNewsExpanded(!newsExpanded)} className="w-full p-4 flex items-center justify-between bg-white active:bg-gray-50 transition-colors">
+              <button onClick={() => setNewsExpanded(!newsExpanded)} className="w-full p-4 flex items-center justify-between bg-transparent active:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-blue-100 text-blue-500 rounded-lg"><Newspaper size={18} /></div>
                   <span className="text-sm font-semibold text-main">{t.newsTitle}</span>
@@ -1498,7 +1634,7 @@
                 {newsExpanded ? <ChevronUp size={20} className="text-gray-400" /> : <ChevronDown size={20} className="text-gray-400" />}
               </button>
               {newsExpanded && (
-                <div className="p-4 pt-0 space-y-3 bg-white border-t border-gray-100">
+                <div className="p-4 pt-0 space-y-3 bg-transparent border-t border-gray-100">
                   {newsLoading ? (
                     <div className="py-6 text-center text-xs text-gray-400 flex items-center justify-center gap-2"><div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>Memuat berita...</div>
                   ) : newsList.length === 0 ? (
@@ -1524,8 +1660,8 @@
             <h3 className="text-lg font-bold text-main mb-3 ml-2">{t.recent}</h3>
             {transactions.length === 0 ? (
               <div className="text-center py-10 card-bg rounded-2xl border border-gray-100 border-dashed shadow-sm">
-                <EmptyCoinYen className="mx-auto text-gray-300 mb-3" size={48} />
-                <p className="text-gray-400 text-sm">{t.noTransactions}</p>
+                <EmptyCoinYen className="mx-auto text-gray-400 mb-3" size={48} />
+                <p className="text-gray-500 text-sm">{t.noTransactions}</p>
               </div>
             ) : (
               <div className="ios-list-group shadow-sm border border-gray-100">
@@ -1540,7 +1676,17 @@
                         </div>
                         <div className="overflow-hidden">
                           <p className="font-semibold text-main text-sm truncate">{getCatName(cat) || 'Unknown'}</p>
-                          <p className="text-[11px] text-gray-400 truncate">{new Date(tx.date).toLocaleDateString()} • {getWalletName(tx.walletId)}</p>
+                          <div className="flex items-center gap-1 text-[11px] text-gray-400 truncate">
+                              <span>{new Date(tx.date).toLocaleDateString()}</span>
+                              <span>•</span>
+                              <span>{getWalletName(tx.walletId)}</span>
+                              {tx.createdBy && tx.createdBy !== username && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="bg-gray-100 px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-500 truncate max-w-[60px]">{tx.createdBy}</span>
+                                  </>
+                              )}
+                          </div>
                         </div>
                       </div>
                       <div className="flex flex-col items-end flex-shrink-0 pl-2">
@@ -1661,7 +1807,7 @@
                      </div>
                   </div>
                ) : (
-                  <p className="text-xs text-gray-400">{lang === 'id' ? 'Catat dan pantau sisa hutang dana talang LPK Anda di sini.' : 'ここで立替金の残高を記録・追跡します。'}</p>
+                  <p className="text-xs text-gray-500">{lang === 'id' ? 'Catat dan pantau sisa hutang dana talang LPK Anda di sini.' : 'ここで立替金の残高を記録・追跡します。'}</p>
                )}
             </div>
 
@@ -1690,12 +1836,12 @@
             </div>
             {reportPeriod === 'custom' && (
               <div className="flex gap-3 mb-4">
-                <div className="flex-1 bg-white rounded-[10px] p-2 border border-gray-100">
-                  <label className="block text-[9px] text-gray-400 uppercase font-semibold mb-1">{t.startDate}</label>
+                <div className="flex-1 bg-gray-50 rounded-[10px] p-2 border border-gray-100">
+                  <label className="block text-[9px] text-gray-500 uppercase font-semibold mb-1">{t.startDate}</label>
                   <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="w-full text-xs text-main bg-transparent outline-none"/>
                 </div>
-                <div className="flex-1 bg-white rounded-[10px] p-2 border border-gray-100">
-                  <label className="block text-[9px] text-gray-400 uppercase font-semibold mb-1">{t.endDate}</label>
+                <div className="flex-1 bg-gray-50 rounded-[10px] p-2 border border-gray-100">
+                  <label className="block text-[9px] text-gray-500 uppercase font-semibold mb-1">{t.endDate}</label>
                   <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="w-full text-xs text-main bg-transparent outline-none"/>
                 </div>
               </div>
@@ -1731,14 +1877,14 @@
                     ))}
                   </div>
                 </div>
-              ) : ( <p className="text-xs text-gray-400 text-center py-4">{t.noTransactions}</p> )}
+              ) : ( <p className="text-xs text-gray-500 text-center py-4">{t.noTransactions}</p> )}
             </div>
 
             {/* Details List */}
             <h3 className="font-bold text-main mb-3 ml-2 text-sm">{t.transactionDetails}</h3>
             {filteredTx.length === 0 ? (
               <div className="text-center py-8 card-bg rounded-[20px] border border-gray-100 border-dashed shadow-sm">
-                <p className="text-gray-400 text-xs">{t.noTransactions}</p>
+                <p className="text-gray-500 text-xs">{t.noTransactions}</p>
               </div>
             ) : (
               <div className="ios-list-group shadow-sm border border-gray-100">
@@ -1753,7 +1899,17 @@
                         </div>
                         <div className="overflow-hidden">
                           <p className="font-semibold text-main text-sm truncate">{getCatName(cat) || 'Unknown'}</p>
-                          <p className="text-[11px] text-gray-400 truncate">{new Date(tx.date).toLocaleDateString()} • {getWalletName(tx.walletId)}</p>
+                          <div className="flex items-center gap-1 text-[11px] text-gray-400 truncate">
+                              <span>{new Date(tx.date).toLocaleDateString()}</span>
+                              <span>•</span>
+                              <span>{getWalletName(tx.walletId)}</span>
+                              {tx.createdBy && tx.createdBy !== username && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="bg-gray-100 px-1.5 py-0.5 rounded text-[9px] font-bold text-gray-500 truncate max-w-[60px]">{tx.createdBy}</span>
+                                  </>
+                              )}
+                          </div>
                         </div>
                       </div>
                       <div className="flex flex-col items-end flex-shrink-0 pl-2">
@@ -1776,7 +1932,7 @@
           {/* Categories */}
           <div className="mb-8">
             <div className="ios-list-group shadow-sm border border-gray-100">
-              <div className="p-4 bg-white border-b border-gray-100">
+              <div className="p-4 bg-transparent border-b border-gray-100">
                 <h3 className="font-bold text-main text-sm mb-3">{t.addCategory}</h3>
                 <div className="flex flex-col gap-3">
                   <input type="text" placeholder={t.categoryName} value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className="w-full bg-gray-100 rounded-xl px-3 py-2.5 text-main text-sm outline-none"/>
@@ -1819,7 +1975,7 @@
           {/* Wallets */}
           <div>
             <div className="ios-list-group shadow-sm border border-gray-100">
-              <div className="p-4 bg-white border-b border-gray-100">
+              <div className="p-4 bg-transparent border-b border-gray-100">
                 <h3 className="font-bold text-main text-sm mb-3">{t.addWallet}</h3>
                 <div className="flex gap-2">
                   <input type="text" placeholder={t.walletName} value={newWalletName} onChange={(e) => setNewWalletName(e.target.value)} className="flex-1 bg-gray-100 rounded-xl px-3 py-2.5 text-main text-sm outline-none"/>
@@ -1859,9 +2015,9 @@
           
           {/* Profile Group */}
           <div className="ios-list-group shadow-sm border border-gray-100 mb-6">
-            <div className="p-4 flex items-center justify-between bg-white">
+            <div className="p-4 flex items-center justify-between bg-transparent">
                <div className="flex items-center gap-4 overflow-hidden">
-                   {photoURL ? ( <img src={photoURL} className="w-14 h-14 rounded-full object-cover border border-gray-200 flex-shrink-0" /> ) : ( <div className="w-14 h-14 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center flex-shrink-0"><User size={28} /></div> )}
+                   {photoURL ? ( <img src={photoURL} className="w-14 h-14 rounded-full object-cover border border-gray-200 flex-shrink-0" /> ) : ( <div className="w-14 h-14 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center flex-shrink-0"><UserIcon size={28} /></div> )}
                    <div className="overflow-hidden">
                        <p className="text-lg font-bold text-main truncate">{username || 'Pengguna'}</p>
                        <p className="text-xs text-gray-500 truncate">{connectedEmail || 'Guest Mode'}</p>
@@ -1870,9 +2026,57 @@
                <button onClick={() => { setProfileFormData({username, photoURL}); setIsProfileModalOpen(true); }} className="p-2 text-theme active:opacity-70"><Edit2 size={20} /></button>
             </div>
           </div>
+
+          {/* Family Mode Group */}
+          <div className="ios-list-group shadow-sm border border-gray-100 mb-6">
+            <div className="p-4 bg-transparent border-b border-gray-100">
+                <div className="flex items-center gap-3 w-full mb-1">
+                    <div className="p-1.5 bg-pink-100 text-pink-500 rounded-md"><UsersIcon size={18}/></div>
+                    <span className="text-sm font-medium text-main">{t.familyMode}</span>
+                </div>
+                <p className="text-[11px] text-gray-500 ml-9 mb-4">Catat pengeluaran bersama pasangan atau keluarga secara real-time.</p>
+                
+                {activeWorkspace && activeWorkspace !== firebaseUid ? (
+                    <div className="ml-9">
+                        <div className="bg-green-50 text-green-600 px-3 py-2 rounded-lg text-xs font-semibold mb-3 border border-green-100">
+                            {t.sharedWith} Workspace ID: {activeWorkspace.slice(0,5)}...
+                        </div>
+                        <button onClick={async () => {
+                            setActiveWorkspace(null);
+                            await idb.remove('mawuang_workspace');
+                            setToastMsg(t.leaveGroup);
+                            setTimeout(()=>setToastMsg(''), 2500);
+                        }} className="bg-red-50 text-red-500 px-4 py-2 rounded-xl text-xs font-bold w-full active:scale-95">{t.leaveGroup}</button>
+                    </div>
+                ) : (
+                    <div className="ml-9">
+                        <button onClick={() => {
+                            const link = `${window.location.origin}${window.location.pathname}?join=${firebaseUid}&name=${encodeURIComponent(username)}`;
+                            const waText = `Halo! Yuk catat pengeluaran bareng di aplikasi mawuang. Klik link ini untuk gabung ke ruang bersamaku:\n\n${link}`;
+                            window.open(`https://wa.me/?text=${encodeURIComponent(waText)}`, '_blank');
+                        }} className="bg-[#25D366] text-white px-4 py-2.5 rounded-xl text-xs font-bold w-full flex items-center justify-center gap-2 shadow-sm active:scale-95 transition-transform">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                            {t.invitePartner}
+                        </button>
+                    </div>
+                )}
+            </div>
+          </div>
           
           {/* Theme & Display Group */}
           <div className="ios-list-group shadow-sm border border-gray-100 mb-6">
+            <div className="p-4 bg-transparent border-b border-gray-100">
+                <div className="flex items-center gap-3 w-full mb-3">
+                    <div className="p-1.5 bg-indigo-100 text-indigo-500 rounded-md"><Sun size={18}/></div>
+                    <span className="text-sm font-medium text-main">{t.themeMode}</span>
+                </div>
+                <div className="flex bg-gray-100 p-1 rounded-xl w-full">
+                    <button onClick={() => { setThemeMode('light'); pushToCloud({ themeMode: 'light' }); }} className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${themeMode === 'light' ? 'bg-white text-main shadow-sm' : 'text-gray-500'}`}>{t.themeLight}</button>
+                    <button onClick={() => { setThemeMode('dark'); pushToCloud({ themeMode: 'dark' }); }} className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${themeMode === 'dark' ? 'bg-white text-main shadow-sm' : 'text-gray-500'}`}>{t.themeDark}</button>
+                    <button onClick={() => { setThemeMode('auto'); pushToCloud({ themeMode: 'auto' }); }} className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${themeMode === 'auto' ? 'bg-white text-main shadow-sm' : 'text-gray-500'}`}>{t.themeAuto}</button>
+                </div>
+            </div>
+
             <button onClick={() => setThemeExpanded(!themeExpanded)} className="w-full ios-list-item active:bg-gray-50 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="p-1.5 bg-purple-100 text-purple-500 rounded-md"><ImageIcon size={18}/></div>
@@ -1972,9 +2176,23 @@
               </div>
               <p className="text-xs text-gray-500 leading-relaxed">{t.aboutAppDesc}</p>
             </div>
+            
+            <button onClick={() => setIsSupportModalOpen(true)} className="w-full ios-list-item active:bg-gray-50 border-t border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 bg-teal-100 text-teal-600 rounded-md"><Bot size={18}/></div>
+                <span className="text-sm font-medium text-main">{t.support}</span>
+              </div>
+            </button>
+            
+            <button onClick={handleShare} className="w-full ios-list-item active:bg-gray-50 border-t border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 bg-blue-100 text-blue-600 rounded-md"><Share2 size={18}/></div>
+                <span className="text-sm font-medium text-main">{t.shareApp}</span>
+              </div>
+            </button>
           </div>
           
-          <button onClick={handleLogout} className="w-full bg-white text-red-500 py-3 rounded-xl font-bold border border-red-100 mb-6 active:bg-red-50 text-sm">
+          <button onClick={handleLogout} className="w-full bg-transparent text-red-500 py-3 rounded-xl font-bold border border-red-500/20 mb-6 active:bg-red-50 text-sm">
             {t.logout}
           </button>
         </div>
@@ -1996,7 +2214,7 @@
             <div className="fixed bottom-0 w-full max-w-2xl bg-white/70 backdrop-blur-2xl border-t border-gray-200/60 pb-safe pt-2 px-6 flex justify-between items-center z-40 pb-6 md:pb-4">
                 <NavButton tab="home" icon={Home} label={t.home} />
                 <NavButton tab="report" icon={BarChart2} label={t.report} />
-                <button onClick={() => setIsSmartInputOpen(true)} className="flex items-center justify-center p-3.5 -mt-6 bg-theme text-white rounded-full shadow-lg active:scale-95 transition-transform border-4 border-[#F2F2F7]">
+                <button onClick={() => setIsSmartInputOpen(true)} className="flex items-center justify-center p-3.5 -mt-6 bg-theme text-white rounded-full shadow-lg active:scale-95 transition-transform border-4 border-transparent ring-4 ring-[#F2F2F7]">
                   <Mic size={22} strokeWidth={2} />
                 </button>
                 <NavButton tab="categories" icon={Tags} label={t.categories} />
@@ -2004,6 +2222,32 @@
             </div>
 
             {/* MODALS */}
+
+            {/* Family / Join Request Modal */}
+            {joinRequest && appState === 'unlocked' && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="bg-white rounded-[32px] p-6 max-w-sm w-full text-center shadow-2xl animate-slide-up">
+                        <div className="w-16 h-16 bg-pink-50 text-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <UsersIcon size={32} />
+                        </div>
+                        <h3 className="text-xl font-bold text-main mb-2">Undangan Kolaborasi</h3>
+                        <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+                            <strong>{joinRequest.name}</strong> {t.joinPrompt}
+                        </p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setJoinRequest(null)} className="flex-1 bg-gray-100 text-main py-3.5 rounded-xl font-bold">{t.decline}</button>
+                            <button onClick={async () => {
+                                setActiveWorkspace(joinRequest.id);
+                                await idb.set('mawuang_workspace', joinRequest.id);
+                                setJoinRequest(null);
+                                setToastMsg('Berhasil bergabung ke Ruang Bersama!');
+                                setTimeout(() => setToastMsg(''), 2500);
+                            }} className="flex-1 bg-theme text-white py-3.5 rounded-xl font-bold">{t.accept}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Smart Input Modal */}
             {isSmartInputOpen && (
               <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/40 backdrop-blur-sm p-0 animate-fade-in" onClick={() => setIsSmartInputOpen(false)}>
@@ -2012,7 +2256,7 @@
                     <button onClick={() => setIsSmartInputOpen(false)} className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full text-gray-500"><X size={18}/></button>
                     <h2 className="text-xl font-bold mb-1 text-main text-center">{t.smartInputTitle}</h2>
                     <p className="text-xs text-gray-500 mb-6 text-center">{t.smartInputPlaceholder}</p>
-                    <div className="flex bg-gray-100 rounded-2xl p-2 items-center mb-6 focus-within:bg-white focus-within:ring-2 ring-theme transition-all">
+                    <div className="flex bg-gray-100 rounded-2xl p-2 items-center mb-6 focus-within:bg-gray-200 transition-all">
                         <button onClick={toggleListen} className={`p-3 rounded-xl transition-all ${isListening ? 'bg-red-100 text-red-500 animate-pulse' : 'text-gray-400 hover:text-theme'}`}><Mic size={20} /></button>
                         <input type="text" value={smartText} onChange={e => setSmartText(e.target.value)} placeholder={lang === 'id' ? "makan 25k, atau dapat 1 jt..." : "昼ごはん 500円..."} className="flex-1 bg-transparent border-none outline-none px-3 text-main text-sm font-medium" onKeyDown={e => e.key === 'Enter' && handleSmartSubmit()} autoFocus />
                         <button onClick={handleSmartSubmit} className="p-3 bg-theme text-white rounded-xl active:scale-95"><Send size={18} /></button>
@@ -2031,7 +2275,7 @@
                       <h2 className="text-xl font-bold mb-6 text-main text-center">{t.editProfile}</h2>
                       <div className="flex justify-center mb-6">
                           <div className="relative">
-                              {profileFormData.photoURL ? ( <img src={profileFormData.photoURL} className="w-24 h-24 rounded-full object-cover border border-gray-200" /> ) : ( <div className="w-24 h-24 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center"><User size={32} /></div> )}
+                              {profileFormData.photoURL ? ( <img src={profileFormData.photoURL} className="w-24 h-24 rounded-full object-cover border border-gray-200" /> ) : ( <div className="w-24 h-24 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center"><UserIcon size={32} /></div> )}
                               <label className="absolute bottom-0 right-0 bg-theme text-white p-2.5 rounded-full cursor-pointer shadow-sm"><Camera size={14} /><input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files[0]; if(file) compressImage(file, (data) => setProfileFormData({...profileFormData, photoURL: data})); }} /></label>
                           </div>
                       </div>
@@ -2095,7 +2339,7 @@
                               <button onClick={() => setWidgetConfig({...widgetConfig, safeBg: null})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"><X size={12} /></button>
                             </div>
                           ) : (
-                            <label className="w-full h-24 bg-green-50 rounded-xl flex flex-col items-center justify-center text-green-500 cursor-pointer">
+                            <label className="w-full h-24 bg-green-50/50 rounded-xl flex flex-col items-center justify-center text-green-500 cursor-pointer">
                                <ImageIcon size={20} className="mb-1" /> <span className="text-[10px] font-bold uppercase">Upload</span>
                                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files[0]; if(file) compressImage(file, (data) => setWidgetConfig({...widgetConfig, safeBg: data})); }} />
                             </label>
@@ -2110,7 +2354,7 @@
                               <button onClick={() => setWidgetConfig({...widgetConfig, dangerBg: null})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"><X size={12} /></button>
                             </div>
                           ) : (
-                            <label className="w-full h-24 bg-red-50 rounded-xl flex flex-col items-center justify-center text-red-500 cursor-pointer">
+                            <label className="w-full h-24 bg-red-50/50 rounded-xl flex flex-col items-center justify-center text-red-500 cursor-pointer">
                                <AlertTriangle size={20} className="mb-1" /> <span className="text-[10px] font-bold uppercase">Upload</span>
                                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files[0]; if(file) compressImage(file, (data) => setWidgetConfig({...widgetConfig, dangerBg: data})); }} />
                             </label>
@@ -2181,7 +2425,7 @@
                           <button onClick={() => setTxFormData({...txFormData, photo: ''})} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"><X size={12} /></button>
                         </div>
                       ) : (
-                        <label className="flex items-center justify-center gap-2 w-full bg-gray-50 border border-gray-200 border-dashed rounded-xl p-4 text-gray-500 cursor-pointer">
+                        <label className="flex items-center justify-center gap-2 w-full bg-gray-50/50 border border-gray-200 border-dashed rounded-xl p-4 text-gray-500 cursor-pointer">
                           <ImageIcon size={18} /> <span className="text-xs font-medium">{t.addPhoto}</span>
                           <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                         </label>
@@ -2308,12 +2552,13 @@
                       <p className="text-xs text-gray-500 font-medium">{new Date(selectedTx.date).toLocaleDateString(lang === 'id' ? 'id-ID' : 'ja-JP', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
                     </div>
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-2xl space-y-3 mb-6 text-sm">
+                  <div className="bg-gray-50/50 p-4 rounded-2xl space-y-3 mb-6 text-sm">
                      <div className="flex justify-between items-center border-b border-gray-200/60 pb-2"><span className="text-gray-500 font-medium">{t.amount}</span><span className={`font-bold ${selectedTx.type === 'income' ? 'text-green-600' : 'text-main'}`}>{formatCurrency(selectedTx.amount, selectedTx.currency || 'IDR')}</span></div>
                      <div className="flex justify-between items-center border-b border-gray-200/60 pb-2"><span className="text-gray-500 font-medium">{t.categories}</span><span className="font-medium text-main">{getCatName(categories.find(c => c.id === selectedTx.categoryId)) || '-'}</span></div>
                      <div className="flex justify-between items-center border-b border-gray-200/60 pb-2"><span className="text-gray-500 font-medium">{t.wallets}</span><span className="font-medium text-main">{getWalletName(selectedTx.walletId)}</span></div>
                      <div className="flex justify-between items-center border-b border-gray-200/60 pb-2"><span className="text-gray-500 font-medium">{t.dateTime}</span><span className="font-medium text-main">{new Date(selectedTx.date).toLocaleTimeString(lang === 'id' ? 'id-ID' : 'ja-JP', { hour: '2-digit', minute: '2-digit' })}</span></div>
                      <div className="flex flex-col gap-1"><span className="text-gray-500 font-medium">{t.note}</span><span className="font-medium text-main italic">"{selectedTx.note || '-'}"</span></div>
+                     <div className="flex justify-between items-center pt-2"><span className="text-gray-500 font-medium">{t.createdBy}</span><span className="font-medium text-main">{selectedTx.createdBy || '-'}</span></div>
                   </div>
                   {selectedTx.photo && (
                     <div className="mb-6"><span className="text-xs text-gray-500 font-medium mb-2 block">Foto / Struk</span><img src={selectedTx.photo} onClick={() => setPreviewImage(selectedTx.photo)} className="w-full h-40 object-cover rounded-2xl" alt="Attachment" /></div>
@@ -2331,6 +2576,62 @@
               <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 animate-fade-in" onClick={() => setPreviewImage(null)}>
                 <button className="absolute top-6 right-6 p-3 bg-white/20 rounded-full text-white"><X size={24} /></button>
                 <img src={previewImage} onClick={e => e.stopPropagation()} className="max-w-full max-h-[85vh] object-contain rounded-2xl animate-slide-up" alt="Preview" />
+              </div>
+            )}
+            
+            {/* Customer Support Modal */}
+            {isSupportModalOpen && (
+              <div className="fixed inset-0 z-[120] flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-0 md:p-4">
+                 <div className="bg-white w-full max-w-md rounded-t-[32px] md:rounded-[32px] p-5 pb-safe animate-slide-up shadow-2xl relative h-[85vh] md:h-[600px] flex flex-col mx-auto">
+                    <button onClick={() => setIsSupportModalOpen(false)} className="absolute top-5 right-5 p-2 bg-gray-100 rounded-full text-gray-500 hover:text-gray-700 z-10"><X size={18}/></button>
+                    
+                    <div className="flex items-center gap-3 mb-4 mt-2">
+                       <div className="p-3 bg-teal-100 text-teal-600 rounded-2xl"><Bot size={24}/></div>
+                       <div>
+                         <h3 className="font-bold text-lg text-main">Customer Support</h3>
+                         <p className="text-xs text-teal-600 font-medium">AI Agent Online</p>
+                       </div>
+                    </div>
+                    
+                    <div className="flex-1 bg-gray-100 rounded-[24px] p-4 overflow-y-auto hide-scrollbar space-y-4 mb-4 flex flex-col">
+                       <div className="flex items-end gap-2 max-w-[85%]">
+                          <div className="w-8 h-8 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center flex-shrink-0"><Bot size={16}/></div>
+                          <div className="bg-white p-3 rounded-2xl rounded-bl-sm shadow-sm text-sm text-main">{t.supportWelcome}</div>
+                       </div>
+                       
+                       {supportChat.map((chat, idx) => (
+                          <div key={idx} className={`flex items-end gap-2 max-w-[85%] ${chat.isUser ? 'self-end flex-row-reverse' : ''}`}>
+                             {!chat.isUser && <div className="w-8 h-8 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center flex-shrink-0"><Bot size={16}/></div>}
+                             <div className={`p-3 rounded-2xl shadow-sm text-sm ${chat.isUser ? 'bg-theme text-white rounded-br-sm' : 'bg-white text-main rounded-bl-sm'}`}>
+                                {chat.text}
+                             </div>
+                          </div>
+                       ))}
+                       
+                       {isAiTyping && (
+                          <div className="flex items-end gap-2 max-w-[85%]">
+                            <div className="w-8 h-8 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center flex-shrink-0"><Bot size={16}/></div>
+                            <div className="bg-white p-4 rounded-2xl rounded-bl-sm shadow-sm flex items-center gap-1.5">
+                               <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce"></div>
+                               <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                               <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                            </div>
+                          </div>
+                       )}
+                       
+                       {/* Trigger fallback to email if chat has user messages */}
+                       {supportChat.some(c => c.isUser) && !isAiTyping && (
+                         <div className="flex justify-center mt-6 mb-2 animate-fade-in">
+                            <a href="mailto:ricky30chandra@gmail.com?subject=Bantuan Aplikasi mawuang" className="bg-white border border-gray-200 shadow-sm text-main px-4 py-2.5 rounded-full text-xs font-bold flex items-center gap-2 active:scale-95 transition-transform"><MessageCircle size={16} className="text-teal-600"/> {t.sendEmail}</a>
+                         </div>
+                       )}
+                    </div>
+
+                    <div className="flex gap-2 relative z-10 bg-white pt-2 mb-2">
+                       <input type="text" value={supportInput} onChange={e => setSupportInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendSupport()} placeholder="Ketik pesan..." className="flex-1 bg-gray-100 border-none rounded-2xl px-4 py-3 text-sm text-main outline-none focus:ring-2 focus:ring-teal-500 transition-all"/>
+                       <button onClick={handleSendSupport} disabled={!supportInput.trim() || isAiTyping} className="bg-teal-500 text-white p-3 rounded-2xl active:scale-95 transition-transform disabled:opacity-50 flex items-center justify-center"><Send size={18}/></button>
+                    </div>
+                 </div>
               </div>
             )}
             
