@@ -76,7 +76,7 @@
     .ios-switch input:checked + .ios-slider:before { transform: translateX(20px); }
   </style>
 </head>
-<body class="bg-[#F2F2F7]">
+<body class="app-bg">
   <div id="root"></div>
 
   <script type="text/babel">
@@ -92,7 +92,7 @@
       render() {
         if (this.state.hasError) {
           return (
-            <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center p-6">
+            <div className="min-h-screen app-bg flex items-center justify-center p-6">
               <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md w-full text-center">
                 <div className="w-20 h-20 bg-red-50 text-red-400 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold">!</div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-3">Terjadi Kendala Sistem</h2>
@@ -111,7 +111,7 @@
       init: async () => {
         if (idb.db) return idb.db;
         return new Promise((resolve, reject) => {
-          const req = indexedDB.open('mawuang_db', 15);
+          const req = indexedDB.open('mawuang_db', 16);
           req.onupgradeneeded = (e) => { 
               if(!e.target.result.objectStoreNames.contains('store')) {
                  e.target.result.createObjectStore('store'); 
@@ -189,6 +189,7 @@
     const ExternalLink = (p) => <Icon {...p} path='<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>' />;
     const AlertTriangle = (p) => <Icon {...p} path='<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>' />;
     const Settings2 = (p) => <Icon {...p} path='<path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/>' />;
+    const Crown = (p) => <Icon {...p} path='<polygon points="2 12 7 2 12 12 17 2 22 12 20 22 4 22"/><path d="M4 22h16"/>' />;
 
     const GoogleLogo = () => (
         <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
@@ -337,9 +338,12 @@
       const [connectedEmail, setConnectedEmail] = useState('');
       const [firebaseUid, setFirebaseUid] = useState(null);
       
-      // State for Shared Workspace (Family / Couple Mode)
       const [activeWorkspace, setActiveWorkspace] = useState(null);
       const [joinRequest, setJoinRequest] = useState(null);
+
+      // --- PRO SUBSCRIPTION STATE ---
+      const [isPro, setIsPro] = useState(false);
+      const [createdAt, setCreatedAt] = useState(null);
 
       const [lang, setLang] = useState('id');
       const [displayCurrency, setDisplayCurrency] = useState('IDR');
@@ -422,7 +426,6 @@
 
       const t = dict[lang];
 
-      // Handle URL Invitation Request
       useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const join = urlParams.get('join');
@@ -516,10 +519,6 @@
           try {
               if (window.firebaseDb && window.firebaseSetDoc && window.firebaseDoc) {
                   const appId = typeof __app_id !== 'undefined' ? __app_id : 'mawuang';
-                  
-                  // If we are in a workspace, we write the shared data to the workspace owner's doc
-                  // and personal data (like theme, pin, username) to our own doc.
-                  // For simplicity in this logic, we will write to the active workspace.
                   const targetUid = activeWorkspace || firebaseUid;
                   const ref = window.firebaseDoc(window.firebaseDb, 'artifacts', appId, 'users', targetUid);
                   
@@ -540,7 +539,6 @@
           }
       };
 
-      // Listener Firestore: Dengarkan perubahan pada Workspace aktif (jika ada) atau milik sendiri
       useEffect(() => {
           if (!firebaseUid || !window.firebaseOnSnapshot || !window.firebaseDb) return;
           
@@ -552,7 +550,6 @@
               if (docSnap.exists()) {
                   const data = docSnap.data();
                   
-                  // Hanya memperbarui state bersama (Shared State) jika dari workspace orang lain
                   setTransactions(data.transactions || []);
                   setCategories(data.categories || DEFAULT_CATEGORIES);
                   setWallets(data.wallets || DEFAULT_WALLETS);
@@ -560,19 +557,19 @@
                   const dt = data.danaTalang ? { total: data.danaTalang.total || 0, paid: data.danaTalang.paid || 0, currency: data.danaTalang.currency || 'IDR' } : { total: 0, paid: 0, currency: 'IDR' };
                   setDanaTalang(dt);
 
-                  // Update Local IndexedDB
                   idb.set('mawuang_tx', data.transactions || []);
                   idb.set('mawuang_cat', data.categories || DEFAULT_CATEGORIES);
                   idb.set('mawuang_wallets', data.wallets || DEFAULT_WALLETS);
                   idb.set('mawuang_danatalang', dt);
 
-                  // Update Personal State (Hanya diproses jika ini UID kita sendiri, agar tidak menimpa profile dengan data partner)
                   if (!activeWorkspace || activeWorkspace === firebaseUid) {
                       if (data.username) setUsername(data.username);
                       if (data.photoURL) setPhotoURL(data.photoURL);
                       if (data.pin !== undefined) setPin(data.pin);
                       if (data.themeMode) setThemeMode(data.themeMode);
                       if (data.customTheme) setCustomTheme(data.customTheme);
+                      if (data.isPro !== undefined) setIsPro(data.isPro);
+                      if (data.createdAt) setCreatedAt(data.createdAt);
                       
                       let wc = data.widgetConfig;
                       if (!wc && data.widgetBg) wc = { safeBg: data.widgetBg, dangerBg: null, limit: 0, limitCurrency: 'IDR' }; 
@@ -587,6 +584,8 @@
                       if (data.themeMode) idb.set('mawuang_theme_mode', data.themeMode);
                       if (wc) idb.set('mawuang_widget_config', wc);
                       if (data.customTheme) idb.set('mawuang_custom_theme', data.customTheme);
+                      if (data.isPro !== undefined) idb.set('mawuang_is_pro', data.isPro);
+                      if (data.createdAt) idb.set('mawuang_created_at', data.createdAt);
                   }
               }
           });
@@ -608,6 +607,14 @@
             const savedThemeMode = await idb.get('mawuang_theme_mode');
             const savedDanaTalang = await idb.get('mawuang_danatalang');
             const savedCustomTheme = await idb.get('mawuang_custom_theme');
+            
+            const savedIsPro = await idb.get('mawuang_is_pro');
+            let savedCreatedAt = await idb.get('mawuang_created_at');
+            
+            if (!savedCreatedAt && (savedUser || savedEmail)) {
+                savedCreatedAt = new Date().toISOString();
+                await idb.set('mawuang_created_at', savedCreatedAt);
+            }
             
             let savedWidgetConfig = await idb.get('mawuang_widget_config');
             if(!savedWidgetConfig) {
@@ -634,6 +641,9 @@
             if (savedWidgetConfig) setWidgetConfig(savedWidgetConfig);
             if (savedDanaTalang) setDanaTalang({ total: savedDanaTalang.total || 0, paid: savedDanaTalang.paid || 0, currency: savedDanaTalang.currency || 'IDR' });
             
+            if (savedCreatedAt) setCreatedAt(savedCreatedAt);
+            if (savedIsPro !== undefined) setIsPro(!!savedIsPro);
+
             setTransactions(savedTx);
             setCategories(savedCat);
             setWallets(savedWallets);
@@ -1201,7 +1211,6 @@
               await idb.set('mawuang_firebase_uid', uid); await idb.set('mawuang_email', email);
 
               const appId = typeof __app_id !== 'undefined' ? __app_id : 'mawuang';
-              // Check user's own profile to see if they have data
               const docRef = window.firebaseDoc(window.firebaseDb, 'artifacts', appId, 'users', uid);
               
               const docSnap = await Promise.race([
@@ -1211,8 +1220,6 @@
 
               if (docSnap && docSnap.exists()) {
                   const data = docSnap.data();
-                  // We only load personal settings from here if we have an active workspace.
-                  // But at initial login, we assume their own DB as the workspace unless joinRequest exists
                   setTransactions(data.transactions || []); 
                   setCategories(data.categories || DEFAULT_CATEGORIES);
                   setWallets(data.wallets || DEFAULT_WALLETS);
@@ -1222,6 +1229,8 @@
                   setPhotoURL(data.photoURL || googlePhoto);
                   if (data.themeMode) setThemeMode(data.themeMode);
                   if (data.customTheme) setCustomTheme(data.customTheme);
+                  if (data.isPro !== undefined) setIsPro(data.isPro);
+                  if (data.createdAt) setCreatedAt(data.createdAt);
                   
                   const dt = data.danaTalang ? { total: data.danaTalang.total || 0, paid: data.danaTalang.paid || 0, currency: data.danaTalang.currency || 'IDR' } : { total: 0, paid: 0, currency: 'IDR' };
                   setDanaTalang(dt);
@@ -1244,13 +1253,18 @@
                   if (data.themeMode) await idb.set('mawuang_theme_mode', data.themeMode);
                   if (wc) await idb.set('mawuang_widget_config', wc);
                   if (data.customTheme) await idb.set('mawuang_custom_theme', data.customTheme);
+                  if (data.isPro !== undefined) await idb.set('mawuang_is_pro', data.isPro);
+                  if (data.createdAt) await idb.set('mawuang_created_at', data.createdAt);
 
                   setSyncStatus('success');
                   setTimeout(() => { setAppState((data.pin !== undefined && data.pin !== '') ? 'locked' : 'unlocked'); }, 500);
               } else {
+                  const now = new Date().toISOString();
                   setUsername(googleName); setPhotoURL(googlePhoto); setTransactions([]); setCategories(DEFAULT_CATEGORIES); setWallets(DEFAULT_WALLETS); setPin(''); setDanaTalang({ total: 0, paid: 0, currency: 'IDR' }); setWidgetConfig({ safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR' }); setCustomTheme(DEFAULT_THEME); setThemeMode('auto');
+                  setCreatedAt(now); setIsPro(false);
                   
                   await idb.set('mawuang_username', googleName); await idb.set('mawuang_photo', googlePhoto); await idb.set('mawuang_tx', []); await idb.set('mawuang_cat', DEFAULT_CATEGORIES); await idb.set('mawuang_wallets', DEFAULT_WALLETS); await idb.set('mawuang_pin', ''); await idb.set('mawuang_danatalang', { total: 0, paid: 0, currency: 'IDR' }); await idb.set('mawuang_widget_config', { safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR' }); await idb.set('mawuang_custom_theme', DEFAULT_THEME); await idb.set('mawuang_theme_mode', 'auto');
+                  await idb.set('mawuang_created_at', now); await idb.set('mawuang_is_pro', false);
                   
                   setSyncStatus('success');
                   setTimeout(() => { setOnboardingStep(3); }, 500);
@@ -1268,9 +1282,10 @@
 
       const handleLogout = async () => {
           try { if (window.firebaseAuth && window.firebaseSignOut) await window.firebaseSignOut(window.firebaseAuth); } catch (e) { console.warn("Sign out error", e); }
-          await idb.remove('mawuang_firebase_uid'); await idb.remove('mawuang_email'); await idb.remove('mawuang_username'); await idb.remove('mawuang_photo'); await idb.remove('mawuang_pin'); await idb.remove('mawuang_biometric_id'); await idb.remove('mawuang_tx'); await idb.remove('mawuang_cat'); await idb.remove('mawuang_wallets'); await idb.remove('mawuang_danatalang'); await idb.remove('mawuang_widget_config'); await idb.remove('mawuang_custom_theme'); await idb.remove('mawuang_theme_mode'); await idb.remove('mawuang_workspace');
+          await idb.remove('mawuang_firebase_uid'); await idb.remove('mawuang_email'); await idb.remove('mawuang_username'); await idb.remove('mawuang_photo'); await idb.remove('mawuang_pin'); await idb.remove('mawuang_biometric_id'); await idb.remove('mawuang_tx'); await idb.remove('mawuang_cat'); await idb.remove('mawuang_wallets'); await idb.remove('mawuang_danatalang'); await idb.remove('mawuang_widget_config'); await idb.remove('mawuang_custom_theme'); await idb.remove('mawuang_theme_mode'); await idb.remove('mawuang_workspace'); await idb.remove('mawuang_created_at'); await idb.remove('mawuang_is_pro');
           
           setFirebaseUid(null); setActiveWorkspace(null); setConnectedEmail(''); setUsername(''); setPhotoURL(''); setTransactions([]); setCategories(DEFAULT_CATEGORIES); setWallets(DEFAULT_WALLETS); setPin(''); setBiometricId(null); setPinInput(''); setSetupPinInput(''); setTempPinStore(''); setPinStepPhase('create'); setPinSetupError(''); setDanaTalang({ total: 0, paid: 0, currency: 'IDR' }); setWidgetConfig({ safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR' }); setCustomTheme(DEFAULT_THEME); setThemeMode('auto');
+          setIsPro(false); setCreatedAt(null);
           setAppState('onboarding'); setOnboardingStep(1); setSyncStatus('idle');
       };
 
@@ -1338,7 +1353,7 @@
           .bg-expense { background-color: var(--c-expense) !important; color: white !important; }
           
           ${isDarkMode ? `
-          /* Auto Dark Mode Overrides for standard Utility Classes with Better Contrast */
+          /* Auto Dark Mode Overrides */
           .bg-white { background-color: #1C1C1E !important; }
           .bg-gray-50 { background-color: #242426 !important; }
           .bg-gray-100 { background-color: #2C2C2E !important; }
@@ -1385,7 +1400,7 @@
                   setTimeout(async () => {
                       if (newPin === tempPinStore) {
                           setPin(newPin); await idb.set('mawuang_pin', newPin); setAppState('unlocked');
-                          const initialPayload = { transactions: [], categories: DEFAULT_CATEGORIES, wallets: DEFAULT_WALLETS, username, photoURL, lang, email: connectedEmail, pin: newPin, danaTalang: {total:0, paid:0, currency:'IDR'}, widgetConfig: {safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR'}, customTheme: DEFAULT_THEME };
+                          const initialPayload = { transactions: [], categories: DEFAULT_CATEGORIES, wallets: DEFAULT_WALLETS, username, photoURL, lang, email: connectedEmail, pin: newPin, danaTalang: {total:0, paid:0, currency:'IDR'}, widgetConfig: {safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR'}, customTheme: DEFAULT_THEME, createdAt: createdAt || new Date().toISOString(), isPro: false };
                           pushToCloud(initialPayload);
                       } else {
                           setPinSetupError(lang === 'id' ? 'PIN tidak cocok! Silakan ulangi.' : 'PINs do not match!');
@@ -1404,6 +1419,13 @@
           else { setLockError(true); setTimeout(() => { setPinInput(''); setLockError(false); }, 800); }
         }
       };
+
+      // --- LOGIKA PAYWALL 7 HARI FREE TRIAL ---
+      const daysUsed = createdAt ? (new Date().getTime() - new Date(createdAt).getTime()) / (1000 * 3600 * 24) : 0;
+      const isTrialExpired = daysUsed > 7;
+      const daysLeft = Math.max(0, 7 - Math.floor(daysUsed));
+      const waText = `Halo Admin, saya ingin berlangganan mawuang versi Pro. %0A%0AEmail: ${connectedEmail || 'Offline User'}%0AUID: ${firebaseUid || 'Local'}`;
+      const waLink = `https://wa.me/6281234567890?text=${waText}`;
 
       if (appState === 'loading') {
           return <div className="min-h-screen app-bg flex items-center justify-center"><GlobalStyles/><div className="w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div></div>;
@@ -1441,6 +1463,7 @@
                                           </button>
                                           <button onClick={() => {
                                               setUsername(''); setPhotoURL(''); setTransactions([]); setCategories(DEFAULT_CATEGORIES); setWallets(DEFAULT_WALLETS); setPin(''); setDanaTalang({ total: 0, paid: 0, currency: 'IDR' }); setWidgetConfig({ safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR' }); setCustomTheme(DEFAULT_THEME);
+                                              const now = new Date().toISOString(); setCreatedAt(now); setIsPro(false);
                                               setOnboardingStep(3);
                                           }} className="text-[#007AFF] text-sm font-semibold active:opacity-70 transition-all p-2">
                                               Gunakan Mode Offline (Lewati)
@@ -1506,7 +1529,7 @@
                                   </div>
                                   <button onClick={async () => {
                                       setPin(''); await idb.set('mawuang_pin', ''); setAppState('unlocked');
-                                      const initialPayload = { transactions: [], categories: DEFAULT_CATEGORIES, wallets: DEFAULT_WALLETS, username, photoURL, lang, email: connectedEmail, pin: '', danaTalang: {total:0, paid:0, currency:'IDR'}, widgetConfig: {safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR'}, customTheme: DEFAULT_THEME };
+                                      const initialPayload = { transactions: [], categories: DEFAULT_CATEGORIES, wallets: DEFAULT_WALLETS, username, photoURL, lang, email: connectedEmail, pin: '', danaTalang: {total:0, paid:0, currency:'IDR'}, widgetConfig: {safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR'}, customTheme: DEFAULT_THEME, createdAt: createdAt || new Date().toISOString(), isPro: false };
                                       pushToCloud(initialPayload);
                                   }} className="mt-8 text-[#007AFF] text-sm font-medium active:opacity-70 p-2">Lewati PIN</button>
                               </div>
@@ -1540,6 +1563,28 @@
             {biometricId && ( <p onClick={handleBiometricUnlock} className="mt-10 text-sm font-medium text-[#007AFF] cursor-pointer">{lang === 'id' ? 'Gunakan Face ID / Touch ID' : 'Face ID / Touch ID を使用'}</p> )}
           </div>
         );
+      }
+
+      if (appState === 'unlocked' && isTrialExpired && !isPro) {
+          return (
+             <div className="min-h-screen app-bg text-main font-sans flex justify-center md:items-center p-0 md:p-6">
+                <GlobalStyles/>
+                <div className="w-full max-w-md app-bg min-h-screen flex flex-col items-center justify-center p-8 text-center relative mx-auto animate-fade-in">
+                   <div className="w-20 h-20 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                      <Crown size={40} />
+                   </div>
+                   <h2 className="text-2xl font-bold mb-3">Waktu Trial Habis</h2>
+                   <p className="text-muted text-sm mb-8 leading-relaxed">Anda telah menggunakan <b className="text-main">mawuang</b> selama lebih dari 7 hari. Untuk terus menggunakan fitur pencatatan dan sinkronisasi awan, silakan *upgrade* ke versi Pro selamanya.</p>
+                   
+                   <a href={waLink} target="_blank" rel="noopener noreferrer" className="w-full bg-[#007AFF] text-white py-4 rounded-xl font-bold active:scale-95 transition-all mb-4 flex justify-center items-center gap-2 shadow-md">
+                      Upgrade ke Pro (Rp 49.000)
+                   </a>
+                   <button onClick={handleLogout} className="text-red-500 font-semibold p-3 w-full border border-red-500/20 rounded-xl active:bg-red-50">Keluar Akun</button>
+                   
+                   <p className="text-[10px] text-gray-400 mt-8">UID: {firebaseUid || 'Offline'}</p>
+                </div>
+             </div>
+          );
       }
 
       const NavButton = ({ tab, icon: IconComp, label }) => {
@@ -2015,15 +2060,26 @@
           
           {/* Profile Group */}
           <div className="ios-list-group shadow-sm border border-gray-100 mb-6">
-            <div className="p-4 flex items-center justify-between bg-transparent">
-               <div className="flex items-center gap-4 overflow-hidden">
-                   {photoURL ? ( <img src={photoURL} className="w-14 h-14 rounded-full object-cover border border-gray-200 flex-shrink-0" /> ) : ( <div className="w-14 h-14 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center flex-shrink-0"><UserIcon size={28} /></div> )}
-                   <div className="overflow-hidden">
-                       <p className="text-lg font-bold text-main truncate">{username || 'Pengguna'}</p>
-                       <p className="text-xs text-gray-500 truncate">{connectedEmail || 'Guest Mode'}</p>
+            <div className="p-4 flex flex-col bg-transparent">
+               <div className="flex items-center justify-between">
+                   <div className="flex items-center gap-4 overflow-hidden">
+                       {photoURL ? ( <img src={photoURL} className="w-14 h-14 rounded-full object-cover border border-gray-200 flex-shrink-0" /> ) : ( <div className="w-14 h-14 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center flex-shrink-0"><UserIcon size={28} /></div> )}
+                       <div className="overflow-hidden">
+                           <p className="text-lg font-bold text-main truncate">{username || 'Pengguna'}</p>
+                           <p className="text-xs text-gray-500 truncate">{connectedEmail || 'Guest Mode'}</p>
+                           <span className="text-[10px] bg-theme/10 text-theme px-2 py-0.5 rounded font-bold uppercase mt-1 inline-block">
+                               {isPro ? 'Pro User' : `Free Trial (${daysLeft} Hari Lagi)`}
+                           </span>
+                       </div>
                    </div>
+                   <button onClick={() => { setProfileFormData({username, photoURL}); setIsProfileModalOpen(true); }} className="p-2 text-theme active:opacity-70"><Edit2 size={20} /></button>
                </div>
-               <button onClick={() => { setProfileFormData({username, photoURL}); setIsProfileModalOpen(true); }} className="p-2 text-theme active:opacity-70"><Edit2 size={20} /></button>
+               
+               {!isPro && (
+                   <button onClick={() => window.open(waLink, '_blank')} className="w-full mt-4 bg-theme text-white py-2.5 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-transform flex justify-center items-center gap-2">
+                       <Crown size={16} /> Beli Versi Penuh Sekarang (Rp 49.000)
+                   </button>
+               )}
             </div>
           </div>
 
@@ -2199,9 +2255,9 @@
       );
 
       return (
-        <div className="min-h-screen bg-[#F2F2F7] text-main font-sans flex justify-center selection-theme">
+        <div className="min-h-screen app-bg text-main font-sans flex justify-center selection-theme">
           <GlobalStyles/>
-          <div className="w-full max-w-2xl bg-[#F2F2F7] min-h-screen relative md:border-x md:border-gray-200">
+          <div className="w-full max-w-2xl app-bg min-h-screen relative md:border-x md:border-gray-200">
             
             <div className="flex-1 w-full relative h-screen md:h-auto overflow-y-auto hide-scrollbar pb-[90px]">
               {activeTab === 'home' && renderHome()}
