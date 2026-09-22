@@ -111,7 +111,7 @@
       init: async () => {
         if (idb.db) return idb.db;
         return new Promise((resolve, reject) => {
-          const req = indexedDB.open('mawuang_db', 24);
+          const req = indexedDB.open('mawuang_db', 23);
           req.onupgradeneeded = (e) => { 
               if(!e.target.result.objectStoreNames.contains('store')) {
                  e.target.result.createObjectStore('store'); 
@@ -122,29 +122,37 @@
         });
       },
       get: async (key) => {
-        const db = await idb.init();
-        return new Promise((resolve) => {
-          const tx = db.transaction('store', 'readonly');
-          const req = tx.objectStore('store').get(key);
-          req.onsuccess = () => resolve(req.result);
-          req.onerror = () => resolve(null);
-        });
+        try {
+          const db = await idb.init();
+          return new Promise((resolve) => {
+            const tx = db.transaction('store', 'readonly');
+            const req = tx.objectStore('store').get(key);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => resolve(null);
+          });
+        } catch(e) { return null; }
       },
       set: async (key, val) => {
-        const db = await idb.init();
-        return new Promise((resolve) => {
-          const tx = db.transaction('store', 'readwrite');
-          tx.objectStore('store').put(val, key);
-          tx.oncomplete = () => resolve();
-        });
+        try {
+          const db = await idb.init();
+          return new Promise((resolve) => {
+            const tx = db.transaction('store', 'readwrite');
+            tx.objectStore('store').put(val, key);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => resolve();
+          });
+        } catch(e) {}
       },
       remove: async (key) => {
-        const db = await idb.init();
-        return new Promise((resolve) => {
-          const tx = db.transaction('store', 'readwrite');
-          tx.objectStore('store').delete(key);
-          tx.oncomplete = () => resolve();
-        });
+        try {
+          const db = await idb.init();
+          return new Promise((resolve) => {
+            const tx = db.transaction('store', 'readwrite');
+            tx.objectStore('store').delete(key);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => resolve();
+          });
+        } catch(e) {}
       }
     };
 
@@ -174,7 +182,6 @@
     const RefreshCw = (p) => <Icon {...p} path='<polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>' />;
     const Check = (p) => <Icon {...p} path='<polyline points="20 6 9 17 4 12"></polyline>' />;
     const UserIcon = (p) => <Icon {...p} path='<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' />;
-    const UsersIcon = (p) => <Icon {...p} path='<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' />;
     const MessageCircle = (p) => <Icon {...p} path='<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>' />;
     const Mic = (p) => <Icon {...p} path='<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>' />;
     const Send = (p) => <Icon {...p} path='<line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>' />;
@@ -249,18 +256,16 @@
         redeemCode: 'Kode Redeem', redeemPlaceholder: 'REDEEM DISINI', redeemSuccess: 'Kode berhasil digunakan! Fitur Pro/Trial aktif.', redeemInvalid: 'Kode tidak valid atau sudah pernah digunakan!',
         buyPro: 'Beli Versi Penuh (Rp 50.000)',
         permissionError: 'Anda hanya dapat mengedit atau menghapus transaksi milik Anda sendiri!',
-        connectGoogle: 'Hubungkan Akun Google',
-        connectGoogleDesc: 'Sinkronkan data lokal Anda ke Cloud secara aman.',
         
         welcomeSub: 'Catatan Keuangan Perantau', welcomeTitle: 'Selamat Datang!', welcomeDesc: 'Kelola pemasukan dan pengeluaran harian Anda dengan mudah dan rapi.', startJourney: 'Mulai Perjalanan',
-        loginGoogleTitle: 'Masuk dengan Akun Google', loginGoogleDesc: 'Sinkronkan data keuangan Anda secara aman berdasarkan akun Google Anda.', continueGoogle: 'Lanjutkan dengan Google', offlineMode: 'Gunakan Mode Offline (Lewati)',
+        loginGoogleTitle: 'Masuk dengan Akun Google', loginGoogleDesc: 'Sinkronkan data keuangan Anda secara aman berdasarkan akun Google Anda.', continueGoogle: 'Lanjutkan dengan Google',
         syncing: 'Menarik data dari Cloud...', loginSuccess: 'Berhasil Masuk!', profileDesc: 'Sesuaikan nama panggilan dan foto profil Anda.', nicknamePlaceholder: 'Nama Panggilan', continueBtn: 'Lanjutkan',
         createPinTitle: 'Buat PIN Keamanan', confirmPinTitle: 'Konfirmasi PIN Anda', pinDescCreate: 'Masukkan 6 digit angka untuk keamanan.', pinDescConfirm: 'Masukkan ulang PIN yang sama untuk konfirmasi.', skipPin: 'Lewati PIN',
         trialExpiredTitle: 'Waktu Trial Habis', trialExpiredDesc: 'Anda telah menggunakan mawuang selama lebih dari 7 hari. Untuk terus menggunakan fitur pencatatan dan sinkronisasi awan, silakan *upgrade* ke versi Pro (Rp 50.000) atau masukkan kode redeem Anda.',
         hi: 'Hi, ', guest: 'Guest', user: 'Pengguna', limit: 'Batas', scanBtn: 'Scan Struk / Bank', loadingNews: 'Memuat berita...', noNews: 'Tidak ada berita saat ini.',
         categoryExist: 'Kategori sudah ada!', minCategory: 'Minimal harus ada 1 kategori!', minWallet: 'Minimal harus ada 1 dompet!', noTxDate: 'Tidak ada transaksi pada tanggal tersebut.',
         success: 'Berhasil', restoreSuccess: 'Data berhasil dipulihkan!', invalidBackup: 'File backup tidak valid!', connFailed: 'Gagal terhubung ke Cloud.', linkCopied: 'Tautan aplikasi disalin!',
-        cloudOffline: 'Sistem cloud sedang offline atau diblokir oleh browser. Harap muat ulang atau gunakan Mode Offline.', no: 'Tidak', yesDelete: 'Ya, Hapus', saved: 'Tersimpan!',
+        cloudOffline: 'Sistem cloud sedang offline atau diblokir oleh browser. Harap muat ulang koneksi internet Anda.', no: 'Tidak', yesDelete: 'Ya, Hapus', saved: 'Tersimpan!',
         photoReceipt: 'Foto / Struk', typeMessage: 'Ketik pesan...', aiAgent: 'AI Agent Online', listening: 'Mendengarkan ucapan Anda...', manual: 'Manual', retry: 'Ulangi',
         proUser: 'Pro User', freeTrial: 'Free Trial', daysLeft: 'Hari Lagi', catWalletTitle: 'Kategori & Dompet', txSaved: 'Pencatatan berhasil disimpan!', pinMismatch: 'PIN tidak cocok! Silakan ulangi.',
         setupPinSuccess: 'PIN berhasil dipasang!', removePinSuccess: 'PIN dan Keamanan dihapus!', req6digit: 'Harus 6 digit angka!', ok: 'OK', bioSupportError: 'Perangkat/Browser ini tidak mendukung biometrik.',
@@ -309,24 +314,22 @@
         redeemCode: 'プロモーションコード', redeemPlaceholder: 'REDEEM DISINI', redeemSuccess: 'コードが適用されました！Proまたはトライアルが有効になりました。', redeemInvalid: '無効なコード、または既に使用されています！',
         buyPro: 'フルバージョンを購入 (Rp 50.000)',
         permissionError: '自分の取引のみ編集または削除できます！',
-        connectGoogle: 'Googleアカウントを連携',
-        connectGoogleDesc: 'ローカルデータをクラウドに安全に同期します。',
         
         welcomeSub: '海外生活者の家計簿', welcomeTitle: 'ようこそ！', welcomeDesc: '日々の収入と支出を簡単かつきれいに管理します。', startJourney: '始める',
-        loginGoogleTitle: 'Googleアカウントでログイン', loginGoogleDesc: 'Googleアカウントで家計データを安全に同期します。', continueGoogle: 'Googleで続行', offlineMode: 'オフラインモードを使用 (スキップ)',
+        loginGoogleTitle: 'Googleアカウントでログイン', loginGoogleDesc: 'Googleアカウントで家計データを安全に同期します。', continueGoogle: 'Googleで続行',
         syncing: 'クラウドからデータを取得中...', loginSuccess: 'ログイン成功！', profileDesc: 'ニックネームとプロフィール写真を設定してください。', nicknamePlaceholder: 'ニックネーム', continueBtn: '続行',
         createPinTitle: 'セキュリティPINを作成', confirmPinTitle: 'PINを確認', pinDescCreate: 'セキュリティのために6桁の数字を入力してください。', pinDescConfirm: '確認のため同じPINを再入力してください。', skipPin: 'PINをスキップ',
         trialExpiredTitle: 'トライアル期間終了', trialExpiredDesc: 'mawuangを7日以上利用しました。記録やクラウド同期機能を引き続き使用するには、Pro版（Rp 50,000）にアップグレードするか、プロモーションコードを入力してください。',
         hi: 'こんにちは、', guest: 'ゲスト', user: 'ユーザー', limit: '上限', scanBtn: 'レシート/銀行をスキャン', loadingNews: 'ニュースを読み込み中...', noNews: '現在ニュースはありません。',
         categoryExist: 'カテゴリはすでに存在します！', minCategory: 'カテゴリは最低1つ必要です！', minWallet: 'ウォレットは最低1つ必要です！', noTxDate: '指定された日に取引はありません。',
         success: '成功', restoreSuccess: 'データが復元されました！', invalidBackup: '無効なバックアップファイルです！', connFailed: 'クラウドへの接続に失敗しました。', linkCopied: 'アプリのリンクをコピーしました！',
-        cloudOffline: 'クラウドシステムがオフラインまたはブラウザによってブロックされています。再読み込みするか、オフラインモードを使用してください。', no: 'いいえ', yesDelete: 'はい、削除します', saved: '保存されました！',
+        cloudOffline: 'クラウドシステムがオフラインです。インターネット接続を確認してください。', no: 'いいえ', yesDelete: 'はい、削除します', saved: '保存されました！',
         photoReceipt: '写真 / レシート', typeMessage: 'メッセージを入力...', aiAgent: 'AIエージェント オンライン', listening: '音声を認識中...', manual: '手動', retry: '再試行',
         proUser: 'プロユーザー', freeTrial: '無料トライアル', daysLeft: '日残り', catWalletTitle: 'カテゴリ & ウォレット', txSaved: '記録が保存されました！', pinMismatch: 'PINが一致しません！やり直してください。',
         setupPinSuccess: 'PINが正常に設定されました！', removePinSuccess: 'PINと生体認証が削除されました！', req6digit: '6桁の数字である必要があります！', ok: 'OK', bioSupportError: '生体認証はサポートされていません。',
-        bioSuccess: '生体認証が有効になりました！', bioFailed: '有効化に失敗しました。', bioDisable: '生体認証が無効になりました！', smartInputFailed: '金額が検出されませんでした。数字を入力してください。',
+        bioSuccess: '生体認証が有効になりました！', bioFailed: '有効化に失敗しました。', bioDisable: '生体認証が無効になりました！', smartInputFailed: '金額が検出されました。数字を入力してください。',
         micError: 'ブラウザが音声機能をサポートしていません。',
-        swipeHint: 'カードをスワイプしてスライド',
+        swipeHint: 'スワイプしてカードを切り替え',
         availableBalance: '利用可能残高',
         currencyLabel: '通貨',
         installInstructions: 'ホーム画面にアプリを追加するには：\n\nAndroid (Chrome)：メニューから「ホーム画面に追加」を選択してください。\n\niPhone (Safari)：共有ボタンをタップし、「ホーム画面に追加」を選択してください。',
@@ -1380,7 +1383,7 @@
               
               const docSnap = await Promise.race([
                   window.firebaseGetDoc(docRef),
-                  new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 4000))
+                  new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 15000))
               ]);
 
               if (docSnap && docSnap.exists()) {
@@ -1625,7 +1628,7 @@
       const daysUsed = createdAt ? (new Date().getTime() - new Date(createdAt).getTime()) / (1000 * 3600 * 24) : 0;
       const isTrialExpired = daysUsed > 7;
       const daysLeft = Math.max(0, 7 - Math.floor(daysUsed));
-      const waText = `Halo Admin, saya ingin berlangganan mawuang versi Pro (Rp 50.000). %0A%0AEmail: ${connectedEmail || 'Offline User'}%0AUID: ${firebaseUid || 'Local'}`;
+      const waText = `Halo Admin, saya ingin berlangganan mawuang versi Pro (Rp 50.000). %0A%0AEmail: ${connectedEmail || 'User'}%0AUID: ${firebaseUid || 'Cloud'}`;
       const waLink = `https://wa.me/6281234567890?text=${waText}`;
 
       if (appState === 'loading') {
@@ -1661,13 +1664,6 @@
                                       <div className="w-full flex flex-col items-center space-y-4 animate-fade-in">
                                           <button onClick={handleGoogleLogin} className="w-full card-bg text-main font-semibold py-4 px-4 rounded-xl shadow-sm border border-gray-200 flex items-center justify-center gap-3 active:opacity-70 transition-all">
                                               <GoogleLogo /> {t.continueGoogle}
-                                          </button>
-                                          <button onClick={() => {
-                                              setUsername(''); setPhotoURL(''); setTransactions([]); setCategories(DEFAULT_CATEGORIES); setWallets(DEFAULT_WALLETS); setPin(''); setDanaTalang({ total: 0, paid: 0, currency: 'IDR' }); setWidgetConfig({ safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR', balanceBg: null }); setCustomTheme(DEFAULT_THEME);
-                                              const now = new Date().toISOString(); setCreatedAt(now); setIsPro(false); setRedeemedCodes([]);
-                                              setOnboardingStep(3);
-                                          }} className="text-[#007AFF] text-sm font-semibold active:opacity-70 transition-all p-2">
-                                              {t.offlineMode}
                                           </button>
                                       </div>
                                   )}
@@ -1789,7 +1785,7 @@
                    </a>
                    <button onClick={handleLogout} className="text-red-500 font-semibold p-3 w-full border border-red-500/20 rounded-xl active:bg-red-50">{t.logout}</button>
                    
-                   <p className="text-[10px] text-gray-400 mt-8">UID: {firebaseUid || 'Offline'}</p>
+                   <p className="text-[10px] text-gray-400 mt-8">UID: {firebaseUid || 'Cloud'}</p>
                 </div>
              </div>
           );
@@ -1824,7 +1820,7 @@
         return (
           <div className="p-4 md:p-8 pb-32 animate-fade-in relative z-10 max-w-2xl mx-auto">
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold text-main tracking-tight truncate pr-4">{t.hi}{username || t.guest}!</h1>
+              <h1 className="text-3xl font-bold text-main tracking-tight truncate pr-4">{t.hi}{username || t.user}!</h1>
               <div className="flex items-center gap-2">
                  <div className="flex bg-gray-200/60 p-1 rounded-full cursor-pointer" onClick={() => setDisplayCurrency(displayCurrency === 'IDR' ? 'JPY' : 'IDR')}>
                     <div className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 ${displayCurrency === 'IDR' ? 'bg-white text-main shadow-sm' : 'text-muted'}`}>IDR</div>
@@ -2344,14 +2340,6 @@
                    </div>
                    <button onClick={() => { setProfileFormData({username, photoURL}); setIsProfileModalOpen(true); }} className="p-2 text-theme active:opacity-70"><Edit2 size={20} /></button>
                </div>
-               
-               {!connectedEmail && (
-                   <div className="mt-4 pt-4 border-t border-gray-100">
-                       <button onClick={handleGoogleLogin} className="w-full bg-white border border-gray-200 text-main py-3 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-transform flex justify-center items-center gap-2">
-                           <GoogleLogo /> {t.connectGoogle}
-                       </button>
-                   </div>
-               )}
 
                {!isPro && (
                    <div className="mt-4 pt-4 border-t border-gray-100">
