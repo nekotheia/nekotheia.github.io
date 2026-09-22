@@ -111,7 +111,7 @@
       init: async () => {
         if (idb.db) return idb.db;
         return new Promise((resolve, reject) => {
-          const req = indexedDB.open('mawuang_db', 26);
+          const req = indexedDB.open('mawuang_db', 24);
           req.onupgradeneeded = (e) => { 
               if(!e.target.result.objectStoreNames.contains('store')) {
                  e.target.result.createObjectStore('store'); 
@@ -249,6 +249,8 @@
         redeemCode: 'Kode Redeem', redeemPlaceholder: 'REDEEM DISINI', redeemSuccess: 'Kode berhasil digunakan! Fitur Pro/Trial aktif.', redeemInvalid: 'Kode tidak valid atau sudah pernah digunakan!',
         buyPro: 'Beli Versi Penuh (Rp 50.000)',
         permissionError: 'Anda hanya dapat mengedit atau menghapus transaksi milik Anda sendiri!',
+        connectGoogle: 'Hubungkan Akun Google',
+        connectGoogleDesc: 'Sinkronkan data lokal Anda ke Cloud secara aman.',
         
         welcomeSub: 'Catatan Keuangan Perantau', welcomeTitle: 'Selamat Datang!', welcomeDesc: 'Kelola pemasukan dan pengeluaran harian Anda dengan mudah dan rapi.', startJourney: 'Mulai Perjalanan',
         loginGoogleTitle: 'Masuk dengan Akun Google', loginGoogleDesc: 'Sinkronkan data keuangan Anda secara aman berdasarkan akun Google Anda.', continueGoogle: 'Lanjutkan dengan Google', offlineMode: 'Gunakan Mode Offline (Lewati)',
@@ -307,13 +309,15 @@
         redeemCode: 'プロモーションコード', redeemPlaceholder: 'REDEEM DISINI', redeemSuccess: 'コードが適用されました！Proまたはトライアルが有効になりました。', redeemInvalid: '無効なコード、または既に使用されています！',
         buyPro: 'フルバージョンを購入 (Rp 50.000)',
         permissionError: '自分の取引のみ編集または削除できます！',
+        connectGoogle: 'Googleアカウントを連携',
+        connectGoogleDesc: 'ローカルデータをクラウドに安全に同期します。',
         
         welcomeSub: '海外生活者の家計簿', welcomeTitle: 'ようこそ！', welcomeDesc: '日々の収入と支出を簡単かつきれいに管理します。', startJourney: '始める',
         loginGoogleTitle: 'Googleアカウントでログイン', loginGoogleDesc: 'Googleアカウントで家計データを安全に同期します。', continueGoogle: 'Googleで続行', offlineMode: 'オフラインモードを使用 (スキップ)',
         syncing: 'クラウドからデータを取得中...', loginSuccess: 'ログイン成功！', profileDesc: 'ニックネームとプロフィール写真を設定してください。', nicknamePlaceholder: 'ニックネーム', continueBtn: '続行',
         createPinTitle: 'セキュリティPINを作成', confirmPinTitle: 'PINを確認', pinDescCreate: 'セキュリティのために6桁の数字を入力してください。', pinDescConfirm: '確認のため同じPINを再入力してください。', skipPin: 'PINをスキップ',
         trialExpiredTitle: 'トライアル期間終了', trialExpiredDesc: 'mawuangを7日以上利用しました。記録やクラウド同期機能を引き続き使用するには、Pro版（Rp 50,000）にアップグレードするか、プロモーションコードを入力してください。',
-        hi: 'Hi, ', guest: 'ゲスト', user: 'ユーザー', limit: '上限', scanBtn: 'レシート/銀行をスキャン', loadingNews: 'ニュースを読み込み中...', noNews: '現在ニュースはありません。',
+        hi: 'こんにちは、', guest: 'ゲスト', user: 'ユーザー', limit: '上限', scanBtn: 'レシート/銀行をスキャン', loadingNews: 'ニュースを読み込み中...', noNews: '現在ニュースはありません。',
         categoryExist: 'カテゴリはすでに存在します！', minCategory: 'カテゴリは最低1つ必要です！', minWallet: 'ウォレットは最低1つ必要です！', noTxDate: '指定された日に取引はありません。',
         success: '成功', restoreSuccess: 'データが復元されました！', invalidBackup: '無効なバックアップファイルです！', connFailed: 'クラウドへの接続に失敗しました。', linkCopied: 'アプリのリンクをコピーしました！',
         cloudOffline: 'クラウドシステムがオフラインまたはブラウザによってブロックされています。再読み込みするか、オフラインモードを使用してください。', no: 'いいえ', yesDelete: 'はい、削除します', saved: '保存されました！',
@@ -322,7 +326,7 @@
         setupPinSuccess: 'PINが正常に設定されました！', removePinSuccess: 'PINと生体認証が削除されました！', req6digit: '6桁の数字である必要があります！', ok: 'OK', bioSupportError: '生体認証はサポートされていません。',
         bioSuccess: '生体認証が有効になりました！', bioFailed: '有効化に失敗しました。', bioDisable: '生体認証が無効になりました！', smartInputFailed: '金額が検出されませんでした。数字を入力してください。',
         micError: 'ブラウザが音声機能をサポートしていません。',
-        swipeHint: 'スワイプしてカードをスライド',
+        swipeHint: 'カードをスワイプしてスライド',
         availableBalance: '利用可能残高',
         currencyLabel: '通貨',
         installInstructions: 'ホーム画面にアプリを追加するには：\n\nAndroid (Chrome)：メニューから「ホーム画面に追加」を選択してください。\n\niPhone (Safari)：共有ボタンをタップし、「ホーム画面に追加」を選択してください。',
@@ -341,12 +345,26 @@
     
     const DEFAULT_WALLETS = [
       { id: 'cash', name: 'Tunai', nameJp: '現金' },
+      { id: 'cash_yen', name: 'Tunai (Yen)', nameJp: '現金 (円)' },
       { id: 'bank', name: 'Rekening Bank', nameJp: '銀行口座' },
-      { id: 'ewallet', name: 'GoPay', nameJp: 'GoPay' },
-      { id: 'ovo', name: 'OVO', nameJp: 'OVO' },
-      { id: 'dana', name: 'DANA', nameJp: 'DANA' },
-      { id: 'suica', name: 'Suica JR', nameJp: 'Suica' }
+      { id: 'bank_yen', name: 'Rekening Bank (Yen)', nameJp: '銀行口座 (円)' },
+      { id: 'ic_card', name: 'IC Card', nameJp: 'ICカード' },
+      { id: 'ewallet', name: 'E-Wallet', nameJp: '電子マネー' },
+      { id: 'ewallet_yen', name: 'E-Wallet (Yen)', nameJp: '電子マネー (円)' }
     ];
+
+    const CATEGORY_JP_MAP = {
+      'makanan': '食事',
+      'transportasi': '交通',
+      'belanja': '買い物',
+      'hobi': '趣味',
+      'kesehatan': '医療・健康',
+      'tagihan': '光熱費・家賃',
+      'gaji': '給与',
+      'pendapatan lain': 'その他の収入',
+      'lain-lain': 'その他',
+      'lainnya': 'その他'
+    };
 
     const getCurrentDateTimeLocal = () => {
       const now = new Date();
@@ -875,9 +893,18 @@
           if (processText.includes('rp') || processText.includes('rupiah')) currency = 'IDR';
 
           for (let w of currentWallets) {
-              const wName = w.name.toLowerCase();
-              const wId = w.id.toLowerCase();
-              if (processText.includes(wName) || processText.includes(wId) || (wName.includes('bca') && processText.includes('bca')) || (wName.includes('mandiri') && processText.includes('mandiri')) || (wName.includes('gopay') && processText.includes('gopay')) || (wName.includes('ovo') && processText.includes('ovo')) || (wName.includes('dana') && processText.includes('dana')) || (wName.includes('suica') && processText.includes('suica'))) {
+              const wName = (w.name || '').toLowerCase();
+              const wNameJp = (w.nameJp || '').toLowerCase();
+              const wId = (w.id || '').toLowerCase();
+              if (processText.includes(wName) || processText.includes(wNameJp) || processText.includes(wId) || 
+                 (wName.includes('bca') && processText.includes('bca')) || 
+                 (wName.includes('mandiri') && processText.includes('mandiri')) || 
+                 (wName.includes('gopay') && processText.includes('gopay')) || 
+                 (wName.includes('ovo') && processText.includes('ovo')) || 
+                 (wName.includes('dana') && processText.includes('dana')) || 
+                 (wName.includes('suica') && processText.includes('suica')) ||
+                 (wName.includes('tunai') && processText.includes('tunai')) ||
+                 (wName.includes('ic card') && processText.includes('ic card'))) {
                   walletId = w.id;
                   break;
               }
@@ -941,7 +968,7 @@
                       if (matchedCat) {
                           categoryId = matchedCat.id; type = matchedCat.type;
                       } else {
-                      suggestedCatName = catName;
+                          suggestedCatName = catName;
                           type = ['Gaji', 'Pendapatan Lain'].includes(catName) ? 'income' : 'expense';
                       }
                       break;
@@ -987,11 +1014,13 @@
           let currentCats = [...categories];
 
           if (!finalCategoryId && parsed.suggestedCatName) {
-              const existingMatch = currentCats.find(c => c.name.toLowerCase() === parsed.suggestedCatName.toLowerCase() || (parsed.suggestedCatName.toLowerCase() === 'lain-lain' && ['lain-lain', 'lainnya', 'lain - lain'].includes(c.name.toLowerCase())));
+              const existingMatch = currentCats.find(c => c.name.toLowerCase() === parsed.suggestedCatName.toLowerCase() || (['lain-lain', 'lainnya', 'lain - lain'].includes(parsed.suggestedCatName.toLowerCase()) && ['lain-lain', 'lainnya', 'lain - lain'].includes(c.name.toLowerCase())));
               if (existingMatch) {
                   finalCategoryId = existingMatch.id;
               } else {
-                  const newCat = { id: Date.now().toString(), name: parsed.suggestedCatName, nameJp: parsed.suggestedCatName, type: parsed.type };
+                  const lowerSuggested = parsed.suggestedCatName.toLowerCase();
+                  const translatedJp = CATEGORY_JP_MAP[lowerSuggested] || parsed.suggestedCatName;
+                  const newCat = { id: Date.now().toString(), name: parsed.suggestedCatName, nameJp: translatedJp, type: parsed.type };
                   currentCats.push(newCat);
                   setCategories(currentCats);
                   pushToCloud({ categories: currentCats });
@@ -1059,9 +1088,9 @@
               } else if (upperText.includes('BRI') || upperText.includes('BRIMO')) {
                   detectedWallet = findWalletByNameMatch(['BRI', 'BRIMO', 'BANK']) || detectedWallet;
               } else if (upperText.includes('SUICA')) {
-                  detectedWallet = findWalletByNameMatch(['SUICA']) || detectedWallet;
+                  detectedWallet = findWalletByNameMatch(['SUICA', 'IC CARD']) || detectedWallet;
               } else if (upperText.includes('PASMO')) {
-                  detectedWallet = findWalletByNameMatch(['PASMO']) || detectedWallet;
+                  detectedWallet = findWalletByNameMatch(['PASMO', 'IC CARD']) || detectedWallet;
               } else {
                   const ewalletRegex = /(QRIS|PAYPAY|SUICA|PASMO|電子マネー|GOPAY|SHOPEEPAY|SPAY|OVO|DANA|LINKAJA|E-WALLET)/;
                   const bankRegex = /(CREDIT|KREDIT|DEBIT|KARTU|CARD|カード|クレジット|MANDIRI|BCA|BNI|BRI|BSI|CIMB|PERMATA|LIVIN|BRIMO|VISA|MASTER)/;
@@ -1198,7 +1227,9 @@
         if (!newCatName.trim()) return;
         const isExist = categories.some(c => c.name.toLowerCase() === newCatName.trim().toLowerCase());
         if (isExist) { setMessageDialog({ isOpen: true, title: 'Perhatian', message: t.categoryExist }); return; }
-        const newCatList = [...categories, { id: Date.now().toString(), name: newCatName.trim(), nameJp: newCatName.trim(), type: newCatType }];
+        const lowerName = newCatName.trim().toLowerCase();
+        const translatedJp = CATEGORY_JP_MAP[lowerName] || newCatName.trim();
+        const newCatList = [...categories, { id: Date.now().toString(), name: newCatName.trim(), nameJp: translatedJp, type: newCatType }];
         setCategories(newCatList); setNewCatName(''); pushToCloud({ categories: newCatList }); 
       };
       const handleUpdateCategory = () => {
@@ -1354,64 +1385,65 @@
 
               if (docSnap && docSnap.exists()) {
                   const data = docSnap.data();
-                  setTransactions(data.transactions || []); 
-                  setCategories(data.categories || DEFAULT_CATEGORIES);
-                  setWallets(data.wallets || DEFAULT_WALLETS);
-                  setUsername(data.username || googleName);
-                  setLang(data.lang || 'id');
-                  setPin(data.pin !== undefined ? data.pin : ''); 
-                  setPhotoURL(data.photoURL || googlePhoto);
+                  const cloudTx = data.transactions || [];
+                  const mergedTx = [...transactions];
+                  cloudTx.forEach(ctx => {
+                      if (!mergedTx.some(t => t.id === ctx.id)) mergedTx.push(ctx);
+                  });
+                  mergedTx.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                  setTransactions(mergedTx); 
+                  setCategories(data.categories || categories);
+                  setWallets(data.wallets || wallets);
+                  setUsername(username || data.username || googleName);
+                  setLang(data.lang || lang);
+                  setPin(pin !== '' ? pin : (data.pin || '')); 
+                  setPhotoURL(photoURL || data.photoURL || googlePhoto);
                   if (data.themeMode) setThemeMode(data.themeMode);
                   if (data.customTheme) setCustomTheme(data.customTheme);
                   if (data.isPro !== undefined) setIsPro(data.isPro);
                   if (data.createdAt) setCreatedAt(data.createdAt);
                   if (data.redeemedCodes) setRedeemedCodes(data.redeemedCodes);
                   
-                  const dt = data.danaTalang ? { total: data.danaTalang.total || 0, paid: data.danaTalang.paid || 0, currency: data.danaTalang.currency || 'IDR' } : { total: 0, paid: 0, currency: 'IDR' };
+                  const dt = data.danaTalang ? { total: data.danaTalang.total || 0, paid: data.danaTalang.paid || 0, currency: data.danaTalang.currency || 'IDR' } : danaTalang;
                   setDanaTalang(dt);
                   
                   let wc = data.widgetConfig;
-                  if(!wc && data.widgetBg) wc = { safeBg: data.widgetBg, dangerBg: null, limit: 0, limitCurrency: 'IDR', balanceBg: null };
-                  if(wc) {
-                      if(!wc.limitCurrency) wc.limitCurrency = 'IDR';
-                      setWidgetConfig(wc);
-                  }
-                  
-                  await idb.set('mawuang_tx', data.transactions || []);
-                  await idb.set('mawuang_cat', data.categories || DEFAULT_CATEGORIES);
-                  await idb.set('mawuang_wallets', data.wallets || DEFAULT_WALLETS);
-                  await idb.set('mawuang_username', data.username || googleName);
-                  await idb.set('mawuang_lang', data.lang || 'id');
-                  await idb.set('mawuang_pin', data.pin !== undefined ? data.pin : ''); 
-                  await idb.set('mawuang_photo', data.photoURL || googlePhoto);
-                  await idb.set('mawuang_danatalang', dt);
-                  await idb.set('mawuang_redeemed_codes', data.redeemedCodes || []);
-                  if (data.themeMode) await idb.set('mawuang_theme_mode', data.themeMode);
-                  if (wc) await idb.set('mawuang_widget_config', wc);
-                  if (data.customTheme) await idb.set('mawuang_custom_theme', data.customTheme);
-                  if (data.isPro !== undefined) await idb.set('mawuang_is_pro', data.isPro);
-                  if (data.createdAt) await idb.set('mawuang_created_at', data.createdAt);
+                  if(wc) setWidgetConfig(wc);
+
+                  await pushToCloud({
+                      transactions: mergedTx,
+                      categories: data.categories || categories,
+                      wallets: data.wallets || wallets,
+                      username: username || data.username || googleName,
+                      photoURL: photoURL || data.photoURL || googlePhoto,
+                      pin: pin !== '' ? pin : (data.pin || ''),
+                      lang: data.lang || lang,
+                      danaTalang: dt,
+                      widgetConfig: wc || widgetConfig
+                  });
 
                   setSyncStatus('success');
-                  setTimeout(() => { setAppState((data.pin !== undefined && data.pin !== '') ? 'locked' : 'unlocked'); }, 500);
+                  setTimeout(() => { setAppState((pin !== '' || (data.pin !== undefined && data.pin !== '')) ? 'locked' : 'unlocked'); }, 500);
               } else {
-                  const now = new Date().toISOString();
-                  setUsername(googleName); setPhotoURL(googlePhoto); setTransactions([]); setCategories(DEFAULT_CATEGORIES); setWallets(DEFAULT_WALLETS); setPin(''); setDanaTalang({ total: 0, paid: 0, currency: 'IDR' }); setWidgetConfig({ safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR', balanceBg: null }); setCustomTheme(DEFAULT_THEME); setThemeMode('auto');
-                  setCreatedAt(now); setIsPro(false); setRedeemedCodes([]);
+                  const now = createdAt || new Date().toISOString();
+                  setUsername(username || googleName); setPhotoURL(photoURL || googlePhoto); setCreatedAt(now);
                   
-                  await idb.set('mawuang_username', googleName); await idb.set('mawuang_photo', googlePhoto); await idb.set('mawuang_tx', []); await idb.set('mawuang_cat', DEFAULT_CATEGORIES); await idb.set('mawuang_wallets', DEFAULT_WALLETS); await idb.set('mawuang_pin', ''); await idb.set('mawuang_danatalang', { total: 0, paid: 0, currency: 'IDR' }); await idb.set('mawuang_widget_config', { safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR', balanceBg: null }); await idb.set('mawuang_custom_theme', DEFAULT_THEME); await idb.set('mawuang_theme_mode', 'auto');
-                  await idb.set('mawuang_created_at', now); await idb.set('mawuang_is_pro', false); await idb.set('mawuang_redeemed_codes', []);
-                  
+                  const payload = {
+                      transactions, categories, wallets,
+                      username: username || googleName,
+                      photoURL: photoURL || googlePhoto,
+                      pin, lang, email, danaTalang, widgetConfig, customTheme,
+                      createdAt: now, isPro, redeemedCodes
+                  };
+                  await pushToCloud(payload);
+
                   setSyncStatus('success');
-                  setTimeout(() => { setOnboardingStep(3); }, 500);
+                  setTimeout(() => { setAppState(pin ? 'locked' : 'unlocked'); }, 500);
               }
           } catch (err) {
               setSyncStatus('idle'); 
               let errorMsg = err.message || t.connFailed;
-              if (err.code === 'auth/unauthorized-domain') errorMsg = 'Domain web ini belum diizinkan. Tambahkan URL domain ini di Firebase Console -> Authentication -> Settings -> Authorized domains.';
-              else if (err.message === 'timeout' || err.code === 'permission-denied') errorMsg = 'Akses Database Cloud gagal/lambat.';
-              else if (err.code === 'auth/popup-closed-by-user' || err.message.toLowerCase().includes('popup')) errorMsg = 'Jendela Pop-up ditutup atau diblokir oleh sistem Preview Browser.';
-              
               setMessageDialog({ isOpen: true, title: 'Gagal Masuk', message: errorMsg });
           }
       };
@@ -1982,10 +2014,10 @@
                         ) : isBalanceLow ? (
                             <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-sm">⚠️ {lang==='id'?'SALDO MENIPIS':'残高減少'}</span>
                         ) : null}
-                        <button onClick={() => setHideBalance(!hideBalance)} className="p-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full text-white transition-all active:scale-95" title="Sembunyikan/Tampilkan Saldo">
+                        <button onClick={() => setHideBalance(!hideBalance)} className="p-2 bg-white/25 hover:bg-white/35 backdrop-blur-md rounded-full text-white transition-all active:scale-95" title="Sembunyikan/Tampilkan Saldo">
                            {hideBalance ? <EyeOff size={16}/> : <Eye size={16}/>}
                         </button>
-                        <button onClick={() => setIsWidgetModalOpen(true)} className="p-2 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full text-white transition-all active:scale-95" title="Ubah Tampilan Kartu Saldo">
+                        <button onClick={() => setIsWidgetModalOpen(true)} className="p-2 bg-white/25 hover:bg-white/35 backdrop-blur-md rounded-full text-white transition-all active:scale-95" title="Ubah Tampilan Kartu Saldo">
                            <Edit2 size={16} />
                         </button>
                     </div>
@@ -2030,6 +2062,7 @@
                          if (lower.includes('shopee')) return { bg: 'from-orange-500 via-amber-600 to-red-800', brand: 'ShopeePay', logoColor: 'text-orange-200' };
                          if (lower.includes('suica')) return { bg: 'from-emerald-600 via-green-700 to-teal-950', brand: 'Suica JR', logoColor: 'text-emerald-200' };
                          if (lower.includes('pasmo')) return { bg: 'from-pink-500 via-rose-600 to-red-900', brand: 'PASMO', logoColor: 'text-pink-200' };
+                         if (lower.includes('ic card')) return { bg: 'from-teal-600 via-cyan-800 to-slate-950', brand: 'IC CARD', logoColor: 'text-cyan-200' };
                          if (lower.includes('bank') || lower.includes('bca') || lower.includes('mandiri') || lower.includes('bni') || lower.includes('bri')) return { bg: 'from-blue-700 via-sky-800 to-slate-950', brand: 'BANK CARD', logoColor: 'text-sky-300' };
                          if (lower.includes('tunai') || lower.includes('cash')) return { bg: 'from-slate-700 via-zinc-800 to-stone-950', brand: 'CASH WALLET', logoColor: 'text-amber-300' };
                          return { bg: 'from-zinc-700 via-zinc-800 to-zinc-950', brand: 'MAWUANG CARD', logoColor: 'text-zinc-300' };
@@ -2312,6 +2345,14 @@
                    <button onClick={() => { setProfileFormData({username, photoURL}); setIsProfileModalOpen(true); }} className="p-2 text-theme active:opacity-70"><Edit2 size={20} /></button>
                </div>
                
+               {!connectedEmail && (
+                   <div className="mt-4 pt-4 border-t border-gray-100">
+                       <button onClick={handleGoogleLogin} className="w-full bg-white border border-gray-200 text-main py-3 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-transform flex justify-center items-center gap-2">
+                           <GoogleLogo /> {t.connectGoogle}
+                       </button>
+                   </div>
+               )}
+
                {!isPro && (
                    <div className="mt-4 pt-4 border-t border-gray-100">
                        <label className="block text-xs font-semibold text-gray-400 mb-2">{t.redeemCode}</label>
