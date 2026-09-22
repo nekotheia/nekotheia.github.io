@@ -6,7 +6,7 @@
   <title>mawuang - Catatan Keuangan</title>
   
   <meta property="og:title" content="mawuang - Catatan Keuangan">
-  <meta property="og:description" content="Aplikasi pencatat keuangan pintar untuk perantau Jepang dari Indonesia.">
+  <meta property="og:description" content="Aplikasi pencatat keuangan pintar multi-kurs untuk perantau dari Indonesia.">
   <meta property="og:type" content="website">
   <meta name="theme-color" content="#F2F2F7">
 
@@ -111,7 +111,7 @@
       init: async () => {
         if (idb.db) return idb.db;
         return new Promise((resolve, reject) => {
-          const req = indexedDB.open('mawuang_db', 23);
+          const req = indexedDB.open('mawuang_db', 24);
           req.onupgradeneeded = (e) => { 
               if(!e.target.result.objectStoreNames.contains('store')) {
                  e.target.result.createObjectStore('store'); 
@@ -219,6 +219,19 @@
 
     const DEFAULT_THEME = { primary: '#007AFF', bg: '#F2F2F7', cardBg: '#FFFFFF', text: '#000000', income: '#34C759', expense: '#FF3B30' };
 
+    const SUPPORTED_CURRENCIES = [
+      { code: 'IDR', symbol: 'Rp', name: 'Indonesian Rupiah' },
+      { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
+      { code: 'USD', symbol: '$', name: 'US Dollar' },
+      { code: 'EUR', symbol: '€', name: 'Euro' },
+      { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar' },
+      { code: 'MYR', symbol: 'RM', name: 'Malaysian Ringgit' },
+      { code: 'GBP', symbol: '£', name: 'British Pound' },
+      { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
+      { code: 'KRW', symbol: '₩', name: 'South Korean Won' },
+      { code: 'THB', symbol: '฿', name: 'Thai Baht' }
+    ];
+
     const dict = {
       id: {
         appTitle: 'mawuang', totalBalance: 'Saldo Total', income: 'Pemasukan', expense: 'Pengeluaran',
@@ -231,7 +244,7 @@
         categoryRequired: 'Oops, Kategori belum dipilih!', amountRequired: 'Nominal belum diisi!', insufficientBalance: 'Saldo anda tidak mencukupi',
         dateTime: 'Tanggal & Waktu', report: 'Analitik', yearly: 'Tahunan', monthly: 'Bulanan', weekly: 'Mingguan',
         addPhoto: 'Tambah Foto / Struk', custom: 'Kustom', startDate: 'Dari Tanggal', endDate: 'Sampai Tanggal',
-        transactionDetails: 'Rincian Transaksi', aboutApp: 'Tentang Aplikasi', aboutAppDesc: 'Aplikasi pencatat keuangan pintar untuk perantau jepang dari indonesia, dengan kurs real-time.',
+        transactionDetails: 'Rincian Transaksi', aboutApp: 'Tentang Aplikasi', aboutAppDesc: 'Aplikasi pencatat keuangan pintar multi-kurs dengan fitur AI.',
         exportFileName: 'Nama File Ekspor', exportConfirm: 'Ekspor Data', scanFailed: 'Gagal mengekstrak angka. Anda dapat menyalinnya manual dari foto.',
         tryAgain: 'Coba Ulang / Manual', pinSecurity: 'Keamanan PIN', setupPin: 'Atur PIN Baru', removePin: 'Hapus Keamanan',
         enterPin: 'Masukkan PIN Anda', wrongPin: 'PIN Salah!', cloudBackup: 'Backup & Sinkronisasi', backupDesc: 'Simpan data ke Google Drive / Pulihkan dari JSON',
@@ -241,8 +254,8 @@
         deleteAccountPrompt: 'Ketik username Anda (<b>{username}</b>) untuk mengonfirmasi penghapusan akun:', deleteAccountMatchError: 'Username tidak cocok!',
         connectedAccount: 'Akun Terhubung', profileSetup: 'Profil Pengguna',
         editProfile: 'Edit Profil', saveProfile: 'Simpan Profil', changePhoto: 'Ubah Foto',
-        smartInputTitle: 'Pencatatan Suara/Teks', smartInputPlaceholder: 'Ketik (contoh: makan 25k, atau dapat 1 jt)', smartInputNav: 'Ketik',
-        edit: 'Ubah', newsTitle: 'Kabar Ekonomi Jepang',
+        smartInputTitle: 'Pencatatan Suara/Teks', smartInputPlaceholder: 'Ketik (contoh: makan pakai mandiri 25k)', smartInputNav: 'Ketik',
+        edit: 'Ubah', newsTitle: 'Kabar Ekonomi & Finansial',
         danaTalang: 'Simulasi Dana Talang LPK', totalLoan: 'Total Pinjaman', paidAmount: 'Sudah Dibayar', remainingLoan: 'Sisa Hutang', setupLoan: 'Atur Dana Talang', saveLoan: 'Simpan',
         editWidget: 'Pengaturan Widget', widgetSubtitle: 'Pengeluaran Hari Ini', themeSettings: 'Tampilan & Tema', themeDesc: 'Ubah semua warna sesuai selera Anda.',
         dailyBudget: 'Batas Pengeluaran Harian', safeMode: 'Background Aman', dangerMode: 'Background Peringatan', statusSafe: 'AMAN',
@@ -251,13 +264,13 @@
         themeMode: 'Mode Tampilan', themeLight: 'Terang', themeDark: 'Gelap', themeAuto: 'Auto',
         support: 'Bantuan & Customer Support', shareApp: 'Bagikan Aplikasi',
         supportWelcome: 'Halo! Saya AI asisten mawuang. Ada yang bisa saya bantu hari ini?',
-        supportReply: 'Terima kasih atas pesan Anda! Karena saya masih dalam tahap belajar, mohon kirimkan pertanyaan atau keluhan Anda langsung ke email pengembang agar bisa segera ditangani dengan baik ya.',
+        supportReply: 'Terima kasih atas pesan Anda! Karena saya masih dalam tahap belajar, mohon kirimkan pertanyaan atau keluhan Anda langsung ke email pengembang.',
         sendEmail: 'Kirim Pesan via Email',
         redeemCode: 'Kode Redeem', redeemPlaceholder: 'REDEEM DISINI', redeemSuccess: 'Kode berhasil digunakan! Fitur Pro/Trial aktif.', redeemInvalid: 'Kode tidak valid atau sudah pernah digunakan!',
         buyPro: 'Beli Versi Penuh (Rp 50.000)',
         permissionError: 'Anda hanya dapat mengedit atau menghapus transaksi milik Anda sendiri!',
         
-        welcomeSub: 'Catatan Keuangan Perantau', welcomeTitle: 'Selamat Datang!', welcomeDesc: 'Kelola pemasukan dan pengeluaran harian Anda dengan mudah dan rapi.', startJourney: 'Mulai Perjalanan',
+        welcomeSub: 'Catatan Keuangan Pintar', welcomeTitle: 'Selamat Datang!', welcomeDesc: 'Kelola pemasukan dan pengeluaran harian Anda dengan mudah dan rapi.', startJourney: 'Mulai Perjalanan',
         loginGoogleTitle: 'Masuk dengan Akun Google', loginGoogleDesc: 'Sinkronkan data keuangan Anda secara aman berdasarkan akun Google Anda.', continueGoogle: 'Lanjutkan dengan Google',
         syncing: 'Menarik data dari Cloud...', loginSuccess: 'Berhasil Masuk!', profileDesc: 'Sesuaikan nama panggilan dan foto profil Anda.', nicknamePlaceholder: 'Nama Panggilan', continueBtn: 'Lanjutkan',
         createPinTitle: 'Buat PIN Keamanan', confirmPinTitle: 'Konfirmasi PIN Anda', pinDescCreate: 'Masukkan 6 digit angka untuk keamanan.', pinDescConfirm: 'Masukkan ulang PIN yang sama untuk konfirmasi.', skipPin: 'Lewati PIN',
@@ -270,13 +283,71 @@
         proUser: 'Pro User', freeTrial: 'Free Trial', daysLeft: 'Hari Lagi', catWalletTitle: 'Kategori & Dompet', txSaved: 'Pencatatan berhasil disimpan!', pinMismatch: 'PIN tidak cocok! Silakan ulangi.',
         setupPinSuccess: 'PIN berhasil dipasang!', removePinSuccess: 'PIN dan Keamanan dihapus!', req6digit: 'Harus 6 digit angka!', ok: 'OK', bioSupportError: 'Perangkat/Browser ini tidak mendukung biometrik.',
         bioSuccess: 'Face ID / Touch ID berhasil diaktifkan!', bioFailed: 'Gagal mengaktifkan keamanan biometrik.', bioDisable: 'Keamanan tambahan dinonaktifkan!', smartInputFailed: 'Nominal angka tidak terdeteksi. Silakan ketik angka (misal: 25rb atau 25k)',
-        micError: 'Browser Anda tidak mendukung fitur Suara (Gunakan Chrome/Safari versi terbaru).',
+        micError: 'Browser Anda tidak mendukung fitur Suara.',
         swipeHint: 'Swipe untuk geser kartu',
         availableBalance: 'Saldo Tersedia',
-        currencyLabel: 'Mata Uang',
-        installInstructions: 'Untuk menambahkan aplikasi ini ke layar utama:\n\nDi Android (Chrome): Buka menu titik tiga lalu pilih "Tambahkan ke Layar Utama" / "Install App".\n\nDi iPhone (Safari): Ketuk tombol Bagikan lalu pilih "Tambahkan ke Layar Utama".',
-        shareText: 'Aplikasi pencatat keuangan pintar untuk perantau dengan fitur kurs dan AI. Coba sekarang!',
+        currencyLabel: 'Mata Uang (Currency)',
+        connectGoogle: 'Hubungkan Akun Google',
+        connectGoogleSuccess: 'Akun Google berhasil dihubungkan!',
         emailSubject: 'Bantuan Aplikasi mawuang'
+      },
+      en: {
+        appTitle: 'mawuang', totalBalance: 'Total Balance', income: 'Income', expense: 'Expense',
+        recent: 'Recent Transactions', addIncome: 'Income', addExpense: 'Expense', scan: 'Scan Receipt',
+        home: 'Home', categories: 'Categories', settings: 'Settings', save: 'Save', cancel: 'Cancel',
+        amount: 'Amount', note: 'Note', exportExcel: 'Export Data (CSV)', language: 'Language',
+        scanInstruction: 'Select a photo or take a picture of a receipt or bank transfer', scanning: 'Analyzing text on image...',
+        categoryName: 'Category Name', addCategory: 'Add Category', noTransactions: 'No transactions yet, start recording!',
+        delete: 'Delete', selectCategory: 'Select Category', newTransaction: 'New Transaction', editTransaction: 'Edit Transaction', type: 'Type',
+        categoryRequired: 'Oops, Category not selected!', amountRequired: 'Amount is required!', insufficientBalance: 'Insufficient balance',
+        dateTime: 'Date & Time', report: 'Analytics', yearly: 'Yearly', monthly: 'Monthly', weekly: 'Weekly',
+        addPhoto: 'Add Photo / Receipt', custom: 'Custom', startDate: 'Start Date', endDate: 'End Date',
+        transactionDetails: 'Transaction Details', aboutApp: 'About App', aboutAppDesc: 'Smart multi-currency financial tracker app with real-time exchange rates.',
+        exportFileName: 'Export File Name', exportConfirm: 'Export Data', scanFailed: 'Failed to extract numbers. You can copy them manually from the photo.',
+        tryAgain: 'Retry / Manual', pinSecurity: 'PIN Security', setupPin: 'Set New PIN', removePin: 'Remove Security',
+        enterPin: 'Enter Your PIN', wrongPin: 'Wrong PIN!', cloudBackup: 'Backup & Sync', backupDesc: 'Save to Google Drive / Restore from JSON',
+        exportData: 'Backup Data', importData: 'Restore', wallets: 'Payment Methods', chart: 'Expense Breakdown',
+        addWallet: 'Add Wallet', walletName: 'Wallet Name', walletsConfig: 'Wallets List', setupBiometric: 'Use Face ID / Touch ID',
+        removeBiometric: 'Turn Off Security', logout: 'Logout', deleteAccount: 'Delete Account', deleteAccountDesc: 'Permanently delete your account and all data from the server.',
+        deleteAccountPrompt: 'Type your username (<b>{username}</b>) to confirm account deletion:', deleteAccountMatchError: 'Username does not match!',
+        connectedAccount: 'Connected Account', profileSetup: 'User Profile',
+        editProfile: 'Edit Profile', saveProfile: 'Save Profile', changePhoto: 'Change Photo',
+        smartInputTitle: 'Voice / Text Smart Input', smartInputPlaceholder: 'Type (e.g., food using mandiri 25k)', smartInputNav: 'Type',
+        edit: 'Edit', newsTitle: 'Economic & Financial News',
+        danaTalang: 'LPK Loan Simulation', totalLoan: 'Total Loan', paidAmount: 'Paid Amount', remainingLoan: 'Remaining Loan', setupLoan: 'Setup Loan', saveLoan: 'Save',
+        editWidget: 'Widget Settings', widgetSubtitle: "Today's Expense", themeSettings: 'Theme & Appearance', themeDesc: 'Customize all colors to your preference.',
+        dailyBudget: 'Daily Expense Limit', safeMode: 'Safe Background', dangerMode: 'Warning Background', statusSafe: 'SAFE',
+        themePrimary: 'Button Color (Primary)', themeIncome: 'Income Color', themeExpense: 'Expense Color', themeBg: 'Background Color', themeCard: 'Card Color', themeText: 'Text Color', themeReset: 'Reset Theme',
+        widgetDesc: 'Set daily limit and change background image depending on your budget status.', addToHome: 'Add to Home Screen', exportDateRange: 'Date Range (Optional)',
+        themeMode: 'Display Mode', themeLight: 'Light', themeDark: 'Dark', themeAuto: 'Auto',
+        support: 'Support & Customer Service', shareApp: 'Share App',
+        supportWelcome: 'Hello! I am mawuang AI assistant. How can I help you today?',
+        supportReply: 'Thank you for your message! Please send your inquiries directly to the developer email.',
+        sendEmail: 'Send Email',
+        redeemCode: 'Redeem Code', redeemPlaceholder: 'ENTER CODE HERE', redeemSuccess: 'Code applied successfully! Pro/Trial active.', redeemInvalid: 'Invalid code or already used!',
+        buyPro: 'Buy Full Version (Rp 50,000)',
+        permissionError: 'You can only edit or delete your own transactions!',
+        
+        welcomeSub: 'Smart Financial Tracker', welcomeTitle: 'Welcome!', welcomeDesc: 'Manage your daily income and expenses easily and neatly.', startJourney: 'Start Journey',
+        loginGoogleTitle: 'Sign in with Google', loginGoogleDesc: 'Safely sync your financial data based on your Google account.', continueGoogle: 'Continue with Google',
+        syncing: 'Fetching data from Cloud...', loginSuccess: 'Login Successful!', profileDesc: 'Customize your nickname and profile picture.', nicknamePlaceholder: 'Nickname', continueBtn: 'Continue',
+        createPinTitle: 'Create Security PIN', confirmPinTitle: 'Confirm Your PIN', pinDescCreate: 'Enter 6 digits for security.', pinDescConfirm: 'Re-enter the same PIN to confirm.', skipPin: 'Skip PIN',
+        trialExpiredTitle: 'Trial Expired', trialExpiredDesc: 'You have used mawuang for over 7 days. To continue using cloud sync and tracking features, please upgrade to Pro (Rp 50,000) or enter your redeem code.',
+        hi: 'Hi, ', guest: 'Guest', user: 'User', limit: 'Limit', scanBtn: 'Scan Receipt / Bank', loadingNews: 'Loading news...', noNews: 'No news at the moment.',
+        categoryExist: 'Category already exists!', minCategory: 'Must have at least 1 category!', minWallet: 'Must have at least 1 wallet!', noTxDate: 'No transactions on this date.',
+        success: 'Success', restoreSuccess: 'Data restored successfully!', invalidBackup: 'Invalid backup file!', connFailed: 'Failed to connect to Cloud.', linkCopied: 'App link copied!',
+        cloudOffline: 'Cloud system is offline or blocked by browser. Please check your internet connection.', no: 'No', yesDelete: 'Yes, Delete', saved: 'Saved!',
+        photoReceipt: 'Photo / Receipt', typeMessage: 'Type a message...', aiAgent: 'AI Agent Online', listening: 'Listening to your voice...', manual: 'Manual', retry: 'Retry',
+        proUser: 'Pro User', freeTrial: 'Free Trial', daysLeft: 'Days Left', catWalletTitle: 'Categories & Wallets', txSaved: 'Record successfully saved!', pinMismatch: 'PIN does not match! Please try again.',
+        setupPinSuccess: 'PIN successfully set up!', removePinSuccess: 'PIN and security removed!', req6digit: 'Must be 6 digits!', ok: 'OK', bioSupportError: 'This device/browser does not support biometrics.',
+        bioSuccess: 'Face ID / Touch ID successfully enabled!', bioFailed: 'Failed to enable biometric security.', bioDisable: 'Additional security disabled!', smartInputFailed: 'Number amount not detected. Please type numbers (e.g., 25k)',
+        micError: 'Your browser does not support voice features.',
+        swipeHint: 'Swipe to slide cards',
+        availableBalance: 'Available Balance',
+        currencyLabel: 'Currency',
+        connectGoogle: 'Connect Google Account',
+        connectGoogleSuccess: 'Google Account successfully connected!',
+        emailSubject: 'mawuang App Support'
       },
       jp: {
         appTitle: 'mawuang', totalBalance: '総残高', income: '収入', expense: '支出',
@@ -289,7 +360,7 @@
         categoryRequired: 'カテゴリを選択してください！', amountRequired: '金額を入力してください！', insufficientBalance: '残高が不足しています',
         dateTime: '日時', report: '分析', yearly: '年間', monthly: '月間', weekly: '週間',
         addPhoto: '写真を追加', custom: 'カスタム', startDate: '開始日', endDate: '終了日',
-        transactionDetails: '取引の詳細', aboutApp: 'アプリについて', aboutAppDesc: 'インドネシアから日本への移住者のための家計簿アプリ。リアルタイム為替レート機能付き。',
+        transactionDetails: '取引の詳細', aboutApp: 'アプリについて', aboutAppDesc: 'マルチ通貨対応のスマート家計簿アプリ。リアルタイム為替レート機能付き。',
         exportFileName: '出力ファイル名', exportConfirm: '出力', scanFailed: '数字の抽出に失敗しました。写真から手動でコピーできます。',
         tryAgain: '再試行 / 手動', pinSecurity: 'PIN セキュリティ', setupPin: 'PINを設定', removePin: 'セキュリティを削除',
         enterPin: 'PINを入力してください', wrongPin: 'PINが間違っています！', cloudBackup: 'バックアップと同期', backupDesc: 'Googleドライブに保存 / JSONから復元',
@@ -299,8 +370,8 @@
         deleteAccountPrompt: 'アカウント削除を確認するには、ユーザー名（<b>{username}</b>）を入力してください：', deleteAccountMatchError: 'ユーザー名が一致しません！',
         connectedAccount: '連携アカウント', profileSetup: 'プロフィール',
         editProfile: 'プロフィールを編集', saveProfile: 'プロフィールを保存', changePhoto: '写真を変更',
-        smartInputTitle: 'スマート入力', smartInputPlaceholder: '入力例: 昼ごはん 500円、または 1000円 もらった', smartInputNav: '入力',
-        edit: '編集', newsTitle: '日本経済ニュース',
+        smartInputTitle: 'スマート入力', smartInputPlaceholder: '入力例: 昼ごはん mandiri で 500円', smartInputNav: '入力',
+        edit: '編集', newsTitle: '経済・金融ニュース',
         danaTalang: '立替金シミュレーション', totalLoan: '借入総額', paidAmount: '支払済', remainingLoan: '残高', setupLoan: '設定', saveLoan: '保存',
         editWidget: 'ウィジェット設定', widgetSubtitle: '今日の支出', themeSettings: 'テーマと外観', themeDesc: 'すべての色を自由に変更できます。',
         dailyBudget: '1日の支出上限', safeMode: '安全時の背景', dangerMode: '警告時の背景', statusSafe: '安全',
@@ -315,12 +386,12 @@
         buyPro: 'フルバージョンを購入 (Rp 50.000)',
         permissionError: '自分の取引のみ編集または削除できます！',
         
-        welcomeSub: '海外生活者の家計簿', welcomeTitle: 'ようこそ！', welcomeDesc: '日々の収入と支出を簡単かつきれいに管理します。', startJourney: '始める',
+        welcomeSub: 'スマート家計簿', welcomeTitle: 'ようこそ！', welcomeDesc: '日々の収入と支出を簡単かつきれいに管理します。', startJourney: '始める',
         loginGoogleTitle: 'Googleアカウントでログイン', loginGoogleDesc: 'Googleアカウントで家計データを安全に同期します。', continueGoogle: 'Googleで続行',
         syncing: 'クラウドからデータを取得中...', loginSuccess: 'ログイン成功！', profileDesc: 'ニックネームとプロフィール写真を設定してください。', nicknamePlaceholder: 'ニックネーム', continueBtn: '続行',
         createPinTitle: 'セキュリティPINを作成', confirmPinTitle: 'PINを確認', pinDescCreate: 'セキュリティのために6桁の数字を入力してください。', pinDescConfirm: '確認のため同じPINを再入力してください。', skipPin: 'PINをスキップ',
         trialExpiredTitle: 'トライアル期間終了', trialExpiredDesc: 'mawuangを7日以上利用しました。記録やクラウド同期機能を引き続き使用するには、Pro版（Rp 50,000）にアップグレードするか、プロモーションコードを入力してください。',
-        hi: 'こんにちは、', guest: 'ゲスト', user: 'ユーザー', limit: '上限', scanBtn: 'レシート/銀行をスキャン', loadingNews: 'ニュースを読み込み中...', noNews: '現在ニュースはありません。',
+        hi: 'Hi, ', guest: 'ゲスト', user: 'ユーザー', limit: '上限', scanBtn: 'レシート/銀行をスキャン', loadingNews: 'ニュースを読み込み中...', noNews: '現在ニュースはありません。',
         categoryExist: 'カテゴリはすでに存在します！', minCategory: 'カテゴリは最低1つ必要です！', minWallet: 'ウォレットは最低1つ必要です！', noTxDate: '指定された日に取引はありません。',
         success: '成功', restoreSuccess: 'データが復元されました！', invalidBackup: '無効なバックアップファイルです！', connFailed: 'クラウドへの接続に失敗しました。', linkCopied: 'アプリのリンクをコピーしました！',
         cloudOffline: 'クラウドシステムがオフラインです。インターネット接続を確認してください。', no: 'いいえ', yesDelete: 'はい、削除します', saved: '保存されました！',
@@ -332,8 +403,8 @@
         swipeHint: 'スワイプしてカードを切り替え',
         availableBalance: '利用可能残高',
         currencyLabel: '通貨',
-        installInstructions: 'ホーム画面にアプリを追加するには：\n\nAndroid (Chrome)：メニューから「ホーム画面に追加」を選択してください。\n\niPhone (Safari)：共有ボタンをタップし、「ホーム画面に追加」を選択してください。',
-        shareText: '為替・AI機能付きの海外生活者向けスマート家計簿アプリ。今すぐ試そう！',
+        connectGoogle: 'Googleアカウントを連携',
+        connectGoogleSuccess: 'Googleアカウントが正常に連携されました！',
         emailSubject: 'mawuangアプリのサポート'
       }
     };
@@ -438,7 +509,7 @@
       
       const [widgetConfig, setWidgetConfig] = useState({ safeBg: null, dangerBg: null, limit: 0, limitCurrency: 'IDR', balanceBg: null }); 
       
-      const [exchangeRate, setExchangeRate] = useState(113.69); 
+      const [exchangeRates, setExchangeRates] = useState({ IDR: 16000, JPY: 150, USD: 1, EUR: 0.92, SGD: 1.35, MYR: 4.5, GBP: 0.78, AUD: 1.5, KRW: 1350, THB: 36 }); 
       const [isLoadingRate, setIsLoadingRate] = useState(true);
       
       const [reportPeriod, setReportPeriod] = useState('month'); 
@@ -547,74 +618,39 @@
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then(() => setDeferredPrompt(null));
         } else {
-            setMessageDialog({ isOpen: true, title: 'Info', message: t.installInstructions });
+            setMessageDialog({ isOpen: true, title: 'Info', message: t.installInstructions || 'Install via browser menu.' });
         }
       };
 
       useEffect(() => {
-        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-          window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
-            if (previewImage) { setPreviewImage(null); return; }
-            if (selectedTx) { setSelectedTx(null); return; }
-            if (isTxModalOpen) { setIsTxModalOpen(false); return; }
-            if (isScannerOpen) { setIsScannerOpen(false); return; }
-            if (isSmartInputOpen) { setIsSmartInputOpen(false); return; }
-            if (isProfileModalOpen) { setIsProfileModalOpen(false); return; }
-            if (isExportModalOpen) { setIsExportModalOpen(false); return; }
-            if (isDanaTalangModalOpen) { setIsDanaTalangModalOpen(false); return; }
-            if (isWidgetModalOpen) { setIsWidgetModalOpen(false); return; }
-            if (isSupportModalOpen) { setIsSupportModalOpen(false); return; }
-            if (deleteAccountModal.isOpen) { setDeleteAccountModal({ isOpen: false, input: '' }); return; }
-            if (activeTab !== 'home') { setActiveTab('home'); return; }
-            window.Capacitor.Plugins.App.exitApp();
-          });
-        }
-
-        const handlePopState = (e) => {
-          if (previewImage) { setPreviewImage(null); window.history.pushState(null, '', window.location.href); return; }
-          if (selectedTx) { setSelectedTx(null); window.history.pushState(null, '', window.location.href); return; }
-          if (isTxModalOpen) { setIsTxModalOpen(false); window.history.pushState(null, '', window.location.href); return; }
-          if (isScannerOpen) { setIsScannerOpen(false); window.history.pushState(null, '', window.location.href); return; }
-          if (isSmartInputOpen) { setIsSmartInputOpen(false); window.history.pushState(null, '', window.location.href); return; }
-          if (isProfileModalOpen) { setIsProfileModalOpen(false); window.history.pushState(null, '', window.location.href); return; }
-          if (isExportModalOpen) { setIsExportModalOpen(false); window.history.pushState(null, '', window.location.href); return; }
-          if (isDanaTalangModalOpen) { setIsDanaTalangModalOpen(false); window.history.pushState(null, '', window.location.href); return; }
-          if (isWidgetModalOpen) { setIsWidgetModalOpen(false); window.history.pushState(null, '', window.location.href); return; }
-          if (isSupportModalOpen) { setIsSupportModalOpen(false); window.history.pushState(null, '', window.location.href); return; }
-          if (deleteAccountModal.isOpen) { setDeleteAccountModal({ isOpen: false, input: '' }); window.history.pushState(null, '', window.location.href); return; }
-          if (activeTab !== 'home') { setActiveTab('home'); window.history.pushState(null, '', window.location.href); return; }
-        };
-
-        window.history.pushState(null, '', window.location.href);
-        window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
-      }, [previewImage, selectedTx, isTxModalOpen, isScannerOpen, isSmartInputOpen, isProfileModalOpen, isExportModalOpen, isDanaTalangModalOpen, isWidgetModalOpen, isSupportModalOpen, deleteAccountModal.isOpen, activeTab]);
-
-      const fetchFinancialNews = async () => {
-        try {
-          setNewsLoading(true);
-          const rssUrl = "https://news.google.com/rss/search?q=ekonomi+jepang+yen+keuangan+inflasi&hl=id&gl=ID&ceid=ID:id";
-          const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-          const response = await fetch(apiUrl);
-          const data = await response.json();
-          if (data && data.items && Array.isArray(data.items)) {
-            setNewsList(data.items.slice(0, 5));
+        const fetchFinancialNews = async () => {
+          try {
+            setNewsLoading(true);
+            const rssUrl = "https://news.google.com/rss/search?q=ekonomi+jepang+yen+keuangan+inflasi&hl=id&gl=ID&ceid=ID:id";
+            const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            if (data && data.items && Array.isArray(data.items)) {
+              setNewsList(data.items.slice(0, 5));
+            }
+          } catch (e) {
+            console.warn("Gagal memuat berita finansial:", e);
+          } finally {
+            setNewsLoading(false);
           }
-        } catch (e) {
-          console.warn("Gagal memuat berita finansial:", e);
-        } finally {
-          setNewsLoading(false);
-        }
-      };
-      useEffect(() => { fetchFinancialNews(); }, []);
+        };
+        fetchFinancialNews();
+      }, []);
 
       const fetchExchangeRate = async () => {
         setIsLoadingRate(true);
         try {
-          const response = await fetch('https://api.exchangerate-api.com/v4/latest/JPY');
+          const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
           const data = await response.json();
-          if (data && data.rates && data.rates.IDR) setExchangeRate(data.rates.IDR);
-        } catch (error) { console.error("Gagal mengambil data kurs:", error); } 
+          if (data && data.rates) {
+            setExchangeRates(data.rates);
+          }
+        } catch (error) { console.error("Failed to fetch exchange rates:", error); } 
         finally { setIsLoadingRate(false); }
       };
       useEffect(() => { fetchExchangeRate(); }, []);
@@ -675,16 +711,6 @@
                       if(!wc.limitCurrency) wc.limitCurrency = 'IDR';
                       setWidgetConfig(wc);
                   }
-
-                  if (data.username) idb.set('mawuang_username', data.username);
-                  if (data.photoURL) idb.set('mawuang_photo', data.photoURL);
-                  if (data.pin !== undefined) idb.set('mawuang_pin', data.pin);
-                  if (data.themeMode) idb.set('mawuang_theme_mode', data.themeMode);
-                  if (wc) idb.set('mawuang_widget_config', wc);
-                  if (data.customTheme) idb.set('mawuang_custom_theme', data.customTheme);
-                  if (data.isPro !== undefined) idb.set('mawuang_is_pro', data.isPro);
-                  if (data.createdAt) idb.set('mawuang_created_at', data.createdAt);
-                  if (data.redeemedCodes) idb.set('mawuang_redeemed_codes', data.redeemedCodes);
               }
           });
           return () => unsubscribe();
@@ -787,17 +813,29 @@
 
       const formatCurrency = (amount, currencyCode) => {
         if (hideBalance) {
-          return currencyCode === 'JPY' ? '¥ ••••••' : 'Rp •••••••';
+          return currencyCode === 'JPY' || currencyCode === 'KRW' ? '¥ ••••••' : '$ ••••••';
         }
-        if (currencyCode === 'JPY') return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(amount);
-        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+        const currObj = SUPPORTED_CURRENCIES.find(c => c.code === currencyCode);
+        const symbol = currObj ? currObj.symbol : currencyCode;
+        
+        try {
+          return new Intl.NumberFormat(lang === 'id' ? 'id-ID' : (lang === 'jp' ? 'ja-JP' : 'en-US'), { 
+            style: 'currency', 
+            currency: currencyCode, 
+            maximumFractionDigits: ['JPY', 'KRW'].includes(currencyCode) ? 0 : 2 
+          }).format(amount);
+        } catch(e) {
+          return `${symbol} ${Number(amount).toLocaleString()}`;
+        }
       };
 
       const getConvertedAmount = (amount, fromCurrency, toCurrency) => {
         if (fromCurrency === toCurrency) return amount;
-        if (fromCurrency === 'JPY' && toCurrency === 'IDR') return amount * exchangeRate;
-        if (fromCurrency === 'IDR' && toCurrency === 'JPY') return amount / exchangeRate;
-        return amount;
+        const rates = exchangeRates;
+        const rateFrom = rates[fromCurrency] || 1;
+        const rateTo = rates[toCurrency] || 1;
+        const amountInUSD = amount / rateFrom;
+        return amountInUSD * rateTo;
       };
 
       const getCatName = (cat) => {
@@ -995,7 +1033,7 @@
               return;
           }
           const recognition = new SpeechRecognition();
-          recognition.lang = lang === 'id' ? 'id-ID' : 'ja-JP';
+          recognition.lang = lang === 'id' ? 'id-ID' : (lang === 'jp' ? 'ja-JP' : 'en-US');
           recognition.interimResults = false;
           
           recognition.onstart = () => setIsListening(true);
@@ -1451,6 +1489,34 @@
           }
       };
 
+      const handleConnectGoogle = async () => {
+          if (!window.firebaseApp || !window.firebaseDb || !window.firebaseAuth || !window.firebaseSignInWithPopup) {
+              setMessageDialog({ isOpen: true, title: 'Koneksi Terputus', message: t.cloudOffline });
+              return;
+          }
+          try {
+              const provider = new window.GoogleAuthProvider();
+              const result = await window.firebaseSignInWithPopup(window.firebaseAuth, provider);
+              const uid = result.user.uid;
+              const email = result.user.email || '';
+              const googleName = result.user.displayName || email.split('@')[0] || username;
+              const googlePhoto = result.user.photoURL || photoURL;
+
+              setFirebaseUid(uid); setConnectedEmail(email);
+              await idb.set('mawuang_firebase_uid', uid); await idb.set('mawuang_email', email);
+
+              const payload = {
+                  transactions, categories, wallets, username: googleName, photoURL: googlePhoto,
+                  pin, lang, email, danaTalang, widgetConfig, customTheme,
+                  createdAt: createdAt || new Date().toISOString(), isPro, redeemedCodes
+              };
+              await pushToCloud(payload);
+              setMessageDialog({ isOpen: true, title: t.success, message: t.connectGoogleSuccess });
+          } catch (err) {
+              setMessageDialog({ isOpen: true, title: 'Error', message: err.message || t.connFailed });
+          }
+      };
+
       const handleLogout = async () => {
           try { if (window.firebaseAuth && window.firebaseSignOut) await window.firebaseSignOut(window.firebaseAuth); } catch (e) { console.warn("Sign out error", e); }
           await idb.remove('mawuang_firebase_uid'); await idb.remove('mawuang_email'); await idb.remove('mawuang_username'); await idb.remove('mawuang_photo'); await idb.remove('mawuang_pin'); await idb.remove('mawuang_biometric_id'); await idb.remove('mawuang_tx'); await idb.remove('mawuang_cat'); await idb.remove('mawuang_wallets'); await idb.remove('mawuang_danatalang'); await idb.remove('mawuang_widget_config'); await idb.remove('mawuang_custom_theme'); await idb.remove('mawuang_theme_mode'); await idb.remove('mawuang_created_at'); await idb.remove('mawuang_is_pro'); await idb.remove('mawuang_redeemed_codes');
@@ -1483,7 +1549,7 @@
               if (navigator.share) {
                   await navigator.share({
                       title: 'mawuang - Catatan Keuangan',
-                      text: t.shareText,
+                      text: t.shareText || 'Aplikasi pencatat keuangan pintar multi-kurs dengan fitur AI.',
                       url: window.location.href,
                   });
               } else {
@@ -1822,10 +1888,9 @@
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-3xl font-bold text-main tracking-tight truncate pr-4">{t.hi}{username || t.user}!</h1>
               <div className="flex items-center gap-2">
-                 <div className="flex bg-gray-200/60 p-1 rounded-full cursor-pointer" onClick={() => setDisplayCurrency(displayCurrency === 'IDR' ? 'JPY' : 'IDR')}>
-                    <div className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 ${displayCurrency === 'IDR' ? 'bg-white text-main shadow-sm' : 'text-muted'}`}>IDR</div>
-                    <div className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 ${displayCurrency === 'JPY' ? 'bg-white text-main shadow-sm' : 'text-muted'}`}>JPY</div>
-                 </div>
+                 <select value={displayCurrency} onChange={(e) => setDisplayCurrency(e.target.value)} className="bg-gray-200/60 hover:bg-gray-200 text-main text-xs font-semibold px-3 py-1.5 rounded-full outline-none appearance-none cursor-pointer">
+                    {SUPPORTED_CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code}</option>)}
+                 </select>
                  {photoURL ? ( <img src={photoURL} className="w-9 h-9 rounded-full object-cover shadow-sm border border-gray-200" /> ) : ( <div className="w-9 h-9 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center"><UserIcon size={18} /></div> )}
               </div>
             </div>
@@ -1854,7 +1919,7 @@
                </div>
                <div className="relative z-10 mt-6">
                   <button onClick={() => setIsScannerOpen(true)} className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-4 py-2 rounded-full text-xs font-semibold transition-all active:scale-95">
-                     <Camera size={16} /> {t.scanBtn}
+                     <Camera size={16} className={isDarkMode ? "text-white" : ""} /> {t.scanBtn}
                   </button>
                </div>
             </div>
@@ -1994,7 +2059,7 @@
               <h1 className="text-3xl font-bold text-main tracking-tight">{t.report}</h1>
               <button onClick={fetchExchangeRate} disabled={isLoadingRate} className="text-gray-500 bg-gray-200/60 hover:bg-gray-200 text-[11px] font-semibold transition-all px-3 py-1.5 rounded-full flex items-center gap-1.5 cursor-pointer">
                  <RefreshCw size={12} className={isLoadingRate ? 'animate-spin' : ''} />
-                 <span>{isLoadingRate ? (lang === 'id' ? 'Memuat...' : '読み込み中...') : `1 JPY = Rp ${exchangeRate.toFixed(2)}`}</span>
+                 <span>{isLoadingRate ? (lang === 'id' ? 'Memuat...' : 'Loading...') : 'Live Rates'}</span>
               </button>
             </div>
 
@@ -2341,6 +2406,12 @@
                    <button onClick={() => { setProfileFormData({username, photoURL}); setIsProfileModalOpen(true); }} className="p-2 text-theme active:opacity-70"><Edit2 size={20} /></button>
                </div>
 
+               {!connectedEmail && (
+                   <button onClick={handleConnectGoogle} className="w-full mt-4 bg-white border border-gray-200 text-main py-2.5 rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-transform flex justify-center items-center gap-2">
+                       <GoogleLogo /> {t.connectGoogle}
+                   </button>
+               )}
+
                {!isPro && (
                    <div className="mt-4 pt-4 border-t border-gray-100">
                        <label className="block text-xs font-semibold text-gray-400 mb-2">{t.redeemCode}</label>
@@ -2415,9 +2486,10 @@
                 <div className="p-1.5 bg-blue-100 text-blue-500 rounded-md"><Globe size={18}/></div>
                 <span className="text-sm font-medium text-main">{t.language}</span>
               </div>
-              <div className="flex bg-gray-200/80 p-0.5 rounded-md cursor-pointer" onClick={() => { const newLang = lang === 'id' ? 'jp' : 'id'; setLang(newLang); pushToCloud({ lang: newLang }); }}>
-                 <div className={`px-2.5 py-1 rounded-sm text-[10px] font-bold ${lang === 'id' ? 'bg-white text-main shadow-sm' : 'text-gray-500'}`}>ID</div>
-                 <div className={`px-2.5 py-1 rounded-sm text-[10px] font-bold ${lang === 'jp' ? 'bg-white text-main shadow-sm' : 'text-gray-500'}`}>JP</div>
+              <div className="flex bg-gray-200/80 p-0.5 rounded-md cursor-pointer">
+                 <div onClick={() => { setLang('id'); pushToCloud({ lang: 'id' }); }} className={`px-2 py-1 rounded-sm text-[10px] font-bold ${lang === 'id' ? 'bg-white text-main shadow-sm' : 'text-gray-500'}`}>ID</div>
+                 <div onClick={() => { setLang('en'); pushToCloud({ lang: 'en' }); }} className={`px-2 py-1 rounded-sm text-[10px] font-bold ${lang === 'en' ? 'bg-white text-main shadow-sm' : 'text-gray-500'}`}>EN</div>
+                 <div onClick={() => { setLang('jp'); pushToCloud({ lang: 'jp' }); }} className={`px-2 py-1 rounded-sm text-[10px] font-bold ${lang === 'jp' ? 'bg-white text-main shadow-sm' : 'text-gray-500'}`}>JP</div>
               </div>
             </div>
           </div>
@@ -2532,7 +2604,7 @@
                     <p className="text-xs text-gray-500 mb-6 text-center">{t.smartInputPlaceholder}</p>
                     <div className="flex bg-gray-100 rounded-2xl p-2 items-center mb-6 focus-within:bg-gray-200 transition-all">
                         <button onClick={toggleListen} className={`p-3 rounded-xl transition-all ${isListening ? 'bg-red-100 text-red-500 animate-pulse' : 'text-gray-400 hover:text-theme'}`}><Mic size={20} /></button>
-                        <input type="text" value={smartText} onChange={e => setSmartText(e.target.value)} placeholder={lang === 'id' ? "makan 25k, atau dapat 1 jt..." : "昼ごはん 500円..."} className="flex-1 bg-transparent border-none outline-none px-3 text-main text-sm font-medium" onKeyDown={e => e.key === 'Enter' && handleSmartSubmit()} autoFocus />
+                        <input type="text" value={smartText} onChange={e => setSmartText(e.target.value)} placeholder={lang === 'id' ? "makan pakai mandiri 25k..." : "昼ごはん mandiri 500円..."} className="flex-1 bg-transparent border-none outline-none px-3 text-main text-sm font-medium" onKeyDown={e => e.key === 'Enter' && handleSmartSubmit()} autoFocus />
                         <button onClick={handleSmartSubmit} className="p-3 bg-theme text-white rounded-xl active:scale-95"><Send size={18} /></button>
                     </div>
                     {isListening && <p className="text-center text-xs text-red-500 animate-pulse font-medium">{t.listening}</p>}
