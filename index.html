@@ -232,7 +232,9 @@
         edit: 'Ubah', newsTitle: 'Kabar Ekonomi Jepang',
         danaTalang: 'Simulasi Dana Talang LPK', totalLoan: 'Total Pinjaman', paidAmount: 'Sudah Dibayar', remainingLoan: 'Sisa Hutang', setupLoan: 'Atur Dana Talang', saveLoan: 'Simpan',
         editWidget: 'Pengaturan Widget', widgetSubtitle: 'Pengeluaran Hari Ini', themeSettings: 'Tampilan & Tema', themeDesc: 'Ubah semua warna sesuai selera Anda.',
-        dailyBudget: 'Batas Pengeluaran Harian', safeMode: 'Background Aman', dangerMode: 'Background Peringatan', statusSafe: 'AMAN'
+        dailyBudget: 'Batas Pengeluaran Harian', safeMode: 'Background Aman', dangerMode: 'Background Peringatan', statusSafe: 'AMAN',
+        themePrimary: 'Warna Tombol (Primary)', themeIncome: 'Warna Pemasukan', themeExpense: 'Warna Pengeluaran', themeBg: 'Warna Latar (Background)', themeCard: 'Warna Kartu (Card)', themeText: 'Warna Teks', themeReset: 'Reset Tema',
+        widgetDesc: 'Atur batas harian dan ubah gambar background saat budget aman atau habis.', addToHome: 'Tambahkan ke Layar Utama', exportDateRange: 'Rentang Waktu (Opsional)'
       },
       jp: {
         appTitle: 'mawuang', totalBalance: '総残高', income: '収入', expense: '支出',
@@ -257,7 +259,9 @@
         edit: '編集', newsTitle: '日本経済ニュース',
         danaTalang: '立替金シミュレーション', totalLoan: '借入総額', paidAmount: '支払済', remainingLoan: '残高', setupLoan: '設定', saveLoan: '保存',
         editWidget: 'ウィジェット設定', widgetSubtitle: '今日の支出', themeSettings: 'テーマと外観', themeDesc: 'すべての色を自由に変更できます。',
-        dailyBudget: '1日の支出上限', safeMode: '安全時の背景', dangerMode: '警告時の背景', statusSafe: '安全'
+        dailyBudget: '1日の支出上限', safeMode: '安全時の背景', dangerMode: '警告時の背景', statusSafe: '安全',
+        themePrimary: 'メインボタンの色', themeIncome: '収入の色', themeExpense: '支出の色', themeBg: '背景色', themeCard: 'カードの色', themeText: 'テキストの色', themeReset: 'テーマをリセット',
+        widgetDesc: '1日の予算上限を設定し、予算の状態に応じて背景画像を変更します。', addToHome: 'ホーム画面に追加', exportDateRange: '期間を選択 (任意)'
       }
     };
 
@@ -358,6 +362,9 @@
       
       const [isExportModalOpen, setIsExportModalOpen] = useState(false);
       const [exportFileName, setExportFileName] = useState('');
+      const [exportStartDate, setExportStartDate] = useState('');
+      const [exportEndDate, setExportEndDate] = useState('');
+      
       const [isDanaTalangModalOpen, setIsDanaTalangModalOpen] = useState(false);
       const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
       
@@ -1013,8 +1020,24 @@
       const handleExportCSV = () => {
         let finalFileName = exportFileName.trim() || `mawuang_report_${new Date().toISOString().slice(0, 10)}`;
         if (!finalFileName.endsWith('.csv')) finalFileName += '.csv';
+        
+        let txToExport = transactions;
+        if (exportStartDate || exportEndDate) {
+            txToExport = transactions.filter(tx => {
+                const txDate = new Date(tx.date).getTime();
+                const start = exportStartDate ? new Date(exportStartDate).setHours(0,0,0,0) : 0;
+                const end = exportEndDate ? new Date(exportEndDate).setHours(23,59,59,999) : Infinity;
+                return txDate >= start && txDate <= end;
+            });
+        }
+
+        if (txToExport.length === 0) {
+            setMessageDialog({ isOpen: true, title: 'Info', message: lang === 'id' ? 'Tidak ada transaksi pada tanggal tersebut.' : '指定された期間に取引はありません。' });
+            return;
+        }
+
         const headers = ['Transaction ID', 'Date', 'Time', 'Type', 'Category', 'Wallet', 'Note', 'Currency', 'Amount', `Converted Amount (${displayCurrency})`];
-        const rows = transactions.map(tx => {
+        const rows = txToExport.map(tx => {
           const cat = categories.find(c => c.id === tx.categoryId);
           const txDate = new Date(tx.date);
           const convertedAmount = getConvertedAmount(tx.amount, tx.currency || 'IDR', displayCurrency);
@@ -1028,7 +1051,7 @@
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a'); link.href = url; link.setAttribute('download', finalFileName);
         document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
-        setIsExportModalOpen(false); setExportFileName('');
+        setIsExportModalOpen(false); setExportFileName(''); setExportStartDate(''); setExportEndDate('');
       };
 
       const handleBackupJSON = () => {
@@ -1413,7 +1436,7 @@
           <div className="p-4 md:p-8 pb-32 animate-fade-in relative z-10 max-w-2xl mx-auto">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold text-main tracking-tight truncate pr-4">{lang === 'id' ? 'Hi' : 'こんにちは'}, {username || (lang === 'id' ? 'Pengguna' : 'ゲスト')}!</h1>
+              <h1 className="text-3xl font-bold text-main tracking-tight truncate pr-4">Hi, {username || (lang === 'id' ? 'Pengguna' : 'Guest')}!</h1>
               <div className="flex items-center gap-2">
                  <div className="flex bg-gray-200/60 p-1 rounded-full cursor-pointer" onClick={() => setDisplayCurrency(displayCurrency === 'IDR' ? 'JPY' : 'IDR')}>
                     <div className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all duration-200 ${displayCurrency === 'IDR' ? 'bg-white text-main shadow-sm' : 'text-muted'}`}>IDR</div>
@@ -1861,30 +1884,30 @@
               <div className="p-4 bg-gray-50/50 space-y-3">
                 <p className="text-[11px] text-gray-500 mb-2">{t.themeDesc}</p>
                 <div className="flex justify-between items-center text-sm">
-                    <span className="text-main">Warna Tombol (Primary)</span>
+                    <span className="text-main font-medium">{t.themePrimary}</span>
                     <input type="color" value={customTheme.primary} onChange={(e) => { const newTheme = {...customTheme, primary: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                    <span className="text-main">Warna Pemasukan</span>
+                    <span className="text-main font-medium">{t.themeIncome}</span>
                     <input type="color" value={customTheme.income} onChange={(e) => { const newTheme = {...customTheme, income: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                    <span className="text-main">Warna Pengeluaran</span>
+                    <span className="text-main font-medium">{t.themeExpense}</span>
                     <input type="color" value={customTheme.expense} onChange={(e) => { const newTheme = {...customTheme, expense: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                    <span className="text-main">Warna Latar (Background)</span>
+                    <span className="text-main font-medium">{t.themeBg}</span>
                     <input type="color" value={customTheme.bg} onChange={(e) => { const newTheme = {...customTheme, bg: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                    <span className="text-main">Warna Kartu (Card)</span>
+                    <span className="text-main font-medium">{t.themeCard}</span>
                     <input type="color" value={customTheme.cardBg} onChange={(e) => { const newTheme = {...customTheme, cardBg: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                    <span className="text-main">Warna Teks</span>
+                    <span className="text-main font-medium">{t.themeText}</span>
                     <input type="color" value={customTheme.text} onChange={(e) => { const newTheme = {...customTheme, text: e.target.value}; setCustomTheme(newTheme); pushToCloud({ customTheme: newTheme }); }} />
                 </div>
-                <button onClick={() => { setCustomTheme(DEFAULT_THEME); pushToCloud({ customTheme: DEFAULT_THEME }); }} className="w-full text-xs text-red-500 font-semibold py-2 mt-2 bg-white rounded-lg border border-red-100">Reset Tema</button>
+                <button onClick={() => { setCustomTheme(DEFAULT_THEME); pushToCloud({ customTheme: DEFAULT_THEME }); }} className="w-full text-xs text-red-500 font-bold py-2 mt-2 bg-white rounded-lg border border-red-100 shadow-sm active:scale-95 transition-transform">{t.themeReset}</button>
               </div>
             )}
             <div className="ios-list-item">
@@ -2055,7 +2078,7 @@
                   <div className="ios-handle"></div>
                   <button onClick={() => setIsWidgetModalOpen(false)} className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full text-gray-500"><X size={18} /></button>
                   <h3 className="font-bold text-xl mb-1 text-main text-center">{t.editWidget}</h3>
-                  <p className="text-xs text-gray-500 mb-6 text-center px-4">Atur batas harian dan ubah gambar background saat budget aman atau habis.</p>
+                  <p className="text-xs text-gray-500 mb-6 text-center px-4 leading-relaxed">{t.widgetDesc}</p>
                   
                   <div className="bg-gray-100 rounded-xl p-3 mb-6 flex items-center">
                       <span className="font-bold text-gray-500 w-12 text-center">{displayCurrency}</span>
@@ -2095,10 +2118,10 @@
                       </div>
                   </div>
 
-                  <button onClick={handleInstallWidget} className="w-full bg-gray-100 text-main py-3.5 rounded-xl font-semibold mb-3 text-sm flex justify-center items-center gap-2">
-                     <Download size={16} /> Tambahkan ke Layar Utama
+                  <button onClick={handleInstallWidget} className="w-full bg-gray-100 text-main py-3.5 rounded-xl font-semibold mb-3 text-sm flex justify-center items-center gap-2 shadow-sm active:scale-95 transition-transform">
+                     <Download size={16} /> {t.addToHome}
                   </button>
-                  <button onClick={() => { setIsWidgetModalOpen(false); pushToCloud({ widgetConfig }); }} className="w-full bg-theme text-white py-4 rounded-xl font-bold active:opacity-70">{t.save}</button>
+                  <button onClick={() => { setIsWidgetModalOpen(false); pushToCloud({ widgetConfig }); }} className="w-full bg-theme text-white py-4 rounded-xl font-bold active:opacity-70 shadow-lg active:scale-95 transition-transform">{t.save}</button>
                 </div>
               </div>
             )}
@@ -2208,10 +2231,23 @@
               <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-0">
                 <div className="ios-modal w-full max-w-2xl p-6 pb-12 relative animate-slide-up shadow-2xl">
                   <div className="ios-handle"></div>
-                  <button onClick={() => setIsExportModalOpen(false)} className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full text-gray-500"><X size={18} /></button>
+                  <button onClick={() => { setIsExportModalOpen(false); setExportStartDate(''); setExportEndDate(''); }} className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full text-gray-500"><X size={18} /></button>
                   <h3 className="font-bold text-lg mb-4 text-main text-center">{t.exportFileName}</h3>
-                  <input type="text" value={exportFileName} onChange={(e) => setExportFileName(e.target.value)} placeholder="mawuang_report..." className="w-full bg-gray-100 border-none rounded-xl p-4 text-main outline-none mb-6 text-center font-medium"/>
-                  <button onClick={handleExportCSV} className="w-full bg-theme text-white p-4 rounded-xl font-bold flex justify-center items-center gap-2"><Download size={16} /> {t.exportConfirm}</button>
+                  <input type="text" value={exportFileName} onChange={(e) => setExportFileName(e.target.value)} placeholder="mawuang_report..." className="w-full bg-gray-100 border-none rounded-xl p-4 text-main outline-none mb-4 text-center font-medium"/>
+                  
+                  <h4 className="text-xs font-bold text-gray-500 mb-2 text-center">{t.exportDateRange}</h4>
+                  <div className="flex gap-2 mb-6">
+                    <div className="flex-1 bg-gray-100 rounded-xl p-3">
+                      <label className="block text-[10px] font-semibold text-gray-400 mb-1 uppercase">{t.startDate}</label>
+                      <input type="date" value={exportStartDate} onChange={e => setExportStartDate(e.target.value)} className="w-full bg-transparent text-sm text-main outline-none font-medium"/>
+                    </div>
+                    <div className="flex-1 bg-gray-100 rounded-xl p-3">
+                      <label className="block text-[10px] font-semibold text-gray-400 mb-1 uppercase">{t.endDate}</label>
+                      <input type="date" value={exportEndDate} onChange={e => setExportEndDate(e.target.value)} className="w-full bg-transparent text-sm text-main outline-none font-medium"/>
+                    </div>
+                  </div>
+
+                  <button onClick={handleExportCSV} className="w-full bg-theme text-white p-4 rounded-xl font-bold flex justify-center items-center gap-2 transition-transform active:scale-95 shadow-lg"><Download size={16} /> {t.exportConfirm}</button>
                 </div>
               </div>
             )}
